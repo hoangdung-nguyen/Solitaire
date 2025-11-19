@@ -1,4 +1,4 @@
-package cardGames;
+package solitaire;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -91,95 +91,5 @@ public class Utils {
 		return Integer.toString(result, to);
 	}
 
-	public static String toString(stackState state) {
-		switch (state) {
-		case hang:
-			return "hang";
-		case pig:
-			return "pig";
-		case run:
-			return "run";
-		case same:
-			return "same";
-		}
-		return "none";
-	}
 }
 
-class UISet {
-	JButton play, pass;
-	JPanel panel, cardsPane;
-	Map<Card, JCard> cards;
-	int cardsNum;
-}
-
-/*
- * Needs: currentplayer currentStack TreeSet<Card> hand,TreeSet<Card>
- * movePlayed,stackState state,HashSet<TreeSet<Card>> moves
- */
-class ServerMessage implements Serializable {
-	private static final long serialVersionUID = 1L;
-
-	private MessageType type;
-	private Object data;
-
-	public ServerMessage(MessageType type, Object data) {
-		this.type = type;
-		this.data = data;
-	}
-
-	public MessageType getType() {
-		return type;
-	}
-
-	public Object getData() {
-		return data;
-	}
-	// readobject, writeobject
-}
-
-/*
- * Actions: send treeset send pass send login? send message
- */
-class ClientMessage implements Serializable {
-	private static final long serialVersionUID = 1L;
-
-	private MessageType type;
-	private Object data;
-
-	public ClientMessage(MessageType type, Object data) {
-		this.type = type;
-		this.data = data;
-	}
-
-	public MessageType getType() {
-		return type;
-	}
-
-	public Object getData() {
-		return data;
-	}
-}
-
-class GameState implements Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	ArrayList<Integer> handSizes;
-	int currentPlayerID;
-	stackState state;
-
-	GameState(ArrayList<Player> players, int id, stackState state) {
-		handSizes = new ArrayList<Integer>();
-		for (Player p : players) {
-			handSizes.add(p.size());
-		}
-		currentPlayerID = id;
-		this.state = state;
-	}
-
-	public String toString() {
-		return handSizes.toString() + currentPlayerID + Utils.toString(state);
-	}
-}

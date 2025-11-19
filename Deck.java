@@ -1,4 +1,4 @@
-package cardGames;
+package solitaire;
 import java.util.*;
 
 public class Deck extends Stack<Card> {

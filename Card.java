@@ -1,4 +1,4 @@
-package cardGames;
+package solitaire;
 import java.util.*;
 
 public class Card implements Comparable<Card>, java.io.Serializable {

@@ -1,4 +1,4 @@
-package cardGames;
+package solitaire;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -39,7 +39,7 @@ public class Spider extends JPanel{
 		};
 		getCards.addActionListener(e -> {
 			for(int i=0;i<10;++i) {
-				piles.get(i).add(allCards.pop());
+				piles.get(i).add(allCards.pop(),false);
 				piles.get(i).pilePane.revalidate();
 			}
 			for(int j=0;j<10;++j) System.err.println(piles.get(j));
@@ -58,7 +58,7 @@ public class Spider extends JPanel{
 		}
 		int i=0;
 		while(allCards.size()>50) {
-			piles.get(i).add(allCards.pop());
+			piles.get(i).add(allCards.pop(),allCards.size()>=60);
 			i = (i+1)%10;
 		}
 		for(int j=0;j<10;++j) System.err.println(piles.get(j));
@@ -71,11 +71,14 @@ class Pile extends ArrayList<Card> {
 	public Pile() {
 		pilePane = new PilePanel(this);
 	}
-	public boolean add(Card c) {
+	public boolean add(Card c, boolean b) {
         super.add(c);
-        pilePane.add(c);
+        pilePane.add(c,b);
         return true;
     }
+	public void getSequence() {
+		
+	}
 }
 class PilePanel extends JPanel{
 	private static final long serialVersionUID = 1L;
@@ -86,8 +89,8 @@ class PilePanel extends JPanel{
 		cards = c;
 		cardsMap = new HashMap<>();
 	}
-	public void add(Card c) {
-		JCard jc = new JCard(c);
+	public void add(Card c, boolean b) {
+		JCard jc = new JCard(c,b);
 		cardsMap.put(c, jc);
 		add(jc,0);
 	}

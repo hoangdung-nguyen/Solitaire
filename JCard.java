@@ -1,4 +1,4 @@
-package cardGames;
+package solitaire;
 import java.awt.Dimension;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -38,18 +38,26 @@ public class JCard extends JToggleButton {
 	private BufferedImage master;
 	private BufferedImage selected;
 	private BufferedImage currentImage;
+	private BufferedImage cardBack;
 	ItemListener item;
-	public boolean isSelected = false;
+	public boolean isSelected;
+	public boolean isCardBack;
 	Card card;
+	PilePanel parent;
 
 	public JCard(Card c) {
+		this(c, false);
+	}
+	public JCard(Card c, boolean b) {
 		card = c;
+		isCardBack = b;
 		this.cardImage = new ImageIcon("cards.png");
 		setBorderPainted(false);
 		setContentAreaFilled(false);
 		setFocusPainted(false);
 		master = Utils.centerImage(cardSheet.getSubimage(CARD_WIDTH * Utils.TIENLEN_RANK_ORDER.get(card.rank),
 				CARD_HEIGHT * Utils.TIENLEN_SUIT_ORDER.get(card.suit), CARD_WIDTH, CARD_HEIGHT));
+		cardBack = Utils.centerImage(cardSheet.getSubimage(CARD_WIDTH * 12, CARD_HEIGHT *3, CARD_WIDTH, CARD_HEIGHT));
 		selected = tint(master, new Color(178, 178, 178, 255));
 		currentImage = master;
 		setPreferredSize(new Dimension(100, 100));
@@ -59,15 +67,15 @@ public class JCard extends JToggleButton {
 				setIcon();
 			}
 		});
-		item = new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == 1)
-					isSelected = true;
-				else
-					isSelected = false;
-				setIcon();
-			}
-		};
+//		item = new ItemListener() {
+//			public void itemStateChanged(ItemEvent e) {
+//				if (e.getStateChange() == 1)
+//					isSelected = true;
+//				else
+//					isSelected = false;
+//				setIcon();
+//			}
+//		};
 		addItemListener(item);
 	}
 
@@ -101,7 +109,7 @@ public class JCard extends JToggleButton {
 		g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-		g2.drawImage(isSelected ? selected : currentImage, 0, 0, w, h, null);
+		g2.drawImage(isCardBack? cardBack: isSelected ? selected : currentImage, 0, 0, w, h, null);
 		g2.dispose();
 
 		super.setIcon(new ImageIcon(scaled));
