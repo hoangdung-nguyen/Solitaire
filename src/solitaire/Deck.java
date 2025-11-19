@@ -1,4 +1,4 @@
-package solitaire;
+package src.solitaire;
 import java.util.*;
 
 public class Deck extends Stack<Card> {
@@ -7,7 +7,7 @@ public class Deck extends Stack<Card> {
 		 */
 	private static final long serialVersionUID = 1L;
 
-	public Deck() {
+	/*public Deck() {
 		for (char r : Utils.TIENLEN_RANK_ORDER.keySet()) {
 			if (r == ' ') {
 				continue;
@@ -16,7 +16,7 @@ public class Deck extends Stack<Card> {
 				push(new Card(r, s));
 			}
 		}
-	}
+	}*/
 	
 	public Deck(boolean black, int num) {
 		int colors = 4;

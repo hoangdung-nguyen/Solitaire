@@ -1,4 +1,4 @@
-package solitaire;
+package src.solitaire;
 
 import java.awt.BorderLayout;
 import java.awt.Component;

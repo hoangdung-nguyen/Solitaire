@@ -1,4 +1,4 @@
-package solitaire;
+package src.solitaire;
 import java.awt.Dimension;
 import java.awt.Color;
 import java.awt.Component;

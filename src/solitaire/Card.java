@@ -1,4 +1,4 @@
-package solitaire;
+package src.solitaire;
 import java.util.*;
 
 public class Card implements Comparable<Card>, java.io.Serializable {
@@ -20,10 +20,10 @@ public class Card implements Comparable<Card>, java.io.Serializable {
 
 	@Override
 	public int compareTo(Card o) {
-		int cmp = Integer.compare(Utils.TIENLEN_RANK_ORDER.get(this.rank), Utils.TIENLEN_RANK_ORDER.get(o.rank));
+		int cmp = Integer.compare(Utils.SOLITAIRE_RANK_ORDER.get(this.rank), Utils.SOLITAIRE_RANK_ORDER.get(o.rank));
 		if (cmp != 0)
 			return cmp;
-		return Integer.compare(Utils.TIENLEN_SUIT_ORDER.get(this.suit), Utils.TIENLEN_SUIT_ORDER.get(o.suit));
+		return Integer.compare(Utils.SOLITAIRE_SUIT_ORDER.get(this.suit), Utils.SOLITAIRE_SUIT_ORDER.get(o.suit));
 	}
 
 	@Override
