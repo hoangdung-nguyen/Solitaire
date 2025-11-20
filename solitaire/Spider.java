@@ -84,18 +84,21 @@ public class Spider extends JLayeredPane{
 		jc.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
+				if(selectedCard!=null && heldPile==null && ((Pile)c.parent)!=((Pile)selectedCard.parent)) return;
 				if(heldPile!=null) {
 					remove(heldPile.pilePane);
 					heldPile = null;
 					revalidate();
 					repaint();
 				}
+				for(Pile p:piles) p.pilePane.unhighlightAllCards();
 				System.out.println("Pressed at "+((Pile)c.parent).cardsMap.get(c).card +" "+ e.getPoint());
 				ArrayList<Card> topOfPile = ((Pile)c.parent).getSameSequence();
 				System.err.println(""+topOfPile);
 				if(topOfPile.contains(c)) {
 					selectedCard = c;
 					for(int i=topOfPile.indexOf(c)-1;i>=0;--i) topOfPile.remove(i);
+					((Pile)c.parent).pilePane.highlightCards(topOfPile);
 					heldPile = new Pile(((Pile)c.parent), topOfPile);
 					System.err.println("Card is part of top: "+heldPile);
 					((Pile)c.parent).pilePane.setVisible(topOfPile,false);
@@ -112,10 +115,21 @@ public class Spider extends JLayeredPane{
 					revalidate();
 					repaint();
 				}
+				else {
+					((Pile)c.parent).pilePane.highlightCards(topOfPile);
+				}
 			}
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				System.out.println("Released at "+ c+" "+ e.getPoint());
+				Pile parentPile = ((Pile)c.parent);
+				if(selectedCard!=null && heldPile==null) {
+					System.out.println("TUCH TO MUV");
+					ArrayList<Card> topOfPile = ((Pile)selectedCard.parent).getSameSequence();					
+					for(int i=topOfPile.indexOf(selectedCard)-1;i>=0;--i) topOfPile.remove(i);
+					heldPile = new Pile(((Pile)selectedCard.parent), topOfPile);
+					parentPile = ((Pile)selectedCard.parent);
+				}
 				if(heldPile==null) return;
 				remove(heldPile.pilePane);
 				Pile hoveringOver=null;
@@ -125,7 +139,6 @@ public class Spider extends JLayeredPane{
 					}
 				}
 				System.out.println("Released at pile pile "+piles.indexOf(hoveringOver));
-				Pile parentPile = ((Pile)c.parent);
 				if(hoveringOver == null || hoveringOver == parentPile || (!hoveringOver.isEmpty() &&heldPile.getFirst().compareRank(hoveringOver.getLast()) != -1)) parentPile.pilePane.setVisible(heldPile, true);
 				else {
 					System.err.println("Moving Cards");
@@ -139,6 +152,7 @@ public class Spider extends JLayeredPane{
 					checkPile(hoveringOver);
 				}
 				heldPile = null;
+				if(hoveringOver != parentPile) selectedCard = null;
 				revalidate();
 				repaint();
 				for(int j=0;j<10;++j) System.err.println(piles.get(j));

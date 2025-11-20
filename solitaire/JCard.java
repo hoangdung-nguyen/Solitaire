@@ -44,7 +44,7 @@ public class JCard extends JToggleButton {
 	private BufferedImage currentImage;
 	private BufferedImage cardBack;
 	ItemListener item;
-	public boolean isSelected;
+	public boolean isGreyed;
 	public boolean isCardBack;
 	Card card;
 	PilePanel parent;
@@ -95,7 +95,7 @@ public class JCard extends JToggleButton {
 
 	public void deselect() {
 		this.removeItemListener(item);
-		isSelected = false;
+		isGreyed = false;
 		setIcon();
 		setFocusable(false);
 	}
@@ -113,7 +113,7 @@ public class JCard extends JToggleButton {
 		g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-		g2.drawImage(isCardBack? cardBack: isSelected ? selected : currentImage, 0, 0, w, h, null);
+		g2.drawImage(isCardBack? cardBack: isGreyed ? selected : currentImage, 0, 0, w, h, null);
 		g2.dispose();
 
 		super.setIcon(new ImageIcon(scaled));
@@ -221,6 +221,18 @@ class PilePanel extends JPanel{
 			cardsMap.get(c).setVisible(isVisible);
 		}
 		hiddenNum = hiddenNum + (isVisible?-cards.size():cards.size());
+	}
+	public void highlightCards(ArrayList<Card> highlight) {
+		for(Card c:cards) {
+			if(!cardsMap.get(c).isCardBack && highlight.indexOf(c) == -1) cardsMap.get(c).isGreyed=true;
+			cardsMap.get(c).setIcon();
+		}
+	}
+	public void unhighlightAllCards() {
+		for(Card c:cards) {
+			cardsMap.get(c).isGreyed=false;
+			cardsMap.get(c).setIcon();
+		}
 	}
 	@Override
 	public void doLayout() {
