@@ -39,6 +39,7 @@ public class Spider extends JLayeredPane{
 	Card selectedCard;
 	Pile heldPile;
 	Point clickOffset;
+	private static final int COLS = 10;
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> {
 			JFrame frame = new JFrame("Spider");
@@ -59,27 +60,27 @@ public class Spider extends JLayeredPane{
 		getCards = new JButton(new ImageIcon(JCard.cardBack)) {
 			@Override
 			public Dimension getPreferredSize() {
-				return new Dimension(getParent().getWidth()/10, (int) (getParent().getWidth()/10*JCard.getRatio()));
+				return new Dimension(getParent().getWidth()/COLS, (int) (getParent().getWidth()/COLS*JCard.getRatio()));
 			}
 		};
 		getCards.addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent e) {
-				getCards.setIcon(new ImageIcon(JCard.cardBack.getScaledInstance(getWidth()/10, (int) (getWidth()/10*JCard.getRatio()),  Image.SCALE_SMOOTH)));
+				getCards.setIcon(new ImageIcon(JCard.cardBack.getScaledInstance(getWidth()/COLS, (int) (getWidth()/COLS*JCard.getRatio()),  Image.SCALE_SMOOTH)));
 			}
 		});
 		getCards.addActionListener(e -> {
 			if(allCards.isEmpty()) return;
-			for(int i=0;i<10;++i) {
+			for(int i=0;i<COLS;++i) {
 				piles.get(i).add(allCards.pop(),false);
 				addMouseListeners(piles.get(i).getLast());
 				piles.get(i).pilePane.revalidate();
 			}
-			for(int j=0;j<10;++j) System.err.println(piles.get(j));
-
+			for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
+			if(allCards.isEmpty()) getCards.setVisible(false);
 		});
-		pilePanes = new JPanel(new GridLayout(1,10));
-		utilPane = new JPanel(new GridLayout(1,10));
+		pilePanes = new JPanel(new GridLayout(1,COLS));
+		utilPane = new JPanel(new GridLayout(1,COLS));
 		mainPane.add(pilePanes, BorderLayout.CENTER);
 		mainPane.add(utilPane, BorderLayout.SOUTH);
 		mainPane.addMouseListener(new MouseAdapter(){
@@ -96,19 +97,19 @@ public class Spider extends JLayeredPane{
 		for(int i=0;i<9;++i) utilPane.add(new JPanel(new GridLayout()) {
 			@Override
 			public Dimension getPreferredSize() {
-				return new Dimension(getWidth()/10, (int) (getWidth()/10*JCard.getRatio()));
+				return new Dimension(getWidth()/COLS, (int) (getWidth()/COLS*JCard.getRatio()));
 			}
 		});
 		utilPane.add(getCards);
 	
-		for(int i=0;i<10;++i) {
-			piles.add(new Pile());
+		for(int i=0;i<COLS;++i) {
+			piles.add(new Pile(COLS));
 			pilePanes.add(piles.get(i).pilePane);
 		}
 		int i=0;
 		while(allCards.size()>50) {
 			piles.get(i).add(allCards.pop(),allCards.size()>=60);
-			i = (i+1)%10;
+			i = (i+1)%COLS;
 		}
 		for (Pile pile:piles) {
 			for(Card c:pile) {
@@ -116,7 +117,7 @@ public class Spider extends JLayeredPane{
 			}
 		}
 		setupKeyBindings();
-		for(int j=0;j<10;++j) System.err.println(piles.get(j));
+		for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
 	}
 	
 	public void addMouseListeners(Card c) {
@@ -161,7 +162,7 @@ public class Spider extends JLayeredPane{
 					System.out.println("TUCH TO MUV");
 					ArrayList<Card> topOfPile = ((Pile)selectedCard.parent).getSameSequence();					
 					for(int i=topOfPile.indexOf(selectedCard)-1;i>=0;--i) topOfPile.remove(i);
-					heldPile = new Pile(((Pile)selectedCard.parent), topOfPile);
+					heldPile = new Pile(((Pile)selectedCard.parent), topOfPile, COLS);
 					parentPile = ((Pile)selectedCard.parent);
 				}
 				if(heldPile==null) return;
@@ -194,7 +195,7 @@ public class Spider extends JLayeredPane{
 				}
 				revalidate();
 				repaint();
-				for(int j=0;j<10;++j) System.err.println(piles.get(j));
+				for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
 
 			}
 		});
@@ -212,7 +213,7 @@ public class Spider extends JLayeredPane{
 						((Pile)c.parent).pilePane.highlightCards(topOfPile);
 						
 						// Make pile, add to drag, setsize and dolayout
-						heldPile = new Pile(((Pile)c.parent), topOfPile);
+						heldPile = new Pile(((Pile)c.parent), topOfPile, COLS);
 						System.err.println("Card is part of top: "+heldPile);
 						add(heldPile.pilePane,JLayeredPane.DRAG_LAYER);
 						
@@ -279,7 +280,7 @@ public class Spider extends JLayeredPane{
 					temp.addComponentListener(new ComponentAdapter() {
 						@Override
 						public void componentResized(ComponentEvent e) {
-							temp.setIcon(new ImageIcon(p.cardsMap.get(top.get(0)).getMasterIcon().getScaledInstance(getWidth()/10, (int) (getWidth()/10*JCard.getRatio()),  Image.SCALE_SMOOTH)));
+							temp.setIcon(new ImageIcon(p.cardsMap.get(top.get(0)).getMasterIcon().getScaledInstance(getWidth()/COLS, (int) (getWidth()/COLS*JCard.getRatio()),  Image.SCALE_SMOOTH)));
 						}
 					});
 					((JPanel)c).add(temp);
