@@ -14,6 +14,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
@@ -51,9 +52,9 @@ public class JCard extends JToggleButton {
 	public JCard(Card c) {
 		this(c, false);
 	}
-	public JCard(Card c, boolean b) {
+	public JCard(Card c, boolean isCardBack) {
 		card = c;
-		isCardBack = b;
+		this.isCardBack = isCardBack;
 		this.cardImage = new ImageIcon("cards.png");
 		setBorderPainted(false);
 		setContentAreaFilled(false);
@@ -70,16 +71,16 @@ public class JCard extends JToggleButton {
 				setIcon();
 			}
 		});
-		item = new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == 1)
-					isSelected = true;
-				else
-					isSelected = false;
-				setIcon();
-			}
-		};
-		addItemListener(item);
+//		item = new ItemListener() {
+//			public void itemStateChanged(ItemEvent e) {
+//				if (e.getStateChange() == 1)
+//					isSelected = true;
+//				else
+//					isSelected = false;
+//				setIcon();
+//			}
+//		};
+//		addItemListener(item);
 	}
 
 	public static double getRatio() {
@@ -99,7 +100,7 @@ public class JCard extends JToggleButton {
 		setFocusable(false);
 	}
 
-	private void setIcon() {
+	void setIcon() {
 		int w = getWidth();
 		int h = getHeight();
 		if (h < 2 && w < 2)
@@ -178,6 +179,10 @@ public class JCard extends JToggleButton {
 	public void addClickListener(ActionListener listener) {
 		this.addActionListener(listener);
 	}
+	public void select() {
+		// TODO Auto-generated method stub
+		
+	}
 }
 
 class PilePanel extends JPanel{
@@ -185,14 +190,37 @@ class PilePanel extends JPanel{
 	Pile cards;
 	HashMap<Card, JCard> cardsMap;
 	static int cardWidth, cardHeight;
+	int hiddenNum=0;
 	public PilePanel(Pile c) {
 		cards = c;
 		cardsMap = new HashMap<>();
+		setOpaque(false);
 	}
-	public void add(Card c, boolean b) {
-		JCard jc = new JCard(c,b);
+	/**adding card with existing JCard*/
+	public void add(Card c, JCard jc) {
 		cardsMap.put(c, jc);
 		add(jc,0);
+	}
+	/** adding card with non-existing JCard, with the option to make it be flipped by default */
+	public void add(Card c, boolean isCardBack) {
+		JCard jc = new JCard(c,isCardBack);
+		add(c,jc);
+	}
+	/** adding card with non-existing JCard, */
+	public void add(Card c) {
+		JCard jc = new JCard(c);
+		add(c,jc);
+	}
+	public void remove(Card c) {
+		if(!cardsMap.get(c).isVisible()) --hiddenNum;
+		remove(cardsMap.get(c));
+	}
+	public void setVisible(ArrayList<Card> cards, boolean isVisible) {
+		System.out.println("Setting visibility!");
+		for(Card c:cards) {
+			cardsMap.get(c).setVisible(isVisible);
+		}
+		hiddenNum = hiddenNum + (isVisible?-cards.size():cards.size());
 	}
 	@Override
 	public void doLayout() {
@@ -204,7 +232,7 @@ class PilePanel extends JPanel{
 			cardWidth = h;
 			cardHeight = (int) (cardWidth * JCard.getRatio());
 		}
-		int overlap = Math.min(cardHeight / 5, (h - cardHeight) / cards.size());
+		int overlap = Math.min(cardHeight / 5, (h - cardHeight) / Math.max(1,(cards.size()-hiddenNum)));
 		int i = 0;
 		for(Component comp : getComponents())
 			if(comp instanceof JCard)
