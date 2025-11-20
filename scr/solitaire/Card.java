@@ -4,6 +4,10 @@ import java.awt.event.MouseMotionListener;
 import java.util.*;
 
 public class Card /*implements Comparable<Card>, java.io.Serializable*/ {
+	/**
+		 * 
+		 */
+	private static final long serialVersionUID = 1L;
 	char rank;
 	char suit; // 0=spade 1=club 2=diamond 3=heart
 	Collection<Card> parent; // Card keeps what it is a part of.
@@ -76,14 +80,14 @@ class Pile extends ArrayList<Card> {
 	private static final long serialVersionUID = 1L;
 	PilePanel pilePane;
 	HashMap<Card,JCard> cardsMap;
-	public Pile() {
-		pilePane = new PilePanel(this);
+	public Pile(int cols) {
+		pilePane = new PilePanel(this, cols);
 		cardsMap = pilePane.cardsMap;
 	}
 	//make subpile only consisting of the cards in the arrayList. Only call on cards that is sub array of pile.
-	public Pile(Pile pile, ArrayList<Card> cards) {
+	public Pile(Pile pile, ArrayList<Card> cards, int cols) {
 		super(cards);
-		pilePane = new PilePanel(this);
+		pilePane = new PilePanel(this, cols);
 		cardsMap = pilePane.cardsMap;
 		for(Card c:cards) {
 			pilePane.add(c);
@@ -135,10 +139,28 @@ class Pile extends ArrayList<Card> {
 		Collections.reverse(out);
 		return out;
 	}	
+	
 	public ArrayList<Card> getSameSuitSequence() {
 		ArrayList<Card> out = new ArrayList<Card>();
+		out.add(getLast());
 		for(int i=size()-2;i>=0;--i) {
+			if(cardsMap.get(get(i)).isCardBack) break;
+			if(Card.compareRank(get(i+1), get(i)) != -1 || !Card.isSameSuit(get(i), get(i+1))) break;
+			out.add(get(i));			
 		}
+		Collections.reverse(out);
+		return out;	
+	}
+	
+	public ArrayList<Card> getAlternatingSequence(){
+		ArrayList<Card> out = new ArrayList<Card>();
+		out.add(getLast());
+		for(int i=size()-2;i>=0;--i) {
+			if(cardsMap.get(get(i)).isCardBack) break;
+			if(Card.compareRank(get(i+1), get(i)) != -1 || Card.isSameColor(get(i), get(i+1))) break;
+			out.add(get(i));			
+		}
+		Collections.reverse(out);
 		return out;
 	}
 }

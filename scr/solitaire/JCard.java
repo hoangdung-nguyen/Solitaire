@@ -182,10 +182,13 @@ public class JCard extends JToggleButton {
 
 class PilePanel extends JPanel{
 	private static final long serialVersionUID = 1L;
+	private final int COLS;
 	Pile cards;
 	HashMap<Card, JCard> cardsMap;
 	static int cardWidth, cardHeight;
-	public PilePanel(Pile c) {
+	/** cols is how many piles it will be placed next to */
+	public PilePanel(Pile c, int cols) {
+		COLS = cols;
 		cards = c;
 		cardsMap = new HashMap<>();
 		setOpaque(false);
@@ -246,6 +249,6 @@ class PilePanel extends JPanel{
 	}
 	@Override
 	public Dimension getPreferredSize() {
-		return new Dimension(getParent().getWidth()/10, getParent().getHeight());
+		return new Dimension(getParent().getWidth()/COLS, getParent().getHeight());
 	}
 }

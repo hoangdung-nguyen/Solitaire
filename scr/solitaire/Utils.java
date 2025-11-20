@@ -6,7 +6,18 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+enum stackState implements Serializable {
+	same, run, pig, hang, none,
+}
+
+enum MessageType {
+	JOIN, PLAY, PASS, UPDATE, DISCONNECT, PLACE, CHAT
+}
+
 public class Utils {
+	final static Card LOWEST_CARD = new Card('3', 's');
+	static final int MAX_PLAYERS = 4;
+	static final int CARDS_PER_PLAYER = 13;
 	static final HashMap<Character, Integer> TIENLEN_RANK_ORDER = new HashMap<>();
 	static {
 		char[] rankOrder = { '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K', '1', ' ', '2' };
@@ -23,7 +34,18 @@ public class Utils {
 	}
 	static final List<Character> SOLITAIRE_RANK_ORDER = Arrays.asList(new Character[]{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K'});
 	static final List<Character> SOLITAIRE_SUIT_ORDER = Arrays.asList(new Character[]{ 's', 'c', 'd', 'h' });
+	private static final String SYMBOLS = "0123456789abcdefghijklmnopqrstuvwxyz";
 
+	public static int toDecimal(String number, int from) {
+		int result = 0;
+		int position = number.length();
+		for (char ch : number.toCharArray()) {
+			int value = SYMBOLS.indexOf(ch);
+			result += value * Math.pow(from, --position);
+		}
+		return result;
+	}
+	
 	public static BufferedImage centerImage(BufferedImage src) {
 		int w = src.getWidth();
 		int h = src.getHeight();
@@ -53,6 +75,15 @@ public class Utils {
 		return centered;
 	}
 	
+	public static String changeBase(String number, int from, int to) {
+		int result = 0;
+		int position = number.length();
+		for (char ch : number.toCharArray()) {
+			int value = SYMBOLS.indexOf(ch);
+			result += value * Math.pow(from, --position);
+		}
+		return Integer.toString(result, to);
+	}
 
 }
 
