@@ -124,8 +124,12 @@ class Pile extends ArrayList<Card> {
 	public boolean removeAll(ArrayList<Card> pile) {
 		for(Card c:pile) {
 			remove(c);
-			pilePane.remove(c);
 		}
+		return true;
+	}
+	public boolean remove(Card c) {
+		super.remove(c);
+		pilePane.remove(c);
 		return true;
 	}
 	public ArrayList<Card> getSameSequence() {

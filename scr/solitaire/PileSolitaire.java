@@ -21,7 +21,7 @@ import javax.swing.SwingUtilities;
 
 public abstract class PileSolitaire extends JLayeredPane{
 	private static final long serialVersionUID = 1L;
-	protected int COLS = 8;
+	protected int COLS;
 	protected int difficulty;
 
 	Deck allCards;
@@ -191,7 +191,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 					System.err.println(""+topOfPile);
 					if(topOfPile.contains(c)) {
 						selectedCard = c;
-						for(int i=topOfPile.indexOf(c)-1;i>=0;--i) topOfPile.remove(i);
+						topOfPile.subList(0,topOfPile.indexOf(c)).clear();
 						((Pile)c.parent).pilePane.highlightCards(topOfPile);
 						
 						// Make pile, add to drag, setsize and dolayout
@@ -232,29 +232,40 @@ public abstract class PileSolitaire extends JLayeredPane{
 		actionMap.put("Undo", new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(selectedCard!=null) ((Pile)selectedCard.parent).pilePane.unhighlightAllCards();
-				heldPile = null;
-				selectedCard = null;
-				if(!pastMoves.isEmpty()) {
-					PileMove move = pastMoves.getLast();
-					if(move.clearedStack!=null) {
-						for(Card c:move.clearedStack) {
-							move.movedTo.add(c);
-						}
-					}
-					if(move.flipped!=null) {
-						move.movedFrom.cardsMap.get(move.flipped).isCardBack = true;
-						move.movedFrom.cardsMap.get(move.flipped).setIcon();
-					}
-					move.movedTo.removeAll(move.cardsMoved);
-					move.movedFrom.addAll(move.cardsMoved);
-					pastMoves.pop();
-					revalidate();
-					repaint();
-				}
+				undoLastMove();
 			}
 		});
 	}
+	
+	private void undoLastMove() {
+		if(selectedCard!=null) ((Pile)selectedCard.parent).pilePane.unhighlightAllCards();
+		heldPile = null;
+		selectedCard = null;
+		if(!pastMoves.isEmpty()) {
+			PileMove move = pastMoves.getLast();
+			if(move.drawMove) {
+				undoDrawMove();
+				return;
+			}
+			if(move.clearedStack!=null) {
+				for(Card c:move.clearedStack) {
+					move.movedTo.add(c);
+				}
+			}
+			if(move.flipped!=null) {
+				move.movedFrom.cardsMap.get(move.flipped).isCardBack = true;
+				move.movedFrom.cardsMap.get(move.flipped).setIcon();
+			}
+			move.movedTo.removeAll(move.cardsMoved);
+			move.movedFrom.addAll(move.cardsMoved);
+			pastMoves.pop();
+			revalidate();
+			repaint();
+		}
+	}
+	
+	protected abstract void undoDrawMove();
+	
 	protected abstract ArrayList<Card> getSequence(Pile parent);
 
 	protected abstract boolean isRestricted(Pile p);
@@ -295,7 +306,6 @@ public abstract class PileSolitaire extends JLayeredPane{
 		return -1;
 	}
 	
-	// Custom Layout, main is fullscreen, if w>h, utilPane is on top
 	@Override
 	public void doLayout() {
 		mainPane.setBounds(0, 0, getWidth(), getHeight());
@@ -309,10 +319,14 @@ class PileMove{
 	Pile movedTo;
 	ArrayList<Card> clearedStack;
 	Card flipped;
+	boolean drawMove;
 	public PileMove(ArrayList<Card> cards, Pile from, Pile to) {
 		cardsMoved = cards;
 		movedFrom = from;
 		movedTo = to;
+	}
+	public PileMove(boolean draw) {
+		drawMove = draw;
 	}
 }
 

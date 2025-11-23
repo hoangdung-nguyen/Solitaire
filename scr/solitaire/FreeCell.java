@@ -107,6 +107,11 @@ public class FreeCell extends PileSolitaire{
 				++out;
 		return out;
 	}
+	@Override
+	protected void undoDrawMove() {
+		// TODO Auto-generated method stub
+		
+	}
 
 }
 

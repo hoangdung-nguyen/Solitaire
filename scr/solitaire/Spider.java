@@ -54,11 +54,13 @@ public class Spider extends PileSolitaire{
 		});
 		getCards.addActionListener(e -> {
 			if(allCards.isEmpty()) return;
+			pastMoves.add(new PileMove(true));
 			for(int i=0;i<COLS;++i) {
 				piles.get(i).add(allCards.pop(),false);
-				addMouseListeners(piles.get(i).getLast());
-				piles.get(i).pilePane.revalidate();
+				if(piles.get(i).cardsMap.get(piles.get(i).getLast()).getMouseListeners().length==0)addMouseListeners(piles.get(i).getLast());
 			}
+			revalidate();
+			repaint();
 			for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
 			if(allCards.isEmpty()) getCards.setVisible(false);
 		});
@@ -146,6 +148,16 @@ public class Spider extends PileSolitaire{
 			mainPane.remove(utilPane);
 			mainPane.add(utilPane, BorderLayout.SOUTH);
 		}
+	}
+	@Override
+	protected void undoDrawMove() {
+		for (int i=9; i>=0;i--) {
+			Card c = piles.get(i).getLast();
+			allCards.push(c);
+			piles.get(i).remove(c);
+		}
+		revalidate();
+		repaint();
 	}
 
 
