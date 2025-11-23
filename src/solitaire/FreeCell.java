@@ -1,0 +1,117 @@
+package solitaire;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.Point;
+import java.util.ArrayList;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
+public class FreeCell extends PileSolitaire{
+	private static final long serialVersionUID = 1L;
+	ArrayList<Pile> utilPiles;
+
+	public static void main(String[] args) {
+		SwingUtilities.invokeLater(() -> {
+			JFrame frame = new JFrame("FreeCell");
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.setSize(800,600);
+			frame.add(new FreeCell());
+			frame.setVisible(true);
+		});
+	}
+	public FreeCell(){
+		super(8,0);
+		utilPane = new JPanel(new GridLayout(1,COLS)) {
+			@Override
+			public Dimension getPreferredSize() {
+				return new Dimension(getParent().getWidth(), (int) (getParent().getWidth()/COLS * JCard.getRatio()));
+			}
+		};
+		mainPane.add(utilPane, BorderLayout.NORTH);
+		utilPiles = new ArrayList<>();
+		for(int i=0;i<COLS;++i) {
+			utilPiles.add(new Pile(COLS));
+			utilPane.add(utilPiles.get(i).pilePane);
+			addMouseListeners(utilPiles.get(i));
+		}
+	}
+	@Override
+	protected void makeDeck() {
+		allCards = new Deck();
+	}
+	@Override
+	protected void placeCards() {
+		int i=0;
+		while(!allCards.isEmpty()) {
+			piles.get(i).add(allCards.pop(), false);
+			i = (i+1)%COLS;
+		}
+	}
+	@Override
+	protected boolean isRestricted(Pile p) {
+		return pilesIndexOf(utilPiles, p) > 3;
+	}
+	@Override
+	protected ArrayList<Card> getSequence(Pile parent) {
+		return parent.getAlternatingSequence(getMoveLength());
+	}
+	@Override
+	protected Pile getHoveringOver(Point point) {
+		for (Pile p:piles)
+			if(p.pilePane.getBounds().contains(SwingUtilities.convertPoint(this, point, pilePanes)))
+				return p;
+		for (Pile p:utilPiles)
+			if(p.pilePane.getBounds().contains(SwingUtilities.convertPoint(this, point, utilPane)))
+				return p;
+		return null;
+	}
+	@Override
+	protected boolean isValidMove(Pile held, Pile from, Pile to) {
+		System.out.println("EValuating putting "+held+" from "+from+" to "+to+" index "+utilPiles.indexOf(to));
+		if(to == null || to == from) 
+			return false;
+		else if(pilesIndexOf(utilPiles, to) > -1) {
+			if(held.size()!=1) return false;
+			if(pilesIndexOf(utilPiles, to) < 4) {
+				if(to.isEmpty()) return true;
+				else return false;
+			}
+			else {
+				if(to.isEmpty()) {
+					if(held.getFirst().rank != '1') return false; 
+					else return true;
+				}
+				if(held.getFirst().compareRank(to.getLast()) == 1 && held.getFirst().isSameSuit(to.getLast())) return true;
+			}
+			return false;
+		}
+		if (to.isEmpty()) return true;
+		if(held.getFirst().compareRank(to.getLast()) == -1 && !held.getFirst().isSameColor(to.getLast())) return true;
+		return false;
+	}
+	@Override
+	protected void afterMoveChecks(PileMove move) {
+		checkPileTop(move.movedFrom);
+		checkWin();
+	}
+	protected int getMoveLength() {
+		int out=1;
+		for (Pile p:piles) 
+			if(p.isEmpty()) 
+				++out;
+		for (int i =0;i<4;++i) 
+			if(utilPiles.get(i).isEmpty()) 
+				++out;
+		return out;
+	}
+	@Override
+	protected void undoDrawMove() {
+		// TODO Auto-generated method stub
+		
+	}
+
+}
+
