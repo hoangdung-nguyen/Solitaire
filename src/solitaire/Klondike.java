@@ -9,9 +9,6 @@ import javax.swing.SwingUtilities;
 public class Klondike extends PileSolitaire{
 	private static final long serialVersionUID = 1L;
 	Deck stock;
-	ArrayList<Pile> piles;  //
-	JPanel pilePanes, utilPane, foundationPanes;
-	JButton stockDrawButton;    //button to draw from the stock
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> {
 			JFrame frame = new JFrame("Klondike");
@@ -23,27 +20,6 @@ public class Klondike extends PileSolitaire{
 	}
 	public Klondike(){
 		super(7,1);
-		stock = new Deck();
-		stock.shuffle();
-		piles = new ArrayList<Pile>();
-
-		pilePanes = new JPanel(new GridLayout(1,7));
-		utilPane = new JPanel(new GridLayout(1,7));
-		add(pilePanes, BorderLayout.CENTER);
-		add(utilPane, BorderLayout.NORTH);
-		utilPane.add(stockDrawButton);
-		for(int i=0;i<9;++i) utilPane.add(new JPanel());
-		
-		for(int i=0;i<7;++i) {
-			//piles.add(new Pile());
-			pilePanes.add(piles.get(i).pilePane);
-		}
-		int i=0;
-		while(stock.size()>50) {
-			piles.get(i).add(stock.pop(),true);
-			i = (i+1)%10;
-		}
-		for(int j=0;j<10;++j) System.err.println(piles.get(j));
 	}
 
     @Override

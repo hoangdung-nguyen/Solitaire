@@ -40,13 +40,13 @@ public class FreeCell extends PileSolitaire{
 	}
 	@Override
 	protected void makeDeck() {
-		allCards = new Deck();
+		stock = new Deck();
 	}
 	@Override
 	protected void placeCards() {
 		int i=0;
-		while(!allCards.isEmpty()) {
-			piles.get(i).add(allCards.pop(), false);
+		while(!stock.isEmpty()) {
+			piles.get(i).add(stock.pop(), false);
 			i = (i+1)%COLS;
 		}
 	}

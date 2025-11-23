@@ -24,7 +24,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 	protected int COLS;
 	protected int difficulty;
 
-	Deck allCards;
+	Deck stock;
 	ArrayList<Pile> piles;
 	Stack<PileMove> pastMoves;
 	JPanel pilePanes,utilPane, mainPane;
@@ -41,7 +41,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 		mainPane = new JPanel(new BorderLayout());
 		add(mainPane,JLayeredPane.DEFAULT_LAYER);
 		makeDeck();
-		allCards.shuffle();
+		stock.shuffle();
 		piles = new ArrayList<Pile>();
 		
 		pilePanes = new JPanel(new GridLayout(1,COLS));
@@ -297,7 +297,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 	}
 	protected void checkWin() {
 		for(Pile p:piles) if(!p.isEmpty()) return;
-		if(!allCards.isEmpty()) return;
+		if(!stock.isEmpty()) return;
 		System.out.println("YOU WINNNNNNN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 		System.exit(0);
 	}

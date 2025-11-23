@@ -53,16 +53,16 @@ public class Spider extends PileSolitaire{
 			}
 		});
 		getCards.addActionListener(e -> {
-			if(allCards.isEmpty()) return;
+			if(stock.isEmpty()) return;
 			pastMoves.add(new PileMove(true));
 			for(int i=0;i<COLS;++i) {
-				piles.get(i).add(allCards.pop(),false);
+				piles.get(i).add(stock.pop(),false);
 				if(piles.get(i).cardsMap.get(piles.get(i).getLast()).getMouseListeners().length==0)addMouseListeners(piles.get(i).getLast());
 			}
 			revalidate();
 			repaint();
 			for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
-			if(allCards.isEmpty()) getCards.setVisible(false);
+			if(stock.isEmpty()) getCards.setVisible(false);
 		});
 		utilPane.add(getCards);
 	}
@@ -71,15 +71,15 @@ public class Spider extends PileSolitaire{
 	
 	@Override
 	protected void makeDeck() {
-		if(difficulty == 1) allCards = new Deck(true, 4);
-		else allCards = new Deck(2);
+		if(difficulty == 1) stock = new Deck(true, 4);
+		else stock = new Deck(2);
 	}
 	
 	@Override
 	protected void placeCards() {
 		int i=0;
-		while(allCards.size()>50) {
-			piles.get(i).add(allCards.pop(),allCards.size()>59);
+		while(stock.size()>50) {
+			piles.get(i).add(stock.pop(), stock.size()>59);
 			i = (i+1)%COLS;
 		}
 	}
@@ -153,7 +153,7 @@ public class Spider extends PileSolitaire{
 	protected void undoDrawMove() {
 		for (int i=9; i>=0;i--) {
 			Card c = piles.get(i).getLast();
-			allCards.push(c);
+			stock.push(c);
 			piles.get(i).remove(c);
 		}
 		revalidate();
