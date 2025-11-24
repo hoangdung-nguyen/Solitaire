@@ -105,40 +105,47 @@ class Pile extends ArrayList<Card> {
 				cardsMap.get(c).addMouseListener(m);
 		}
 	}
+    /** A bare bones add that does not make an accompanying JCard */
 	public boolean add(Card c) {
         c.parent=this;
         return super.add(c);
     }
+    /** add a card as well as its jcard */
 	public boolean add(Card c, boolean b) {
         add(c);
         pilePane.add(c,b);
         return true;
-    }	
+    }
+    /** add all cards in the pile, assuming there is a preexisting JCard in the pile */
 	public boolean addAll(Pile pile) {
 		for(Card c:pile) {
 			add(c);
 			pilePane.add(c, pile.pilePane.cardsMap.get(c));
 		}
 		return true;
-	}	
-	public boolean addAll(ArrayList<Card> pile) {
+	}
+    /** add all cards in the pile, making the JCard */
+    public boolean addAll(ArrayList<Card> pile) {
 		for(Card c:pile) {
 			add(c);
 			pilePane.add(c);
 		}
 		return true;
 	}
+    /** remove all cards in pile */
 	public boolean removeAll(ArrayList<Card> pile) {
 		for(Card c:pile) {
 			remove(c);
 		}
 		return true;
 	}
+    /** remove one card */
 	public boolean remove(Card c) {
 		super.remove(c);
 		pilePane.remove(c);
 		return true;
 	}
+    /** check from top of pile, going down, returning up to which it makes a descending sequence of the same color */
 	public ArrayList<Card> getSameSequence() {
 		ArrayList<Card> out = new ArrayList<Card>();
 		out.add(getLast());
@@ -149,9 +156,9 @@ class Pile extends ArrayList<Card> {
 		}
 		Collections.reverse(out);
 		return out;
-	}	
-	
-	public ArrayList<Card> getSameSuitSequence() {
+	}
+    /** check from top of pile, going down, returning up to which it makes a descending sequence of the same suit */
+    public ArrayList<Card> getSameSuitSequence() {
 		ArrayList<Card> out = new ArrayList<Card>();
 		out.add(getLast());
 		for(int i=size()-2;i>=0;--i) {
@@ -162,8 +169,8 @@ class Pile extends ArrayList<Card> {
 		Collections.reverse(out);
 		return out;	
 	}
-	
-	public ArrayList<Card> getAlternatingSequence(){
+    /** check from top of pile, going down, returning up to which it makes a descending sequence of the alternating color */
+    public ArrayList<Card> getAlternatingSequence(){
 		ArrayList<Card> out = new ArrayList<Card>();
 		out.add(getLast());
 		for(int i=size()-2;i>=0;--i) {
@@ -173,8 +180,9 @@ class Pile extends ArrayList<Card> {
 		}
 		Collections.reverse(out);
 		return out;
-	}	
-	public ArrayList<Card> getAlternatingSequence(int maxLength){
+	}
+    /** check from top of pile, going down, returning up to which it makes a descending sequence of the alternating color, limiting to the maxLength */
+    public ArrayList<Card> getAlternatingSequence(int maxLength){
 		ArrayList<Card> out = new ArrayList<Card>();
 		out.add(getLast());
 		--maxLength;

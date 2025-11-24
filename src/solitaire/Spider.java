@@ -114,7 +114,7 @@ public class Spider extends PileSolitaire{
 	}
 	
 	@Override
-	protected void afterMoveChecks(PileMove move) {
+	protected void afterMoveChecks(PileMove move) {endGame();
 		checkPile(move.movedTo);
 		checkPileTop(move.movedFrom);
 	}
@@ -165,13 +165,12 @@ public class Spider extends PileSolitaire{
 	}
 	@Override
 	protected void undoDrawMove() {
+        if(stock.isEmpty()) getCards.setVisible(true);
 		for (int i=9; i>=0;i--) {
 			Card c = piles.get(i).getLast();
 			stock.push(c);
 			piles.get(i).remove(c);
 		}
-		revalidate();
-		repaint();
 	}
 
 

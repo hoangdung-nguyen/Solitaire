@@ -1,26 +1,13 @@
 package solitaire;
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
-import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.*;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Stack;
 
 import javax.sound.sampled.*;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JLayeredPane;
-import javax.swing.JPanel;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 
 public abstract class PileSolitaire extends JLayeredPane{
 	private static final long serialVersionUID = 1L;
@@ -265,19 +252,31 @@ public abstract class PileSolitaire extends JLayeredPane{
 			PileMove move = pastMoves.getLast();
 			if(move.drawMove) {
 				undoDrawMove();
-				return;
 			}
-			if(move.clearedStack!=null) {
-				for(Card c:move.clearedStack) {
-					move.movedTo.add(c);
-				}
-			}
-			if(move.flipped!=null) {
-				move.movedFrom.cardsMap.get(move.flipped).isFaceDown = true;
-				move.movedFrom.cardsMap.get(move.flipped).setIcon();
-			}
-			move.movedTo.removeAll(move.cardsMoved);
-			move.movedFrom.addAll(move.cardsMoved);
+			else {
+                if (move.fromFlipped != null) {
+                    move.movedFrom.cardsMap.get(move.fromFlipped).isFaceDown = true;
+                    move.movedFrom.cardsMap.get(move.fromFlipped).setIcon();
+                }
+                if (move.clearedStack != null) {
+                    for (Card c : move.clearedStack) {
+                        move.movedTo.add(c);
+                    }
+                    JPanel labelContainer = null;
+                    for(Component c:utilPane.getComponents()) {
+                        if(c instanceof JPanel && ((JPanel) c).getComponents().length != 0) {
+                            labelContainer = (JPanel) c;
+                        }
+                    }
+                    labelContainer.remove(0);
+                }
+                if (move.toFlipped != null) {
+                    move.movedTo.cardsMap.get(move.toFlipped).isFaceDown = true;
+                    move.movedTo.cardsMap.get(move.toFlipped).setIcon();
+                }
+                move.movedTo.removeAll(move.cardsMoved);
+                move.movedFrom.addAll(move.cardsMoved);
+            }
 			pastMoves.pop();
 			revalidate();
 			repaint();
@@ -323,7 +322,10 @@ public abstract class PileSolitaire extends JLayeredPane{
 			System.out.println("REVEALING CARD "+ pile.cardsMap.get(pile.getLast()));
 			pile.cardsMap.get(pile.getLast()).isFaceDown = false;
 			pile.cardsMap.get(pile.getLast()).setIcon();
-			pastMoves.getLast().flipped = pile.getLast();
+            if(pile == pastMoves.getLast().movedFrom)
+                pastMoves.getLast().fromFlipped = pile.getLast();
+            if(pile == pastMoves.getLast().movedTo)
+                pastMoves.getLast().toFlipped = pile.getLast();
 		}
 	}
 
@@ -350,7 +352,7 @@ class PileMove{
 	Pile movedFrom;
 	Pile movedTo;
 	ArrayList<Card> clearedStack;
-	Card flipped;
+	Card fromFlipped, toFlipped;
 	boolean drawMove;
 	public PileMove(ArrayList<Card> cards, Pile from, Pile to) {
 		cardsMoved = cards;

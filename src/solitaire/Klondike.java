@@ -34,18 +34,15 @@ public class Klondike extends PileSolitaire{
 
     @Override
     protected void makeDeck() {
-        stock = new Deck(false,1);
+        stock = new Deck(1);
     }
 
     @Override
     protected void placeCards() {
         for(int i = 0; i < COLS; ++i)
         {
-            for(int j = 0; j < i; ++j)
-                if(j == i-1)
-                    piles.get(i).add(stock.pop(),true);
-                else
-                    piles.get(i).add(stock.pop(), false);
+            for(int j = 0; j <= i; ++j)
+                piles.get(i).add(stock.pop(),j != i);
         }
     }
 
