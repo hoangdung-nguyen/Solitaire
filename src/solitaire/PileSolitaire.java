@@ -7,9 +7,12 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Stack;
 
+import javax.sound.sampled.*;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
@@ -23,8 +26,25 @@ public abstract class PileSolitaire extends JLayeredPane{
 	private static final long serialVersionUID = 1L;
 	protected int COLS;
 	protected int difficulty;
+    static AudioInputStream winAudio;
+    static Clip clip;
 
-	Deck stock;
+    static {
+        try {
+            winAudio = AudioSystem.getAudioInputStream(new File("winnersound.wav"));
+        } catch (UnsupportedAudioFileException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            clip = AudioSystem.getClip();
+        } catch (LineUnavailableException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    Deck stock;
 	ArrayList<Pile> piles;
 	Stack<PileMove> pastMoves;
 	JPanel pilePanes,utilPane, mainPane;
@@ -253,7 +273,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 				}
 			}
 			if(move.flipped!=null) {
-				move.movedFrom.cardsMap.get(move.flipped).isCardBack = true;
+				move.movedFrom.cardsMap.get(move.flipped).isFaceDown = true;
 				move.movedFrom.cardsMap.get(move.flipped).setIcon();
 			}
 			move.movedTo.removeAll(move.cardsMoved);
@@ -276,6 +296,17 @@ public abstract class PileSolitaire extends JLayeredPane{
 
 	protected abstract void afterMoveChecks(PileMove move);
 
+    protected abstract void checkWin();
+
+    protected void endGame(){
+        System.out.println("YOU WINNNNNNN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        try {
+            if(!clip.isOpen()) clip.open(winAudio);
+        } catch (LineUnavailableException | IOException e) {
+            throw new RuntimeException(e);
+        }
+        clip.start();
+    }
 	/** move them over, check for any changes in the pile */
 	private void makeMove(Pile held, Pile from, Pile to) {
 		// move them over, check for any changes in the pile
@@ -288,19 +319,14 @@ public abstract class PileSolitaire extends JLayeredPane{
 	}
 	/** Checking if the pile has a flipped card on top, then flipping it if there is */
 	protected void checkPileTop(Pile pile) {
-		if(!pile.isEmpty() && pile.cardsMap.get(pile.getLast()).isCardBack) {
+		if(!pile.isEmpty() && pile.cardsMap.get(pile.getLast()).isFaceDown) {
 			System.out.println("REVEALING CARD "+ pile.cardsMap.get(pile.getLast()));
-			pile.cardsMap.get(pile.getLast()).isCardBack = false;
+			pile.cardsMap.get(pile.getLast()).isFaceDown = false;
 			pile.cardsMap.get(pile.getLast()).setIcon();
 			pastMoves.getLast().flipped = pile.getLast();
 		}
 	}
-	protected void checkWin() {
-		for(Pile p:piles) if(!p.isEmpty()) return;
-		if(!stock.isEmpty()) return;
-		System.out.println("YOU WINNNNNNN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-		System.exit(0);
-	}
+
 	protected int pilesIndexOf(ArrayList<Pile> piles, Pile p) {
 		for (int i=0;i<piles.size();++i) if (piles.get(i) == p) return i;
 		return -1;

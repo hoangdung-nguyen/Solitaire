@@ -1,5 +1,6 @@
 package solitaire;
 import java.awt.*;
+import java.io.Serial;
 import java.util.ArrayList;
 
 import javax.swing.JButton;

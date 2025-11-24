@@ -7,6 +7,8 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 
 import javax.swing.ImageIcon;
@@ -57,7 +59,11 @@ public class Spider extends PileSolitaire{
 			pastMoves.add(new PileMove(true));
 			for(int i=0;i<COLS;++i) {
 				piles.get(i).add(stock.pop(),false);
-				if(piles.get(i).cardsMap.get(piles.get(i).getLast()).getMouseListeners().length==0)addMouseListeners(piles.get(i).getLast());
+                for(MouseListener m:piles.get(i).cardsMap.get(piles.get(i).getLast()).getMouseListeners())
+                    piles.get(i).cardsMap.get(piles.get(i).getLast()).removeMouseListener(m);
+                for(MouseMotionListener m:piles.get(i).cardsMap.get(piles.get(i).getLast()).getMouseMotionListeners())
+                    piles.get(i).cardsMap.get(piles.get(i).getLast()).removeMouseMotionListener(m);
+                addMouseListeners(piles.get(i).getLast());
 			}
 			revalidate();
 			repaint();
@@ -112,7 +118,15 @@ public class Spider extends PileSolitaire{
 		checkPile(move.movedTo);
 		checkPileTop(move.movedFrom);
 	}
-	/** Checking if the pile has a full A-K on top, then removing it and adding an indicatpr if ther is */
+
+    @Override
+    protected void checkWin() {
+        for(Pile p:piles) if(!p.isEmpty()) return;
+        if(!stock.isEmpty()) return;
+        endGame();
+    }
+
+    /** Checking if the pile has a full A-K on top, then removing it and adding an indicatpr if ther is */
 	protected void checkPile(Pile p) {
 		ArrayList<Card> top = getSequence(p);
 		if(top.size() > 12) {

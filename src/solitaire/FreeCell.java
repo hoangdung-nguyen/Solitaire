@@ -81,23 +81,28 @@ public class FreeCell extends PileSolitaire{
 			}
 			else {
 				if(to.isEmpty()) {
-					if(held.getFirst().rank != '1') return false; 
-					else return true;
+					return held.getFirst().rank != '1';
 				}
-				if(held.getFirst().compareRank(to.getLast()) == 1 && held.getFirst().isSameSuit(to.getLast())) return true;
+				return held.getFirst().compareRank(to.getLast()) == 1 && held.getFirst().isSameSuit(to.getLast());
 			}
-			return false;
 		}
 		if (to.isEmpty()) return true;
-		if(held.getFirst().compareRank(to.getLast()) == -1 && !held.getFirst().isSameColor(to.getLast())) return true;
-		return false;
+		return held.getFirst().compareRank(to.getLast()) == -1 && !held.getFirst().isSameColor(to.getLast());
 	}
 	@Override
 	protected void afterMoveChecks(PileMove move) {
 		checkPileTop(move.movedFrom);
 		checkWin();
 	}
-	protected int getMoveLength() {
+
+    @Override
+    protected void checkWin() {
+        for(Pile p:piles) if(!p.isEmpty()) return;
+        if(!stock.isEmpty()) return;
+        endGame();
+    }
+
+    protected int getMoveLength() {
 		int out=1;
 		for (Pile p:piles) 
 			if(p.isEmpty()) 

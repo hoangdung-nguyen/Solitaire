@@ -143,7 +143,7 @@ class Pile extends ArrayList<Card> {
 		ArrayList<Card> out = new ArrayList<Card>();
 		out.add(getLast());
 		for(int i=size()-2;i>=0;--i) {
-			if(cardsMap.get(get(i)).isCardBack) break;
+			if(cardsMap.get(get(i)).isFaceDown) break;
 			if(Card.compareRank(get(i+1), get(i)) != -1 || !Card.isSameColor(get(i), get(i+1))) break;
 			out.add(get(i));			
 		}
@@ -155,7 +155,7 @@ class Pile extends ArrayList<Card> {
 		ArrayList<Card> out = new ArrayList<Card>();
 		out.add(getLast());
 		for(int i=size()-2;i>=0;--i) {
-			if(cardsMap.get(get(i)).isCardBack) break;
+			if(cardsMap.get(get(i)).isFaceDown) break;
 			if(Card.compareRank(get(i+1), get(i)) != -1 || !Card.isSameSuit(get(i), get(i+1))) break;
 			out.add(get(i));			
 		}
@@ -167,7 +167,7 @@ class Pile extends ArrayList<Card> {
 		ArrayList<Card> out = new ArrayList<Card>();
 		out.add(getLast());
 		for(int i=size()-2;i>=0;--i) {
-			if(cardsMap.get(get(i)).isCardBack) break;
+			if(cardsMap.get(get(i)).isFaceDown) break;
 			if(Card.compareRank(get(i+1), get(i)) != -1 || Card.isSameColor(get(i), get(i+1))) break;
 			out.add(get(i));			
 		}
@@ -179,7 +179,7 @@ class Pile extends ArrayList<Card> {
 		out.add(getLast());
 		--maxLength;
 		for(int i=size()-2;i>=0;--i) {
-			if(maxLength-- == 0 || cardsMap.get(get(i)).isCardBack) break;
+			if(maxLength-- == 0 || cardsMap.get(get(i)).isFaceDown) break;
 			if(Card.compareRank(get(i+1), get(i)) != -1 || Card.isSameColor(get(i), get(i+1))) break;
 			out.add(get(i));			
 		}
