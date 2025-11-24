@@ -84,19 +84,7 @@ public class JCard extends JToggleButton
 		return (double) CARD_HEIGHT / CARD_WIDTH;
 	}
 
-	public void tintGrey() {
-		setMasterIcon(tint(getMasterIcon(), new Color(178, 178, 178, 255)));
-		currentImage = tint(currentImage, new Color(178, 178, 178, 255));
-		setIcon();
-	}
-
-	public void deselect() {
-		this.removeItemListener(item);
-		isGreyed = false;
-		setIcon();
-		setFocusable(false);
-	}
-
+    /** checks the conditions of the card and changes its icon */
 	void setIcon() {
 		int w = getWidth();
 		int h = getHeight();
@@ -116,7 +104,7 @@ public class JCard extends JToggleButton
 		super.setIcon(new ImageIcon(scaled));
 
 	}
-
+    /** tint the image by color, ignores alpha */
 	public BufferedImage tint(BufferedImage image, Color color) {
 		BufferedImage out = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
 		for (int x = 0; x < image.getWidth(); x++) {
@@ -132,7 +120,7 @@ public class JCard extends JToggleButton
 		}
 		return out;
 	}
-
+    /** rotate the currentImage by angle */
 	public void rotate(double angle) {
 
 		double rads = Math.toRadians(angle);
@@ -164,14 +152,6 @@ public class JCard extends JToggleButton
 		setIcon(new ImageIcon(scaled));
 	}
 
-
-	public void addClickListener(ActionListener listener) {
-		this.addActionListener(listener);
-	}
-	public void select() {
-		// TODO Auto-generated method stub
-		
-	}
 	public BufferedImage getMasterIcon() {
 		return master;
 	}
@@ -205,33 +185,36 @@ class PilePanel extends JPanel{
 		if(jc==null) jc= new JCard(c,isFaceDown);
 		add(c,jc);
 	}
-	/** adding card  */
+	/** adding card, face up, interpreting if it exists*/
 	public void add(Card c) {
 		add(c,false);
 	}
-
+    /** remove a JCard based on card, assumes exists */
 	public void remove(Card c) {
 		remove(cardsMap.get(c));
 	}
-
+    /** set all card in the arrayList visibility, assumes exists */
 	public void setVisible(ArrayList<Card> cards, boolean isVisible) {
 		System.out.println("Setting visibility!");
 		for(Card c:cards) {
 			cardsMap.get(c).setVisible(isVisible);
 		}
 	}
+    /** grey all cards except the ones in the highlight */
 	public void highlightCards(ArrayList<Card> highlight) {
 		for(Card c:cards) {
 			if(!cardsMap.get(c).isFaceDown && highlight.indexOf(c) == -1) cardsMap.get(c).isGreyed=true;
 			cardsMap.get(c).setIcon();
 		}
 	}
+    /** sets all cards not grey */
 	public void unhighlightAllCards() {
 		for(Card c:cards) {
 			cardsMap.get(c).isGreyed=false;
 			cardsMap.get(c).setIcon();
 		}
 	}
+    /** do the layout with overlap, going downward */
 	@Override
 	public void doLayout() {
 		int h = getHeight(), w = getWidth(); 

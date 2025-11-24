@@ -70,7 +70,7 @@ public class FreeCell extends PileSolitaire{
 	}
 	@Override
 	protected boolean isValidMove(Pile held, Pile from, Pile to) {
-		System.out.println("Evaluating putting "+held+" from "+from+" to "+to+" index "+utilPiles.indexOf(to));
+//		System.out.println("Evaluating putting "+held+" from "+from+" to "+to+" index "+pilesIndexOf(utilPiles, to));
 		if(to == null || to == from) 
 			return false;
 		else if(pilesContains(utilPiles, to)){ //is the destination in utilPiles?
@@ -80,7 +80,7 @@ public class FreeCell extends PileSolitaire{
 			}
 			else {
 				if(to.isEmpty()) {
-					return held.getFirst().rank != '1';
+					return held.getFirst().rank == '1';
 				}
 				return held.getFirst().compareRank(to.getLast()) == 1 && held.getFirst().isSameSuit(to.getLast());
 			}
@@ -100,6 +100,8 @@ public class FreeCell extends PileSolitaire{
         if(!stock.isEmpty()) return;
         endGame();
     }
+    @Override
+    protected void undoDrawMove() {}
 
     protected int getMoveLength() {
 		int out=1;
@@ -110,11 +112,6 @@ public class FreeCell extends PileSolitaire{
 			if(utilPiles.get(i).isEmpty()) 
 				++out;
 		return out;
-	}
-	@Override
-	protected void undoDrawMove() {
-		// TODO Auto-generated method stub
-		
 	}
 
 }

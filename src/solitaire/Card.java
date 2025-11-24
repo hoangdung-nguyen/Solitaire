@@ -91,7 +91,7 @@ class Pile extends ArrayList<Card> {
 		pilePane = new PilePanel(this, cols);
 		cardsMap = pilePane.cardsMap;
 	}
-	//make subpile only consisting of the cards in the arrayList. Only call on cards that is sub array of pile.
+	/**make subpile only consisting of the cards in the arrayList, transfers the listeners over from pile. Only call on cards that is sub array of pile. */
 	public Pile(Pile pile, ArrayList<Card> cards, int cols) {
 		super(cards);
 		pilePane = new PilePanel(this, cols);

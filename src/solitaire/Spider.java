@@ -67,7 +67,7 @@ public class Spider extends PileSolitaire{
 			}
 			revalidate();
 			repaint();
-			for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
+//			for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
 			if(stock.isEmpty()) getCards.setVisible(false);
 		});
 		utilPane.add(getCards);

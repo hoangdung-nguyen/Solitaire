@@ -56,7 +56,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 		mainPane.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				System.out.println("LISTENING TO MAIN");
+				// System.out.println("LISTENING TO MAIN");
 				if(selectedCard!=null) ((Pile)selectedCard.parent).pilePane.unhighlightAllCards();
 				heldPile = null;
 				selectedCard = null;
@@ -76,12 +76,12 @@ public abstract class PileSolitaire extends JLayeredPane{
 			}
 		}
 		setupKeyBindings();
-		for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
+//		for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
 	}
-	
 
+    /** Where you should initiate stock */
 	protected abstract void makeDeck();
-	
+    /** Where you should place cards into the piles */
 	protected abstract void placeCards();
 
 	protected void addMouseListeners(Pile pile) {
@@ -91,7 +91,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 				Pile parentPile;
 				// When there is no dragging, but there is a card selected, aka enable them to touch to move the selected card
 				if(!isRestricted(pile) && selectedCard!=null && heldPile==null) {
-					System.out.println("TUCH TO MUV");
+					// System.out.println("TUCH TO MUV");
 					ArrayList<Card> topOfPile = getSequence((Pile)selectedCard.parent);					
 					for(int i=topOfPile.indexOf(selectedCard)-1;i>=0;--i) topOfPile.remove(i);
 					heldPile = new Pile(((Pile)selectedCard.parent), topOfPile, COLS);
@@ -113,7 +113,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 				}
 				revalidate();
 				repaint();
-				for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
+//				for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
 
 			}
 		});
@@ -137,7 +137,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 					repaint();
 				}
 				if(selectedCard!=null) ((Pile)selectedCard.parent).pilePane.unhighlightAllCards();
-				System.out.println("Pressed at "+((Pile)c.parent).cardsMap.get(c).card +" "+ e.getPoint());
+				// System.out.println("Pressed at "+((Pile)c.parent).cardsMap.get(c).card +" "+ e.getPoint());
 				// Gets the top and check if the card is movable
 				ArrayList<Card> topOfPile = getSequence((Pile)c.parent);
 				if(topOfPile.contains(c)) {
@@ -154,11 +154,11 @@ public abstract class PileSolitaire extends JLayeredPane{
 			}
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				System.out.println("Released at "+ c+" "+ e.getPoint());
+				// System.out.println("Released at "+ c+" "+ e.getPoint());
 				Pile parentPile = ((Pile)c.parent);
 				// When there is no dragging, but there is a card selected, aka enable them to touch to move the selected card
 				if(selectedCard!=null && heldPile==null) {
-					System.out.println("TUCH TO MUV");
+					// System.out.println("TUCH TO MUV");
 					ArrayList<Card> topOfPile = getSequence((Pile)selectedCard.parent);					
 					for(int i=topOfPile.indexOf(selectedCard)-1;i>=0;--i) topOfPile.remove(i);
 					heldPile = new Pile(((Pile)selectedCard.parent), topOfPile, COLS);
@@ -169,7 +169,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 				remove(heldPile.pilePane);
 				// Get the pile that we will place on
 				Pile hoveringOver=getHoveringOver(SwingUtilities.convertPoint(((Pile)c.parent).cardsMap.get(c), e.getPoint(), PileSolitaire.this));
-				System.out.println("Released at pile pile "+piles.indexOf(hoveringOver));
+				// System.out.println("Released at pile pile "+piles.indexOf(hoveringOver));
 				// If Out of bounds || same pile || invalid move, just move them back
 				if(isValidMove(heldPile, parentPile, hoveringOver)){
 					makeMove(heldPile, parentPile, hoveringOver);
@@ -183,7 +183,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 				}
 				revalidate();
 				repaint();
-				for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
+//				for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
 
 			}
 		});
@@ -195,7 +195,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 				if(heldPile==null) {
 					// Sadly have to recompute this even tho we often do it a millisecond before. Could petentially optimize by keeping tract in pile
 					ArrayList<Card> topOfPile = getSequence((Pile)c.parent);
-					System.err.println(""+topOfPile);
+					// System.err.println(""+topOfPile);
 					if(topOfPile.contains(c)) {
 						selectedCard = c;
 						topOfPile.subList(0,topOfPile.indexOf(c)).clear();
@@ -203,7 +203,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 						
 						// Make pile, add to drag, setsize and dolayout
 						heldPile = new Pile(((Pile)c.parent), topOfPile, COLS);
-						System.err.println("Card is part of top: "+heldPile);
+						// System.err.println("Card is part of top: "+heldPile);
 						add(heldPile.pilePane,JLayeredPane.DRAG_LAYER);
 						
 						clickOffset = e.getPoint();
@@ -282,23 +282,23 @@ public abstract class PileSolitaire extends JLayeredPane{
 			repaint();
 		}
 	}
-	
+    /** undo a move drawing from the stock */
 	protected abstract void undoDrawMove();
-	
+    /** Returns the cards you can pick up from top of that pile */
 	protected abstract ArrayList<Card> getSequence(Pile parent);
-
+    /** if the pile can be taken from */
 	protected abstract boolean isRestricted(Pile p);
-	
+    /** gets which pile that point is in */
 	protected abstract Pile getHoveringOver(Point point);
-
+    /** validates the move */
 	protected abstract boolean isValidMove(Pile held, Pile from, Pile to);
-
+    /** what should be checked after a move is successful */
 	protected abstract void afterMoveChecks(PileMove move);
-
+    /** win con */
     protected abstract void checkWin();
 
     protected void endGame(){
-        System.out.println("YOU WINNNNNNN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        // System.out.println("YOU WINNNNNNN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         try {
             if(!clip.isOpen()) clip.open(winAudio);
         } catch (LineUnavailableException | IOException e) {
@@ -309,7 +309,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 	/** move them over, check for any changes in the pile */
 	private void makeMove(Pile held, Pile from, Pile to) {
 		// move them over, check for any changes in the pile
-		System.err.println("Moving Cards");
+		// System.err.println("Moving Cards");
 		to.addAll(held);
 		from.removeAll(held);
 		PileMove move = new PileMove(held, from, to);
@@ -319,7 +319,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 	/** Checking if the pile has a flipped card on top, then flipping it if there is */
 	protected void checkPileTop(Pile pile) {
 		if(!pile.isEmpty() && pile.cardsMap.get(pile.getLast()).isFaceDown) {
-			System.out.println("REVEALING CARD "+ pile.cardsMap.get(pile.getLast()));
+			// System.out.println("REVEALING CARD "+ pile.cardsMap.get(pile.getLast()));
 			pile.cardsMap.get(pile.getLast()).isFaceDown = false;
 			pile.cardsMap.get(pile.getLast()).setIcon();
             if(pile == pastMoves.getLast().movedFrom)
@@ -328,13 +328,13 @@ public abstract class PileSolitaire extends JLayeredPane{
                 pastMoves.getLast().toFlipped = pile.getLast();
 		}
 	}
-
-	protected int pilesIndexOf(ArrayList<Pile> piles, Pile p) {
+    /** ArrayList.indexOf, but by reference only */
+	protected <T> int pilesIndexOf(ArrayList<T> piles, T p) {
 		for (int i=0;i<piles.size();++i) if (piles.get(i) == p) return i;
 		return -1;
 	}
-
-    protected boolean pilesContains(ArrayList<Pile> piles, Pile p)
+    /** ArrayList.contains, but by reference only */
+    protected <T> boolean pilesContains(ArrayList<T> piles, T p)
     {
         for (int i=0;i<piles.size();++i) if (piles.get(i) == p) return true;
         return false;
