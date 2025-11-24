@@ -9,7 +9,7 @@ import javax.swing.SwingUtilities;
 public class Klondike extends PileSolitaire{
 	@Serial
     private static final long serialVersionUID = 1L;
-    ArrayList<Pile> utilPiles;
+    ArrayList<Pile> foundationPiles;
 
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> {
@@ -29,12 +29,16 @@ public class Klondike extends PileSolitaire{
                 return new Dimension(getParent().getWidth(), (int) (getParent().getWidth()/COLS * JCard.getRatio()));
             }
         };
+        mainPane.add(utilPane,BorderLayout.NORTH);
+        foundationPiles = new ArrayList<>();
+
+
 
 	}
 
     @Override
     protected void makeDeck() {
-        stock = new Deck(1);
+        stock = new Deck(false,1);
     }
 
     @Override
@@ -42,9 +46,12 @@ public class Klondike extends PileSolitaire{
         for(int i = 0; i < COLS; ++i)
         {
             for(int j = 0; j <= i; ++j)
-                piles.get(i).add(stock.pop(),j != i);
+                if(j == i)
+                    piles.get(i).add(stock.pop(),false);
+                else
+                    piles.get(i).add(stock.pop(), true);
         }
-    }
+    }//set up the standard board of Klondike!
 
     @Override
     protected void undoDrawMove() {
@@ -66,7 +73,7 @@ public class Klondike extends PileSolitaire{
         for (Pile p:piles)
             if(p.pilePane.getBounds().contains(SwingUtilities.convertPoint(this, point, pilePanes)))
                 return p;
-        for (Pile p:utilPiles)
+        for (Pile p:foundationPiles)
             if(p.pilePane.getBounds().contains(SwingUtilities.convertPoint(this, point, utilPane)))
                 return p;
         return null;
@@ -76,24 +83,39 @@ public class Klondike extends PileSolitaire{
     protected boolean isValidMove(Pile held, Pile from, Pile to) {
         if(to == null || to == from)
             return false;
-        if(to.isEmpty() && from.getFirst().getRank() == 'K')
-            return true;
-        if(!to.isEmpty())
-            return heldPile.getFirst().compareRank(to.getLast()) == -1;
+        if(pilesContains(piles,to))     //if we're moving to the table
+        {
+            if (to.isEmpty() && from.getFirst().getRank() == 'K')
+                return true;
+            return !to.isEmpty() && held.getFirst().compareRank(to.getLast()) == -1 && !to.getLast().isSameColor(held.getFirst());
+        }
+        if(pilesContains(foundationPiles,to)) //if we're moving to the foundation
+        {
+            if(held.size() > 1)
+                return false;
+
+            if(to.isEmpty())
+                return held.getFirst().getRank() == '1';
+            else
+                return held.getFirst().compareRank(to.getLast()) == -1 && held.getFirst().isSameSuit(to.getLast());
+        }
+
 
         return false;
     }
 
     @Override
-    protected void afterMoveChecks(PileMove move) {
+    protected void afterMoveChecks(PileMove move)
+    {
 
+        checkWin();
     }
 
     protected void checkWin()
     {
         for(int i = 0; i<4;++i)
         {
-            if (utilPiles.get(i).size() != 13)
+            if (foundationPiles.get(i).size() != 13)
                 return;
         }
         endGame();
