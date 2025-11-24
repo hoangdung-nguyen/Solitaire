@@ -3,13 +3,14 @@ import java.awt.*;
 import java.io.Serial;
 import java.util.ArrayList;
 
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 public class Klondike extends PileSolitaire{
-	private static final long serialVersionUID = 1L;
-	Deck stock;
+	@Serial
+    private static final long serialVersionUID = 1L;
+    ArrayList<Pile> utilPiles;
+
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> {
 			JFrame frame = new JFrame("Klondike");
@@ -21,6 +22,14 @@ public class Klondike extends PileSolitaire{
 	}
 	public Klondike(){
 		super(7,1);
+        utilPane = new JPanel(new GridLayout(1, COLS))
+        {
+            @Override
+            public Dimension getPreferredSize(){
+                return new Dimension(getParent().getWidth(), (int) (getParent().getWidth()/COLS * JCard.getRatio()));
+            }
+        };
+
 	}
 
     @Override
@@ -30,7 +39,14 @@ public class Klondike extends PileSolitaire{
 
     @Override
     protected void placeCards() {
-
+        for(int i = 0; i < COLS; ++i)
+        {
+            for(int j = 0; j < i; ++j)
+                if(j == i-1)
+                    piles.get(i).add(stock.pop(),true);
+                else
+                    piles.get(i).add(stock.pop(), false);
+        }
     }
 
     @Override
@@ -40,7 +56,7 @@ public class Klondike extends PileSolitaire{
 
     @Override
     protected ArrayList<Card> getSequence(Pile parent) {
-        return null;
+        return parent.getAlternatingSequence();
     }
 
     @Override
@@ -50,6 +66,12 @@ public class Klondike extends PileSolitaire{
 
     @Override
     protected Pile getHoveringOver(Point point) {
+        for (Pile p:piles)
+            if(p.pilePane.getBounds().contains(SwingUtilities.convertPoint(this, point, pilePanes)))
+                return p;
+        for (Pile p:utilPiles)
+            if(p.pilePane.getBounds().contains(SwingUtilities.convertPoint(this, point, utilPane)))
+                return p;
         return null;
     }
 
@@ -69,4 +91,16 @@ public class Klondike extends PileSolitaire{
     protected void afterMoveChecks(PileMove move) {
 
     }
+
+    protected void checkWin()
+    {
+        for(int i = 0; i<4;++i)
+        {
+            if (utilPiles.get(i).size() != 13)
+                return;
+        }
+        endGame();
+    }
+
+
 }

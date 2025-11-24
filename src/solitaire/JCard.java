@@ -209,9 +209,11 @@ class PilePanel extends JPanel{
 	public void add(Card c) {
 		add(c,false);
 	}
+
 	public void remove(Card c) {
 		remove(cardsMap.get(c));
 	}
+
 	public void setVisible(ArrayList<Card> cards, boolean isVisible) {
 		System.out.println("Setting visibility!");
 		for(Card c:cards) {

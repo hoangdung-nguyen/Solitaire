@@ -331,6 +331,12 @@ public abstract class PileSolitaire extends JLayeredPane{
 		for (int i=0;i<piles.size();++i) if (piles.get(i) == p) return i;
 		return -1;
 	}
+
+    protected boolean pilesContains(ArrayList<Pile> piles, Pile p)
+    {
+        for (int i=0;i<piles.size();++i) if (piles.get(i) == p) return true;
+        return false;
+    }
 	
 	@Override
 	public void doLayout() {

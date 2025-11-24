@@ -70,14 +70,13 @@ public class FreeCell extends PileSolitaire{
 	}
 	@Override
 	protected boolean isValidMove(Pile held, Pile from, Pile to) {
-		System.out.println("EValuating putting "+held+" from "+from+" to "+to+" index "+utilPiles.indexOf(to));
+		System.out.println("Evaluating putting "+held+" from "+from+" to "+to+" index "+utilPiles.indexOf(to));
 		if(to == null || to == from) 
 			return false;
-		else if(pilesIndexOf(utilPiles, to) > -1) {
+		else if(pilesContains(utilPiles, to)){ //is the destination in utilPiles?
 			if(held.size()!=1) return false;
 			if(pilesIndexOf(utilPiles, to) < 4) {
-				if(to.isEmpty()) return true;
-				else return false;
+                return to.isEmpty();
 			}
 			else {
 				if(to.isEmpty()) {
