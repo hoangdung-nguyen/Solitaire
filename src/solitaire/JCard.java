@@ -166,7 +166,7 @@ class PilePanel extends JPanel{
 	Pile cards;
 	HashMap<Card, JCard> cardsMap;
 	static int cardWidth, cardHeight;
-	/** cols is how many piles it will be placed next to */
+	/** cols refers to how many piles it will be placed next to */
 	public PilePanel(Pile c, int cols) {
 		COLS = cols;
 		cards = c;

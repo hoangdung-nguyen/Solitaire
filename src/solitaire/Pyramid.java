@@ -6,7 +6,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 public class Pyramid extends JPanel{
 	private static final long serialVersionUID = 1L;
-	Deck allCards;
+	Deck stock;
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> {
 			JFrame frame = new JFrame("Pyramid");
@@ -18,8 +18,8 @@ public class Pyramid extends JPanel{
 	}
 	public Pyramid(){
 		super(new BorderLayout());
-        allCards = new Deck();
-		allCards.shuffle();
+        stock = new Deck();
+		stock.shuffle();
 	}
 	
 }

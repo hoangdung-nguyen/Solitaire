@@ -91,12 +91,12 @@ public class Klondike extends PileSolitaire{
         }
         if(pilesContains(foundationPiles,to)) //if we're moving to the foundation
         {
-            if(held.size() > 1)
+            if(held.size() > 1) //can only put 1 card down at a time
                 return false;
 
-            if(to.isEmpty())
+            if(to.isEmpty())    //can only start a pile with 1
                 return held.getFirst().getRank() == '1';
-            else
+            else                //it has to be one higher rank and the same suit
                 return held.getFirst().compareRank(to.getLast()) == -1 && held.getFirst().isSameSuit(to.getLast());
         }
 
@@ -107,7 +107,7 @@ public class Klondike extends PileSolitaire{
     @Override
     protected void afterMoveChecks(PileMove move)
     {
-
+        checkPileTop(move.movedFrom);
         checkWin();
     }
 
