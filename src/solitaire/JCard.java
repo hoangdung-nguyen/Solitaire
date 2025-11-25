@@ -1,34 +1,18 @@
 package solitaire;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 
 public class JCard extends JToggleButton
 {
-
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private static BufferedImage cardSheet;
-	static {
-		try {
-			cardSheet = ImageIO.read(new File("cards.png"));
-		} catch (IOException e) {
-			System.out.println("The asset for the cards does not exist.");
-            System.exit(1);
-		}
-	}
-	static final int CARD_WIDTH = cardSheet.getWidth() / 14;
-	static final int CARD_HEIGHT = cardSheet.getHeight() / 4;
-	public static BufferedImage cardBack = Utils.centerImage(cardSheet.getSubimage(CARD_WIDTH * 12, CARD_HEIGHT *3, CARD_WIDTH, CARD_HEIGHT));
 	private BufferedImage master;
 	private BufferedImage selected;
 	private BufferedImage currentImage;
@@ -45,8 +29,8 @@ public class JCard extends JToggleButton
 		setBorderPainted(false);
 		setContentAreaFilled(false);
 		setFocusPainted(false);
-		setMasterIcon(Utils.centerImage(cardSheet.getSubimage(CARD_WIDTH * Utils.TIENLEN_RANK_ORDER.get(card.rank),
-				CARD_HEIGHT * Utils.TIENLEN_SUIT_ORDER.get(card.suit), CARD_WIDTH, CARD_HEIGHT)));
+		setMasterIcon(Utils.centerImage(Utils.cardSheet.getSubimage(Utils.CARD_WIDTH * (Utils.RANK_ORDER.indexOf(card.rank)+1),
+                Utils.CARD_HEIGHT * Utils.SUIT_ORDER.indexOf(card.suit), Utils.CARD_WIDTH, Utils.CARD_HEIGHT)));
 		selected = Utils.tint(getMasterIcon(), new Color(178, 178, 178, 255));
 		currentImage = getMasterIcon();
 		setPreferredSize(new Dimension(100, 100));
@@ -69,7 +53,7 @@ public class JCard extends JToggleButton
 	}
 
 	public static double getRatio() {
-		return (double) CARD_HEIGHT / CARD_WIDTH;
+		return (double) Utils.CARD_HEIGHT / Utils.CARD_WIDTH;
 	}
 
     /** checks the conditions of the card and changes its icon */
@@ -86,7 +70,7 @@ public class JCard extends JToggleButton
 		g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-		g2.drawImage(isFaceDown ? cardBack: isGreyed ? selected : currentImage, 0, 0, w, h, null);
+		g2.drawImage(isFaceDown ? Utils.cardBack: isGreyed ? selected : currentImage, 0, 0, w, h, null);
 		g2.dispose();
 
 		super.setIcon(new ImageIcon(scaled));

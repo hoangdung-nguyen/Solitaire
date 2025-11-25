@@ -1,28 +1,41 @@
 package solitaire;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 public class Utils {
-	static final HashMap<Character, Integer> TIENLEN_RANK_ORDER = new HashMap<>();
-	static {
-		char[] rankOrder = { '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K', '1', ' ', '2' };
-		for (int i = 0; i < rankOrder.length; i++) {
-			TIENLEN_RANK_ORDER.put(rankOrder[i], i);
-		}
-	}
-	static final HashMap<Character, Integer> TIENLEN_SUIT_ORDER = new HashMap<>();
-	static {
-		char[] suitOrder = { 's', 'c', 'd', 'h' };
-		for (int i = 0; i < suitOrder.length; i++) {
-			TIENLEN_SUIT_ORDER.put(suitOrder[i], i);
-		}
-	}
-	static final List<Character> SOLITAIRE_RANK_ORDER = Arrays.asList(new Character[]{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K'});
-	static final List<Character> SOLITAIRE_SUIT_ORDER = Arrays.asList(new Character[]{ 's', 'c', 'd', 'h' });
+    //For title
+    public static Color titleColor = new Color(243, 167, 18);
+    //For buttons
+    public static Color buttonColor = new Color(224, 119, 125);
+    //For background
+    public static Color bgkColor = new Color(113, 0, 0 );
+    //For texts
+    public static Color fontColor = new Color (240, 206, 160);
+    //Extra, for background
+    public static Color extraColor = new Color (0, 0, 0);
+
+    //Card graphics
+    public static BufferedImage cardSheet;
+    static {
+        try {
+            cardSheet = ImageIO.read(new File("kerenel_Cards.png"));
+        } catch (IOException e) {
+            System.out.println("The asset for the cards does not exist.");
+            System.exit(1);
+        }
+    }
+    static final int CARD_WIDTH = cardSheet.getWidth() / 14;
+    static final int CARD_HEIGHT = cardSheet.getHeight() / 6;
+    public static BufferedImage cardBack = Utils.centerImage(cardSheet.getSubimage(0, CARD_HEIGHT *2, CARD_WIDTH, CARD_HEIGHT));
+
+    static final List<Character> RANK_ORDER = Arrays.asList(new Character[]{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K'});
+	static final List<Character> SUIT_ORDER = Arrays.asList(new Character[]{ 'h', 's', 'd', 'c' });
 
 	public static BufferedImage centerImage(BufferedImage src) {
 		int w = src.getWidth();

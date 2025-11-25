@@ -27,6 +27,7 @@ public class Klondike extends PileSolitaire{
                 return new Dimension(getParent().getWidth(), (int) (getParent().getWidth()/COLS * JCard.getRatio()));
             }
         };
+        utilPane.setOpaque(false);
         mainPane.add(utilPane,BorderLayout.NORTH);
         foundationPiles = new ArrayList<>();
 

@@ -22,10 +22,10 @@ public class Card /*implements Comparable<Card>, java.io.Serializable*/ {
 
 //	@Override
 //	public int compareTo(Card o) {
-//		int cmp = Integer.compare(Utils.SOLITAIRE_RANK_ORDER.get(this.rank), Utils.SOLITAIRE_RANK_ORDER.get(o.rank));
+//		int cmp = Integer.compare(Utils.RANK_ORDER.get(this.rank), Utils.RANK_ORDER.get(o.rank));
 //		if (cmp != 0)
 //			return cmp;
-//		return Integer.compare(Utils.SOLITAIRE_SUIT_ORDER.get(this.suit), Utils.SOLITAIRE_SUIT_ORDER.get(o.suit));
+//		return Integer.compare(Utils.SUIT_ORDER.get(this.suit), Utils.SUIT_ORDER.get(o.suit));
 //	}
 
 //	@Override
@@ -69,7 +69,7 @@ public class Card /*implements Comparable<Card>, java.io.Serializable*/ {
 	}
 	
 	public int compareRank(Card c) {
-		return Utils.SOLITAIRE_RANK_ORDER.indexOf(rank) - Utils.SOLITAIRE_RANK_ORDER.indexOf(c.rank);
+		return Utils.RANK_ORDER.indexOf(rank) - Utils.RANK_ORDER.indexOf(c.rank);
 	}
 	
 	public static int compareRank(Card c1, Card c2) {

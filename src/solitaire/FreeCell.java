@@ -25,6 +25,7 @@ public class FreeCell extends PileSolitaire{
 				return new Dimension(getParent().getWidth(), (int) (getParent().getWidth()/COLS * JCard.getRatio()));
 			}
 		};
+        utilPane.setOpaque(false);
 		mainPane.add(utilPane, BorderLayout.NORTH);
 		utilPiles = new ArrayList<>();
 		for(int i=0;i<COLS;++i) {

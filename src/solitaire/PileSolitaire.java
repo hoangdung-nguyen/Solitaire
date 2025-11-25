@@ -42,12 +42,15 @@ public abstract class PileSolitaire extends JLayeredPane{
 
 	public PileSolitaire(int Columns, int Difficulty){
 		super();
+        setBackground(Utils.bgkColor);
 		COLS = Columns;
 		difficulty = Difficulty;
 		pastMoves = new Stack<PileMove>();
         parPane = new JPanel(new BorderLayout());
+        parPane.setOpaque(false);
         add(parPane,JLayeredPane.DEFAULT_LAYER);
         mainPane = new JPanel(new BorderLayout());
+        mainPane.setBackground(Utils.bgkColor);
         parPane.add(mainPane,BorderLayout.CENTER);
         toolbar = new JPanel(new GridLayout(1,0)){
             @Override
@@ -55,7 +58,6 @@ public abstract class PileSolitaire extends JLayeredPane{
                 return new Dimension(getParent().getWidth(), 100);
             }
         };
-        toolbar.setBackground(Color.DARK_GRAY);
         toolbar.add(new JButton("Undo"){
             @Override
             protected void init(String text, Icon icon) {
@@ -69,6 +71,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 		stock.shuffle();
 		piles = new ArrayList<Pile>();
 		pilePanes = new JPanel(new GridLayout(1,COLS));
+        pilePanes.setOpaque(false);
 		mainPane.add(pilePanes, BorderLayout.CENTER);
 		mainPane.addMouseListener(new MouseAdapter(){
 			@Override

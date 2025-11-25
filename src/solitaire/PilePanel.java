@@ -63,7 +63,7 @@ public class PilePanel extends JPanel {
     @Override
     public void doLayout() {
         int h = getHeight(), w = getWidth();
-        cardWidth = Math.min(w, h);
+        cardWidth = w;
         cardHeight = (int) (cardWidth * JCard.getRatio());
 
         int overlap = Math.min(cardHeight / 5, (h - cardHeight) / Math.max(1,getComponents().length));
@@ -76,5 +76,9 @@ public class PilePanel extends JPanel {
     @Override
     public Dimension getPreferredSize() {
         return new Dimension(getParent().getWidth()/COLS, getParent().getHeight());
+    }
+    @Override
+    public Dimension getMinimumSize(){
+        return new Dimension(getParent().getWidth()/COLS, (int) (getParent().getWidth()/COLS*JCard.getRatio()));
     }
 }

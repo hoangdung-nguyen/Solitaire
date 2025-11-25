@@ -22,9 +22,10 @@ public class Spider extends PileSolitaire{
 		});
 	}
 	public Spider(int diff){
-		super(10,1);
+		super(10,diff);
 		difficulty = diff;
 		utilPane = new JPanel(new GridLayout(1,COLS));
+        utilPane.setOpaque(false);
 		mainPane.add(utilPane, BorderLayout.SOUTH);
 		for(int i=0;i<9;++i) utilPane.add(new JPanel(new GridLayout()) {
 			@Override
@@ -32,16 +33,22 @@ public class Spider extends PileSolitaire{
 				return new Dimension(getWidth()/COLS, (int) (getWidth()/COLS*JCard.getRatio()));
 			}
 		});
-		getCards = new JButton(new ImageIcon(JCard.cardBack)) {
+        for(Component c: utilPane.getComponents()) ((JPanel)c).setOpaque(false);
+		getCards = new JButton(new ImageIcon(Utils.cardBack)) {
 			@Override
 			public Dimension getPreferredSize() {
 				return new Dimension(getParent().getWidth()/COLS, (int) (getParent().getWidth()/COLS*JCard.getRatio()));
 			}
 		};
+        getCards.setOpaque(false);
+        getCards.setBorder(null);
+        getCards.setBorderPainted(false);
+        getCards.setContentAreaFilled(false);
+        getCards.setFocusPainted(false);
 		getCards.addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent e) {
-				getCards.setIcon(new ImageIcon(JCard.cardBack.getScaledInstance(getWidth()/COLS, (int) (getWidth()/COLS*JCard.getRatio()),  Image.SCALE_SMOOTH)));
+				getCards.setIcon(new ImageIcon(Utils.cardBack.getScaledInstance(getWidth()/COLS, (int) (getWidth()/COLS*JCard.getRatio()),  Image.SCALE_SMOOTH)));
 			}
 		});
 		getCards.addActionListener(e -> {
