@@ -1,22 +1,12 @@
 package solitaire;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.Image;
-import java.awt.Point;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
-
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 
 public class Spider extends PileSolitaire{
 	private static final long serialVersionUID = 1L;
@@ -32,9 +22,10 @@ public class Spider extends PileSolitaire{
 		});
 	}
 	public Spider(int diff){
-		super(10,1);
+		super(10,diff);
 		difficulty = diff;
 		utilPane = new JPanel(new GridLayout(1,COLS));
+        utilPane.setOpaque(false);
 		mainPane.add(utilPane, BorderLayout.SOUTH);
 		for(int i=0;i<9;++i) utilPane.add(new JPanel(new GridLayout()) {
 			@Override
@@ -42,16 +33,22 @@ public class Spider extends PileSolitaire{
 				return new Dimension(getWidth()/COLS, (int) (getWidth()/COLS*JCard.getRatio()));
 			}
 		});
-		getCards = new JButton(new ImageIcon(JCard.cardBack)) {
+        for(Component c: utilPane.getComponents()) ((JPanel)c).setOpaque(false);
+		getCards = new JButton(new ImageIcon(Utils.cardBack)) {
 			@Override
 			public Dimension getPreferredSize() {
 				return new Dimension(getParent().getWidth()/COLS, (int) (getParent().getWidth()/COLS*JCard.getRatio()));
 			}
 		};
+        getCards.setOpaque(false);
+        getCards.setBorder(null);
+        getCards.setBorderPainted(false);
+        getCards.setContentAreaFilled(false);
+        getCards.setFocusPainted(false);
 		getCards.addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent e) {
-				getCards.setIcon(new ImageIcon(JCard.cardBack.getScaledInstance(getWidth()/COLS, (int) (getWidth()/COLS*JCard.getRatio()),  Image.SCALE_SMOOTH)));
+				getCards.setIcon(new ImageIcon(Utils.cardBack.getScaledInstance(getWidth()/COLS, (int) (getWidth()/COLS*JCard.getRatio()),  Image.SCALE_SMOOTH)));
 			}
 		});
 		getCards.addActionListener(e -> {
@@ -114,7 +111,7 @@ public class Spider extends PileSolitaire{
 	}
 	
 	@Override
-	protected void afterMoveChecks(PileMove move) {endGame();
+	protected void afterMoveChecks(PileMove move) {
 		checkPile(move.movedTo);
 		checkPileTop(move.movedFrom);
 	}

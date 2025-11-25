@@ -1,51 +1,42 @@
 package solitaire;
-import java.awt.Graphics2D;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.Serializable;
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
-enum stackState implements Serializable {
-	same, run, pig, hang, none,
-}
-
-enum MessageType {
-	JOIN, PLAY, PASS, UPDATE, DISCONNECT, PLACE, CHAT
-}
-
 public class Utils {
-	final static Card LOWEST_CARD = new Card('3', 's');
-	static final int MAX_PLAYERS = 4;
-	static final int CARDS_PER_PLAYER = 13;
-	static final HashMap<Character, Integer> TIENLEN_RANK_ORDER = new HashMap<>();
-	static {
-		char[] rankOrder = { '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K', '1', ' ', '2' };
-		for (int i = 0; i < rankOrder.length; i++) {
-			TIENLEN_RANK_ORDER.put(rankOrder[i], i);
-		}
-	}
-	static final HashMap<Character, Integer> TIENLEN_SUIT_ORDER = new HashMap<>();
-	static {
-		char[] suitOrder = { 's', 'c', 'd', 'h' };
-		for (int i = 0; i < suitOrder.length; i++) {
-			TIENLEN_SUIT_ORDER.put(suitOrder[i], i);
-		}
-	}
-	static final List<Character> SOLITAIRE_RANK_ORDER = Arrays.asList(new Character[]{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K'});
-	static final List<Character> SOLITAIRE_SUIT_ORDER = Arrays.asList(new Character[]{ 's', 'c', 'd', 'h' });
-	private static final String SYMBOLS = "0123456789abcdefghijklmnopqrstuvwxyz";
+    //For title
+    public static Color titleColor = new Color(243, 167, 18);
+    //For buttons
+    public static Color buttonColor = new Color(224, 119, 125);
+    //For background
+    public static Color bgkColor = new Color(113, 0, 0 );
+    //For texts
+    public static Color fontColor = new Color (240, 206, 160);
+    //Extra, for background
+    public static Color extraColor = new Color (0, 0, 0);
 
-	public static int toDecimal(String number, int from) {
-		int result = 0;
-		int position = number.length();
-		for (char ch : number.toCharArray()) {
-			int value = SYMBOLS.indexOf(ch);
-			result += value * Math.pow(from, --position);
-		}
-		return result;
-	}
-	
+    //Card graphics
+    public static BufferedImage cardSheet;
+    static {
+        try {
+            cardSheet = ImageIO.read(new File("kerenel_Cards.png"));
+        } catch (IOException e) {
+            System.out.println("The asset for the cards does not exist.");
+            System.exit(1);
+        }
+    }
+    static final int CARD_WIDTH = cardSheet.getWidth() / 14;
+    static final int CARD_HEIGHT = cardSheet.getHeight() / 6;
+    public static BufferedImage cardBack = Utils.centerImage(cardSheet.getSubimage(0, CARD_HEIGHT *2, CARD_WIDTH, CARD_HEIGHT));
+
+    static final List<Character> RANK_ORDER = Arrays.asList(new Character[]{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K'});
+	static final List<Character> SUIT_ORDER = Arrays.asList(new Character[]{ 'h', 's', 'd', 'c' });
+
 	public static BufferedImage centerImage(BufferedImage src) {
 		int w = src.getWidth();
 		int h = src.getHeight();
@@ -74,16 +65,22 @@ public class Utils {
 
 		return centered;
 	}
-	
-	public static String changeBase(String number, int from, int to) {
-		int result = 0;
-		int position = number.length();
-		for (char ch : number.toCharArray()) {
-			int value = SYMBOLS.indexOf(ch);
-			result += value * Math.pow(from, --position);
-		}
-		return Integer.toString(result, to);
-	}
+    /** tint the image by color, ignores alpha */
+    public static BufferedImage tint(BufferedImage image, Color color) {
+        BufferedImage out = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+        for (int x = 0; x < image.getWidth(); x++) {
+            for (int y = 0; y < image.getHeight(); y++) {
+                Color pixelColor = new Color(image.getRGB(x, y), true);
+                int r = Math.min((pixelColor.getRed() + color.getRed()) / 2, pixelColor.getRed());
+                int g = Math.min((pixelColor.getGreen() + color.getGreen()) / 2, pixelColor.getGreen());
+                int b = Math.min((pixelColor.getBlue() + color.getBlue()) / 2, pixelColor.getBlue());
+                int a = pixelColor.getAlpha();
+                int rgba = (a << 24) | (r << 16) | (g << 8) | b;
+                out.setRGB(x, y, rgba);
+            }
+        }
+        return out;
+    }
 
 }
 

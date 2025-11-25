@@ -1,9 +1,7 @@
 package solitaire;
-import java.awt.BorderLayout;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
+import java.awt.*;
 public class Pyramid extends JPanel{
 	private static final long serialVersionUID = 1L;
 	Deck stock;

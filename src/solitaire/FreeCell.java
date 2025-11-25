@@ -1,13 +1,8 @@
 package solitaire;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.Point;
-import java.util.ArrayList;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
 
 public class FreeCell extends PileSolitaire{
 	private static final long serialVersionUID = 1L;
@@ -30,6 +25,7 @@ public class FreeCell extends PileSolitaire{
 				return new Dimension(getParent().getWidth(), (int) (getParent().getWidth()/COLS * JCard.getRatio()));
 			}
 		};
+        utilPane.setOpaque(false);
 		mainPane.add(utilPane, BorderLayout.NORTH);
 		utilPiles = new ArrayList<>();
 		for(int i=0;i<COLS;++i) {

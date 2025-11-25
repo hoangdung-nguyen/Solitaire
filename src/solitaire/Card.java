@@ -1,7 +1,6 @@
 package solitaire;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.util.*;
+
+import java.util.Collection;
 
 public class Card /*implements Comparable<Card>, java.io.Serializable*/ {
 	/**
@@ -23,10 +22,10 @@ public class Card /*implements Comparable<Card>, java.io.Serializable*/ {
 
 //	@Override
 //	public int compareTo(Card o) {
-//		int cmp = Integer.compare(Utils.SOLITAIRE_RANK_ORDER.get(this.rank), Utils.SOLITAIRE_RANK_ORDER.get(o.rank));
+//		int cmp = Integer.compare(Utils.RANK_ORDER.get(this.rank), Utils.RANK_ORDER.get(o.rank));
 //		if (cmp != 0)
 //			return cmp;
-//		return Integer.compare(Utils.SOLITAIRE_SUIT_ORDER.get(this.suit), Utils.SOLITAIRE_SUIT_ORDER.get(o.suit));
+//		return Integer.compare(Utils.SUIT_ORDER.get(this.suit), Utils.SUIT_ORDER.get(o.suit));
 //	}
 
 //	@Override
@@ -70,7 +69,7 @@ public class Card /*implements Comparable<Card>, java.io.Serializable*/ {
 	}
 	
 	public int compareRank(Card c) {
-		return Utils.SOLITAIRE_RANK_ORDER.indexOf(rank) - Utils.SOLITAIRE_RANK_ORDER.indexOf(c.rank);
+		return Utils.RANK_ORDER.indexOf(rank) - Utils.RANK_ORDER.indexOf(c.rank);
 	}
 	
 	public static int compareRank(Card c1, Card c2) {
@@ -82,116 +81,4 @@ public class Card /*implements Comparable<Card>, java.io.Serializable*/ {
         return rank;
     }
 
-}
-class Pile extends ArrayList<Card> {
-	private static final long serialVersionUID = 1L;
-	PilePanel pilePane;
-	HashMap<Card,JCard> cardsMap;
-	public Pile(int cols) {
-		pilePane = new PilePanel(this, cols);
-		cardsMap = pilePane.cardsMap;
-	}
-	/**make subpile only consisting of the cards in the arrayList, transfers the listeners over from pile. Only call on cards that is sub array of pile. */
-	public Pile(Pile pile, ArrayList<Card> cards, int cols) {
-		super(cards);
-		pilePane = new PilePanel(this, cols);
-		cardsMap = pilePane.cardsMap;
-		for(Card c:cards) {
-			pilePane.add(c);
-			// Readd any listeners it had. 
-			for(MouseMotionListener m:pile.cardsMap.get(c).getMouseMotionListeners())
-				cardsMap.get(c).addMouseMotionListener(m);
-			for(MouseListener m:pile.cardsMap.get(c).getMouseListeners())
-				cardsMap.get(c).addMouseListener(m);
-		}
-	}
-    /** A bare bones add that does not make an accompanying JCard */
-	public boolean add(Card c) {
-        c.parent=this;
-        return super.add(c);
-    }
-    /** add a card as well as its jcard */
-	public boolean add(Card c, boolean b) {
-        add(c);
-        pilePane.add(c,b);
-        return true;
-    }
-    /** add all cards in the pile, assuming there is a preexisting JCard in the pile */
-	public boolean addAll(Pile pile) {
-		for(Card c:pile) {
-			add(c);
-			pilePane.add(c, pile.pilePane.cardsMap.get(c));
-		}
-		return true;
-	}
-    /** add all cards in the pile, making the JCard */
-    public boolean addAll(ArrayList<Card> pile) {
-		for(Card c:pile) {
-			add(c);
-			pilePane.add(c);
-		}
-		return true;
-	}
-    /** remove all cards in pile */
-	public boolean removeAll(ArrayList<Card> pile) {
-		for(Card c:pile) {
-			remove(c);
-		}
-		return true;
-	}
-    /** remove one card */
-	public boolean remove(Card c) {
-		super.remove(c);
-		pilePane.remove(c);
-		return true;
-	}
-    /** check from top of pile, going down, returning up to which it makes a descending sequence of the same color */
-	public ArrayList<Card> getSameSequence() {
-		ArrayList<Card> out = new ArrayList<Card>();
-		out.add(getLast());
-		for(int i=size()-2;i>=0;--i) {
-			if(cardsMap.get(get(i)).isFaceDown) break;
-			if(Card.compareRank(get(i+1), get(i)) != -1 || !Card.isSameColor(get(i), get(i+1))) break;
-			out.add(get(i));			
-		}
-		Collections.reverse(out);
-		return out;
-	}
-    /** check from top of pile, going down, returning up to which it makes a descending sequence of the same suit */
-    public ArrayList<Card> getSameSuitSequence() {
-		ArrayList<Card> out = new ArrayList<Card>();
-		out.add(getLast());
-		for(int i=size()-2;i>=0;--i) {
-			if(cardsMap.get(get(i)).isFaceDown) break;
-			if(Card.compareRank(get(i+1), get(i)) != -1 || !Card.isSameSuit(get(i), get(i+1))) break;
-			out.add(get(i));			
-		}
-		Collections.reverse(out);
-		return out;	
-	}
-    /** check from top of pile, going down, returning up to which it makes a descending sequence of the alternating color */
-    public ArrayList<Card> getAlternatingSequence(){
-		ArrayList<Card> out = new ArrayList<Card>();
-		out.add(getLast());
-		for(int i=size()-2;i>=0;--i) {
-			if(cardsMap.get(get(i)).isFaceDown) break;
-			if(Card.compareRank(get(i+1), get(i)) != -1 || Card.isSameColor(get(i), get(i+1))) break;
-			out.add(get(i));			
-		}
-		Collections.reverse(out);
-		return out;
-	}
-    /** check from top of pile, going down, returning up to which it makes a descending sequence of the alternating color, limiting to the maxLength */
-    public ArrayList<Card> getAlternatingSequence(int maxLength){
-		ArrayList<Card> out = new ArrayList<Card>();
-		out.add(getLast());
-		--maxLength;
-		for(int i=size()-2;i>=0;--i) {
-			if(maxLength-- == 0 || cardsMap.get(get(i)).isFaceDown) break;
-			if(Card.compareRank(get(i+1), get(i)) != -1 || Card.isSameColor(get(i), get(i+1))) break;
-			out.add(get(i));			
-		}
-		Collections.reverse(out);
-		return out;
-	}
 }
