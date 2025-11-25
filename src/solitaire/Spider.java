@@ -1,22 +1,12 @@
 package solitaire;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.Image;
-import java.awt.Point;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
-
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 
 public class Spider extends PileSolitaire{
 	private static final long serialVersionUID = 1L;
@@ -114,7 +104,7 @@ public class Spider extends PileSolitaire{
 	}
 	
 	@Override
-	protected void afterMoveChecks(PileMove move) {endGame();
+	protected void afterMoveChecks(PileMove move) {
 		checkPile(move.movedTo);
 		checkPileTop(move.movedFrom);
 	}

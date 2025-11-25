@@ -1,11 +1,9 @@
 package solitaire;
+
+import javax.swing.*;
 import java.awt.*;
 import java.io.Serial;
 import java.util.ArrayList;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 public class Klondike extends PileSolitaire{
 	@Serial
     private static final long serialVersionUID = 1L;
@@ -46,10 +44,7 @@ public class Klondike extends PileSolitaire{
         for(int i = 0; i < COLS; ++i)
         {
             for(int j = 0; j <= i; ++j)
-                if(j == i)
-                    piles.get(i).add(stock.pop(),false);
-                else
-                    piles.get(i).add(stock.pop(), true);
+                piles.get(i).add(stock.pop(),j!=i);
         }
     }//set up the standard board of Klondike!
 

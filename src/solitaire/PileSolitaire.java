@@ -1,13 +1,13 @@
 package solitaire;
+
+import javax.sound.sampled.*;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Stack;
-
-import javax.sound.sampled.*;
-import javax.swing.*;
 
 public abstract class PileSolitaire extends JLayeredPane{
 	private static final long serialVersionUID = 1L;
@@ -34,7 +34,7 @@ public abstract class PileSolitaire extends JLayeredPane{
     Deck stock;
 	ArrayList<Pile> piles;
 	Stack<PileMove> pastMoves;
-	JPanel pilePanes,utilPane, mainPane;
+	JPanel pilePanes,utilPane, mainPane, parPane, toolbar;
 	
 	Card selectedCard;
 	Pile heldPile;
@@ -45,12 +45,29 @@ public abstract class PileSolitaire extends JLayeredPane{
 		COLS = Columns;
 		difficulty = Difficulty;
 		pastMoves = new Stack<PileMove>();
-		mainPane = new JPanel(new BorderLayout());
-		add(mainPane,JLayeredPane.DEFAULT_LAYER);
+        parPane = new JPanel(new BorderLayout());
+        add(parPane,JLayeredPane.DEFAULT_LAYER);
+        mainPane = new JPanel(new BorderLayout());
+        parPane.add(mainPane,BorderLayout.CENTER);
+        toolbar = new JPanel(new GridLayout(1,0)){
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(getParent().getWidth(), 100);
+            }
+        };
+        toolbar.setBackground(Color.DARK_GRAY);
+        toolbar.add(new JButton("Undo"){
+            @Override
+            protected void init(String text, Icon icon) {
+                super.init(text, icon);
+                setOpaque(false);
+                addActionListener(e->undoLastMove());
+            }
+        });
+        parPane.add(toolbar, BorderLayout.SOUTH);
 		makeDeck();
 		stock.shuffle();
 		piles = new ArrayList<Pile>();
-		
 		pilePanes = new JPanel(new GridLayout(1,COLS));
 		mainPane.add(pilePanes, BorderLayout.CENTER);
 		mainPane.addMouseListener(new MouseAdapter(){
@@ -288,7 +305,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 	protected abstract ArrayList<Card> getSequence(Pile parent);
     /** if the pile can be taken from */
 	protected abstract boolean isRestricted(Pile p);
-    /** gets which pile that point is in */
+    /** gets which pile that point is in, to place cards into in a move */
 	protected abstract Pile getHoveringOver(Point point);
     /** validates the move */
 	protected abstract boolean isValidMove(Pile held, Pile from, Pile to);
@@ -342,11 +359,12 @@ public abstract class PileSolitaire extends JLayeredPane{
 	
 	@Override
 	public void doLayout() {
-		mainPane.setBounds(0, 0, getWidth(), getHeight());
+		parPane.setBounds(0, 0, getWidth(), getHeight());
 	}
 
 }
 
+/** Simple class containing aspects of a pile move. Some are only used for certain games. */
 class PileMove{
 	ArrayList<Card> cardsMoved;
 	Pile movedFrom;
@@ -354,11 +372,13 @@ class PileMove{
 	ArrayList<Card> clearedStack;
 	Card fromFlipped, toFlipped;
 	boolean drawMove;
+    /** Noraml move constructor */
 	public PileMove(ArrayList<Card> cards, Pile from, Pile to) {
 		cardsMoved = cards;
 		movedFrom = from;
 		movedTo = to;
 	}
+    /** Draw Move constructor */
 	public PileMove(boolean draw) {
 		drawMove = draw;
 	}
