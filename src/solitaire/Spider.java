@@ -30,14 +30,14 @@ public class Spider extends PileSolitaire{
 		for(int i=0;i<9;++i) utilPane.add(new JPanel(new GridLayout()) {
 			@Override
 			public Dimension getPreferredSize() {
-				return new Dimension(getWidth()/COLS, (int) (getWidth()/COLS*JCard.getRatio()));
+				return new Dimension(getWidth()/COLS, (int) (getWidth()*JCard.getRatio()/COLS));
 			}
 		});
         for(Component c: utilPane.getComponents()) ((JPanel)c).setOpaque(false);
 		getCards = new JButton(new ImageIcon(Utils.cardBack)) {
 			@Override
 			public Dimension getPreferredSize() {
-				return new Dimension(getParent().getWidth()/COLS, (int) (getParent().getWidth()/COLS*JCard.getRatio()));
+				return new Dimension(getParent().getWidth()/COLS, (int) (getParent().getWidth()*JCard.getRatio()/COLS));
 			}
 		};
         getCards.setOpaque(false);
@@ -48,7 +48,7 @@ public class Spider extends PileSolitaire{
 		getCards.addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent e) {
-				getCards.setIcon(new ImageIcon(Utils.cardBack.getScaledInstance(getWidth()/COLS, (int) (getWidth()/COLS*JCard.getRatio()),  Image.SCALE_SMOOTH)));
+				getCards.setIcon(new ImageIcon(Utils.cardBack.getScaledInstance(getWidth()/COLS, (int) (getWidth()*JCard.getRatio()/COLS),  Image.SCALE_SMOOTH)));
 			}
 		});
 		getCards.addActionListener(e -> {
@@ -131,11 +131,11 @@ public class Spider extends PileSolitaire{
 			for(Component c:utilPane.getComponents()) {
 				if(c instanceof JPanel && ((JPanel) c).getComponents().length == 0) {
 					pastMoves.getLast().clearedStack = top;
-					JLabel temp = new JLabel(new ImageIcon(p.cardsMap.get(top.get(0)).getMasterIcon()));
+					JLabel temp = new JLabel(new ImageIcon(p.cardsMap.get(top.getFirst()).getMasterIcon()));
 					temp.addComponentListener(new ComponentAdapter() {
 						@Override
 						public void componentResized(ComponentEvent e) {
-							temp.setIcon(new ImageIcon(p.cardsMap.get(top.get(0)).getMasterIcon().getScaledInstance(getWidth()/COLS, (int) (getWidth()/COLS*JCard.getRatio()),  Image.SCALE_SMOOTH)));
+							temp.setIcon(new ImageIcon(p.cardsMap.get(top.getFirst()).getMasterIcon().getScaledInstance(getWidth()/COLS, (int) (getWidth()*JCard.getRatio()/COLS),  Image.SCALE_SMOOTH)));
 						}
 					});
 					((JPanel)c).add(temp);

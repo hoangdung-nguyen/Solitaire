@@ -22,7 +22,7 @@ public class FreeCell extends PileSolitaire{
 		utilPane = new JPanel(new GridLayout(1,COLS)) {
 			@Override
 			public Dimension getPreferredSize() {
-				return new Dimension(getParent().getWidth(), (int) (getParent().getWidth()/COLS * JCard.getRatio()));
+				return new Dimension(getParent().getWidth(), (int) (getParent().getWidth()*JCard.getRatio()/COLS));
 			}
 		};
         utilPane.setOpaque(false);
@@ -69,15 +69,13 @@ public class FreeCell extends PileSolitaire{
 //		System.out.println("Evaluating putting "+held+" from "+from+" to "+to+" index "+pilesIndexOf(utilPiles, to));
 		if(to == null || to == from) 
 			return false;
-		else if(pilesContains(utilPiles, to)){ //is the destination in utilPiles?
+		if(pilesContains(utilPiles, to)){ //is the destination in utilPiles?
 			if(held.size()!=1) return false;
-			if(pilesIndexOf(utilPiles, to) < 4) {
+			if(pilesIndexOf(utilPiles, to) < 4)
                 return to.isEmpty();
-			}
 			else {
-				if(to.isEmpty()) {
+				if(to.isEmpty())
 					return held.getFirst().rank == '1';
-				}
 				return held.getFirst().compareRank(to.getLast()) == 1 && held.getFirst().isSameSuit(to.getLast());
 			}
 		}
