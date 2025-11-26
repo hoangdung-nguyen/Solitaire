@@ -1,27 +1,59 @@
 package solitaire;
 
 import javax.imageio.ImageIO;
+import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
 public class Utils {
+    static AudioInputStream winAudio;
+    static Clip clip;
+
+    static {
+        try {
+            winAudio = AudioSystem.getAudioInputStream(new File("winnersound.wav"));
+        } catch (UnsupportedAudioFileException e) {
+            System.out.println("AudioFile not supported");
+        } catch (IOException e) {
+            System.out.println("Could not find audio file");
+        }
+        try {
+            clip = AudioSystem.getClip();
+        } catch (LineUnavailableException e) {
+            System.out.println("Audio Output unavailable");
+        }
+    }
+
     //For title
-    public static Color titleColor = new Color(243, 167, 18);
+    public final static Color titleColor = new Color(243, 167, 18);
     //For buttons
-    public static Color buttonColor = new Color(224, 119, 125);
+    public final  static Color buttonColor = new Color(224, 119, 125);
     //For background
-    public static Color bgkColor = new Color(113, 0, 0 );
+    public final static Color bgkColor = new Color(113, 0, 0);
     //For texts
-    public static Color fontColor = new Color (240, 206, 160);
+    public final static Color fontColor = new Color(240, 206, 160);
     //Extra, for background
-    public static Color extraColor = new Color (41, 51, 92);
-    public final static Font titleFont = new Font("Comic Sans MS", Font.BOLD, 72);
-    public final static Font otherFont = new Font("Comic Sans MS", Font.PLAIN, 25);
+    public final static Color extraColor = new Color(41, 51, 92);
+    public static Font jersey;
+    static {
+        try {
+            jersey = Font.createFont(Font.TRUETYPE_FONT, new File("Jersey10-Regular.ttf"));
+
+        } catch (FontFormatException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public final static Font titleFont = jersey.deriveFont(Font.BOLD,72f);
+    public final static Font otherFont = jersey.deriveFont(25f);
 
     //Card graphics
     public static BufferedImage cardSheet;
@@ -107,6 +139,9 @@ class RoundedButton extends JButton {
         setFocusPainted(false);
         setContentAreaFilled(false);
         setOpaque(false);
+        setBackground(Utils.buttonColor);
+        setForeground(Utils.fontColor);
+        setFont(Utils.otherFont);
     }
 
     public void setRadius(int r){
@@ -143,7 +178,8 @@ class RoundedButton extends JButton {
 
         g2.dispose();
     }
+}
 
-
+class GameSave{
 
 }

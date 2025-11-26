@@ -7,16 +7,8 @@ import java.util.ArrayList;
 public class FreeCell extends PileSolitaire{
 	private static final long serialVersionUID = 1L;
 	ArrayList<Pile> utilPiles;
+    JPanel leftPane, rightPane;
 
-	public void start(Menu menu) {
-		SwingUtilities.invokeLater(() -> {
-			JFrame frame = new JFrame("FreeCell");
-			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frame.setSize(800,600);
-			frame.add(new FreeCell());
-			frame.setVisible(true);
-		});
-	}
 	public FreeCell(){
 		super(8,0);
 		utilPane = new JPanel(new GridLayout(1,COLS)) {
@@ -33,6 +25,12 @@ public class FreeCell extends PileSolitaire{
 			utilPane.add(utilPiles.get(i).pilePane);
 			addMouseListeners(utilPiles.get(i));
 		}
+        leftPane = new JPanel();
+        leftPane.setOpaque(false);
+        rightPane = new JPanel();
+        rightPane.setOpaque(false);
+        mainPane.add(leftPane,BorderLayout.WEST);
+        mainPane.add(rightPane,BorderLayout.EAST);
 	}
 	@Override
 	protected void makeDeck() {
@@ -107,6 +105,19 @@ public class FreeCell extends PileSolitaire{
 				++out;
 		return out;
 	}
-
+    @Override
+    public void doLayout(){
+        super.doLayout();
+        if(getWidth()>getHeight()){
+            leftPane.setVisible(true);
+            rightPane.setVisible(true);
+            leftPane.setSize(getWidth()-getHeight()/2, getHeight());
+            rightPane.setSize(getWidth()-getHeight()/2, getHeight());
+        }
+        else {
+            leftPane.setVisible(false);
+            rightPane.setVisible(false);
+        }
+    }
 }
 

@@ -88,14 +88,6 @@ public class JCard extends JToggleButton
 			return;
 		BufferedImage scaled = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2 = scaled.createGraphics();
-
-		// Enable high-quality but still fast scaling
-		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-		g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        BufferedImage out;
-
         g2.drawImage(currentImage, 0, 0, w, h, null);
 		g2.dispose();
 

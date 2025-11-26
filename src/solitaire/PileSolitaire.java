@@ -4,8 +4,9 @@ import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Stack;
 
@@ -13,49 +14,38 @@ public abstract class PileSolitaire extends JLayeredPane{
 	private static final long serialVersionUID = 1L;
 	protected int COLS;
 	protected int difficulty;
-    static AudioInputStream winAudio;
-    static Clip clip;
-
-    static {
-        try {
-            winAudio = AudioSystem.getAudioInputStream(new File("winnersound.wav"));
-        } catch (UnsupportedAudioFileException e) {
-            System.out.println("AudioFile not supported");
-        } catch (IOException e) {
-            System.out.println("Could not find audio file");
-        }
-        try {
-            clip = AudioSystem.getClip();
-        } catch (LineUnavailableException e) {
-            System.out.println("Audio Output unavailable");
-        }
-    }
 
     Deck stock;
 	ArrayList<Pile> piles;
 	Stack<PileMove> pastMoves;
 	JPanel pilePanes,utilPane, mainPane, parPane, toolbar;
+    Timer time;
+    Instant start;
     Menu mainMenu;
+    JLabel timeLabel;
 	
 	Card selectedCard;
 	Pile heldPile;
 	Point clickOffset;
 
-    public abstract void start(Menu menu);
+    public PileSolitaire start(Menu menu) {
+        mainMenu = menu;
+        requestFocusInWindow();
+        return this;
+    }
 
-	public PileSolitaire(int Columns, int Difficulty){
+    public PileSolitaire(int Columns, int Difficulty){
 		super();
-        setBackground(Utils.bgkColor);
 		COLS = Columns;
 		difficulty = Difficulty;
 		pastMoves = new Stack<PileMove>();
         parPane = new JPanel(new BorderLayout());
-        parPane.setOpaque(false);
+        parPane.setBackground(Utils.bgkColor);
         add(parPane,JLayeredPane.DEFAULT_LAYER);
         mainPane = new JPanel(new BorderLayout());
-        mainPane.setBackground(Utils.bgkColor);
+        mainPane.setOpaque(false);
         parPane.add(mainPane,BorderLayout.CENTER);
-        toolbar = new JPanel(new GridLayout(1,0)){
+        toolbar = new JPanel(new GridLayout(1,0, 50, 0)){
             @Override
             public Dimension getPreferredSize() {
                 return new Dimension(getParent().getWidth(), 100);
@@ -66,19 +56,13 @@ public abstract class PileSolitaire extends JLayeredPane{
             @Override
             protected void init(String text, Icon icon) {
                 super.init(text, icon);
-                setBackground(Utils.buttonColor);
-                setForeground(Utils.fontColor);
-                addActionListener(e->{
-
-                });
+                addActionListener(e->switchToMainMenu());
             }
         });
         toolbar.add(new RoundedButton("Undo"){
             @Override
             protected void init(String text, Icon icon) {
                 super.init(text, icon);
-                setBackground(Utils.buttonColor);
-                setForeground(Utils.fontColor);
                 addActionListener(e->undoLastMove());
             }
         });
@@ -86,7 +70,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 		makeDeck();
 		stock.shuffle();
 		piles = new ArrayList<Pile>();
-		pilePanes = new JPanel(new GridLayout(1,COLS));
+		pilePanes = new JPanel(new GridLayout(1,COLS, 10, 0));
         pilePanes.setOpaque(false);
 		mainPane.add(pilePanes, BorderLayout.CENTER);
 		mainPane.addMouseListener(new MouseAdapter(){
@@ -112,6 +96,20 @@ public abstract class PileSolitaire extends JLayeredPane{
 			}
 		}
 		setupKeyBindings();
+        timeLabel = new JLabel("0:00",SwingConstants.RIGHT);
+        timeLabel.setFont(Utils.otherFont);
+        timeLabel.setForeground(Utils.fontColor);
+        timeLabel.setOpaque(false);
+        parPane.add(timeLabel, BorderLayout.NORTH);
+        start = Instant.now();
+        time = new Timer(1, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                long theTime = Duration.between(start, Instant.now()).getSeconds();
+                timeLabel.setText(String.format("%02d",theTime/60)+":"+String.format("%02d",theTime%60));
+            }
+        });
+        time.start();
 //		for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
 	}
 
@@ -119,7 +117,10 @@ public abstract class PileSolitaire extends JLayeredPane{
 	protected abstract void makeDeck();
     /** Where you should place cards into the piles */
 	protected abstract void placeCards();
-
+    private void switchToMainMenu(){
+        ((CardLayout) mainMenu.cardLayoutPanel.getLayout()).show(mainMenu.cardLayoutPanel, "Menu");
+        mainMenu.requestFocusInWindow();
+    }
 	protected void addMouseListeners(Pile pile) {
 		pile.pilePane.addMouseListener(new MouseAdapter() {
 			@Override
@@ -334,11 +335,12 @@ public abstract class PileSolitaire extends JLayeredPane{
     protected void endGame(){
         // System.out.println("YOU WINNNNNNN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         try {
-            if(!clip.isOpen()) clip.open(winAudio);
+            if(!Utils.clip.isOpen()) Utils.clip.open(Utils.winAudio);
         } catch (LineUnavailableException | IOException e) {
             throw new RuntimeException(e);
         }
-        clip.start();
+        time.stop();
+        Utils.clip.start();
     }
 	/** move them over, check for any changes in the pile */
 	private void makeMove(Pile held, Pile from, Pile to) {
@@ -361,13 +363,51 @@ public abstract class PileSolitaire extends JLayeredPane{
                 pastMoves.getLast().toFlipped = pile.getLast();
 		}
 	}
+    protected void loadSave(PileSave save) {
+        // Stock
+        stock.clear();
+        for (PileSave.CardState cs : save.stock) {
+            stock.add(new Card(cs.rank, cs.suit));
+        }
+
+        // Piles
+        piles.clear();
+        for (ArrayList<PileSave.CardState> pileList : save.piles) {
+            Pile p = new Pile(COLS);
+            for (PileSave.CardState cs : pileList) {
+                p.add(new Card(cs.rank, cs.suit), cs.faceDown);
+            }
+            piles.add(p);
+        }
+
+        // Past moves
+        pastMoves.clear();
+        for (PileSave.PileMoveState pm : save.pastMoves) {
+            pastMoves.push(new PileMove(pm, piles));
+        }
+
+        revalidate();
+        repaint();
+    }
+    public void saveToFile(File file) throws IOException {
+        PileSave state = new PileSave(stock, piles, pastMoves);
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
+            out.writeObject(state);
+        }
+    }
+
+    public void loadFromFile(File file) throws IOException, ClassNotFoundException {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
+            loadSave((PileSave) in.readObject());
+        }
+    }
     /** ArrayList.indexOf, but by reference only */
-	protected <T> int pilesIndexOf(ArrayList<T> piles, T p) {
+	public static <T> int pilesIndexOf(ArrayList<T> piles, T p) {
 		for (int i=0;i<piles.size();++i) if (piles.get(i) == p) return i;
 		return -1;
 	}
     /** ArrayList.contains, but by reference only */
-    protected <T> boolean pilesContains(ArrayList<T> piles, T p)
+    public static <T> boolean pilesContains(ArrayList<T> piles, T p)
     {
         for (T pile : piles) if (pile == p) return true;
         return false;
@@ -398,5 +438,99 @@ class PileMove{
 	public PileMove(boolean draw) {
 		drawMove = draw;
 	}
+    public PileMove(PileSave.PileMoveState save, ArrayList<Pile> piles){
+        drawMove = save.drawMove;
+        if (drawMove)
+            return;
+        for (PileSave.CardState cs : save.cardsMoved)
+            cardsMoved.add(new Card(cs.rank, cs.suit));
+
+        movedFrom = piles.get(save.movedFromIndex);
+        movedTo = piles.get(save.movedToIndex);
+
+        if (save.clearedStack != null) {
+            clearedStack = new ArrayList<>();
+            for (PileSave.CardState cs : save.clearedStack)
+                clearedStack.add(new Card(cs.rank, cs.suit));
+        }
+
+        if (save.fromFlipped != null)
+            fromFlipped = new Card(save.fromFlipped.rank, save.fromFlipped.suit);
+        if (save.toFlipped != null)
+            toFlipped = new Card(save.toFlipped.rank, save.toFlipped.suit);
+    }
 }
 
+class PileSave extends GameSave implements Serializable{
+    public ArrayList<CardState> stock = new ArrayList<>();
+    public ArrayList<ArrayList<CardState>> piles = new ArrayList<>();
+    public ArrayList<ArrayList<CardState>> utilPiles;
+    public ArrayList<PileMoveState> pastMoves = new ArrayList<>();
+
+    public PileSave(Deck stock, ArrayList<Pile> piles, Stack<PileMove> pastMoves) {
+        // Stock
+        for (Card c : stock) {
+            this.stock.add(new CardState(c.getRank(), c.getSuit(), c.isFaceDown()));
+        }
+
+        // Piles
+        for (Pile p : piles) {
+            ArrayList<CardState> pileList = new ArrayList<>();
+            for (Card c : p) {
+                pileList.add(new CardState(c.getRank(), c.getSuit(), c.isFaceDown()));
+            }
+            this.piles.add(pileList);
+        }
+
+        // Past moves
+        for (PileMove move : pastMoves) {
+            this.pastMoves.add(new PileMoveState(move,piles));
+        }
+    }
+
+    public class CardState implements Serializable {
+        private static final long serialVersionUID = 1L;
+        public char rank;
+        public char suit;
+        public boolean faceDown;
+
+        public CardState(char rank, char suit, boolean faceDown) {
+            this.rank = rank;
+            this.suit = suit;
+            this.faceDown = faceDown;
+        }
+    }
+
+    public class PileMoveState implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        public ArrayList<CardState> cardsMoved = new ArrayList<>();
+        public int movedFromIndex = -1;
+        public int movedToIndex = -1;
+        public ArrayList<CardState> clearedStack;
+        public CardState fromFlipped = null;
+        public CardState toFlipped = null;
+        public boolean drawMove;
+
+        public PileMoveState(PileMove move, ArrayList<Pile> piles) {
+            drawMove = move.drawMove;
+            if (drawMove) return;
+
+            movedFromIndex = PileSolitaire.pilesIndexOf(piles, move.movedFrom);
+            movedToIndex = PileSolitaire.pilesIndexOf(piles, move.movedTo);
+
+            for (Card c : move.cardsMoved)
+                cardsMoved.add(new CardState(c.getRank(), c.getSuit(), c.isFaceDown()));
+
+            if (move.clearedStack != null) {
+                clearedStack = new ArrayList<>();
+                for (Card c : move.clearedStack)
+                    clearedStack.add(new CardState(c.getRank(), c.getSuit(), c.isFaceDown()));
+            }
+            if (move.fromFlipped != null)
+                fromFlipped = new CardState(move.fromFlipped.getRank(), move.fromFlipped.getSuit(), move.fromFlipped.isFaceDown());
+            if (move.toFlipped != null)
+                toFlipped = new CardState(move.toFlipped.getRank(), move.toFlipped.getSuit(), move.toFlipped.isFaceDown());
+        }
+    }
+}

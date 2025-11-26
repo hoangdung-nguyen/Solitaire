@@ -1,50 +1,34 @@
 package solitaire;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Random;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
 
 public class Menu extends JPanel {
 
     //User Interface
     private RoundedButton[] buttons = new RoundedButton[6];
-    private String[] bNames = {"Klondike", "Pyramid", "Tripeak", "Spider", "Free Cell", "Exit"};
+    private String[] bNames = {"Klondike", "Pyramid", "Tripeaks", "Spider", "Free Cell", "Exit"};
     private JPanel centerPanel, leftPanel, rightPanel;
-
+    JPanel cardLayoutPanel;
+    HashMap<String, GameSave> saves = new HashMap<>();
+    private final static int CARD_SCALE = 6;
     //Card graphics
     private static final long serialVersionUID = 1L;
-    protected static BufferedImage cardSheet;
-    static {
-        try {
-            cardSheet = ImageIO.read(new File("kerenel_Cards.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    static final int CARD_WIDTH = cardSheet.getWidth() / 14;
-    static final int CARD_HEIGHT = cardSheet.getHeight() / 6;
-    public static final double CARD_SCALE = 4;
-    public static final int SCALED_CARD_WIDTH  = (int)(CARD_WIDTH * CARD_SCALE);
-    public static final int SCALED_CARD_HEIGHT = (int)(CARD_HEIGHT * CARD_SCALE);
 
     public static void main(String[] args){
         JFrame frame = new JFrame("Solitaires");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setBounds(0,0,900,900);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        JPanel cardLayoutPanel = new JPanel(new CardLayout());
-        JPanel menu = new Menu();
-        cardLayoutPanel.add(menu, "Menu");
-        frame.add(cardLayoutPanel);
+        Menu menu = new Menu();
+        menu.cardLayoutPanel = new JPanel(new CardLayout());
+        menu.cardLayoutPanel.add(menu, "Menu");
+        frame.add(menu.cardLayoutPanel);
         frame.setVisible(true);
 
     }
@@ -93,15 +77,13 @@ public class Menu extends JPanel {
 
 
         //-------Left Panel (Spades & Hearts)----------
-        leftPanel = new JPanel();
+        leftPanel = new JPanel(new GridLayout(1,0));
         leftPanel.setOpaque(false);
-        leftPanel.setLayout(new GridLayout(13, 2, 0, 0));
         add(leftPanel, BorderLayout.WEST);
 
         //-------Right Panel (Clubs & Diamonds)----------
-        rightPanel = new JPanel();
+        rightPanel = new JPanel(new GridLayout(1,0));
         rightPanel.setOpaque(false);
-        rightPanel.setLayout(new GridLayout(13, 2, 0, 0));
         add(rightPanel, BorderLayout.EAST);
 
         addComponentListener(new ComponentAdapter(){
@@ -111,11 +93,6 @@ public class Menu extends JPanel {
                 repaint();
             }
         });
-
-
-
-
-
     }
 
     private void handleButtonClick(int index){
@@ -153,16 +130,17 @@ public class Menu extends JPanel {
             case "Pyramid":
                 //new Pyramid().start();
                 break;
-            case "Tripeak":
-                //new Tripeak().start();
+            case "Tripeaks":
+                //new Tripeaks().start();
                 break;
             case "Spider":
-                new Spider(1).start(this);
+                cardLayoutPanel.add(new Spider(1).start(this), gameName);
                 break;
             case "Free Cell":
-                new FreeCell().start(this);
+                cardLayoutPanel.add(new FreeCell().start(this), gameName);
                 break;
         }
+        ((CardLayout) cardLayoutPanel.getLayout()).show(cardLayoutPanel, gameName);
     }
 
     //Write logic for this
@@ -188,25 +166,21 @@ public class Menu extends JPanel {
         char[] ranks = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K'};
 
         //fill left panel
-        for(int i = 0; i < 13; i++){
-            for(char suit : suitsLeft){
-                Card c = new Card(ranks[i], suit);
-                BufferedImage img = Utils.getCardImage(c);
-                CardPanel panel = new CardPanel();
-                panel.addCard(img);
-                leftPanel.add(panel);
+        for(char suit : suitsLeft){
+            CardPanel pane = new CardPanel();
+            for(int i = 0; i < 13; i++){
+                pane.addCard(Utils.getCardImage(new Card(ranks[i], suit)));
             }
+            leftPanel.add(pane);
         }
 
         //fill right panel
-        for(int i = 0; i < 13; i++){
-            for(char suit: suitsRight){
-                Card c = new Card(ranks[i], suit);
-                BufferedImage img = Utils.getCardImage(c);
-                CardPanel panel = new CardPanel();
-                panel.addCard(img);
-                rightPanel.add(panel);
+        for(char suit : suitsRight){
+            CardPanel pane = new CardPanel();
+            for(int i = 0; i < 13; i++){
+                pane.addCard(Utils.getCardImage(new Card(ranks[i], suit)));
             }
+            rightPanel.add(pane);
         }
 
         leftPanel.revalidate();
@@ -221,7 +195,6 @@ public class Menu extends JPanel {
     private class CardPanel extends JPanel {
 
         private final java.util.List<BufferedImage> cards = new ArrayList<>();
-        private final int offset = (int)(SCALED_CARD_HEIGHT * 0.25);   // vertical stacking offset
 
         CardPanel() {
             setOpaque(false);
@@ -235,22 +208,22 @@ public class Menu extends JPanel {
 
         @Override
         public Dimension getPreferredSize() {
-            if (cards.isEmpty()) {
-                return new Dimension(SCALED_CARD_WIDTH, SCALED_CARD_HEIGHT);
-            }
-            int height = SCALED_CARD_HEIGHT + offset * (cards.size() - 1);
-            return new Dimension(SCALED_CARD_WIDTH, height);
+            return new Dimension(Menu.this.getWidth()/CARD_SCALE, Menu.this.getHeight());
         }
 
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
+            int h = getHeight();
+            int cardWidth = getWidth();
+            int cardHeight = (int) (cardWidth * JCard.getRatio());
 
+            int offset = (h - cardHeight) / Math.max(1,cards.size()-1);
             Graphics2D g2 = (Graphics2D) g;
             int y = 0;
 
             for (BufferedImage img : cards) {
-                g2.drawImage(img, 0, y, SCALED_CARD_WIDTH, SCALED_CARD_HEIGHT, null);
+                g2.drawImage(img, 0, y, cardWidth, cardHeight, null);
                 y += offset; // move each next card downward
             }
         }

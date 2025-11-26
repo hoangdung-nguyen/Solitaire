@@ -81,4 +81,11 @@ public class Card /*implements Comparable<Card>, java.io.Serializable*/ {
         return rank;
     }
 
+    public char getSuit() {
+        return suit;
+    }
+
+    public boolean isFaceDown() {
+        return ((Pile) parent).cardsMap.get(this).isFaceDown();
+    }
 }

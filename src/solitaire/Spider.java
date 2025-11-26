@@ -11,16 +11,7 @@ import java.util.ArrayList;
 public class Spider extends PileSolitaire{
 	private static final long serialVersionUID = 1L;
 	JButton getCards;
-	
-	public void start(Menu menu) {
-		SwingUtilities.invokeLater(() -> {
-			JFrame frame = new JFrame("Spider");
-			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frame.setSize(800,600);
-			frame.add(new Spider(1));
-			frame.setVisible(true);
-		});
-	}
+
 	public Spider(int diff){
 		super(10,diff);
 		difficulty = diff;
@@ -51,28 +42,30 @@ public class Spider extends PileSolitaire{
 				getCards.setIcon(new ImageIcon(Utils.cardBack.getScaledInstance(getWidth()/COLS, (int) (getWidth()*JCard.getRatio()/COLS),  Image.SCALE_SMOOTH)));
 			}
 		});
-		getCards.addActionListener(e -> {
-			if(stock.isEmpty()) return;
-			pastMoves.add(new PileMove(true));
-			for(int i=0;i<COLS;++i) {
-				piles.get(i).add(stock.pop(),false);
-                for(MouseListener m:piles.get(i).cardsMap.get(piles.get(i).getLast()).getMouseListeners())
-                    piles.get(i).cardsMap.get(piles.get(i).getLast()).removeMouseListener(m);
-                for(MouseMotionListener m:piles.get(i).cardsMap.get(piles.get(i).getLast()).getMouseMotionListeners())
-                    piles.get(i).cardsMap.get(piles.get(i).getLast()).removeMouseMotionListener(m);
-                addMouseListeners(piles.get(i).getLast());
-			}
-			revalidate();
-			repaint();
-//			for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
-			if(stock.isEmpty()) getCards.setVisible(false);
-		});
+		getCards.addActionListener(e -> drawCards());
 		utilPane.add(getCards);
 	}
-	
 
-	
-	@Override
+    private void drawCards() {
+        if(stock.isEmpty()) return;
+        for(Pile pile:piles) if(pile.isEmpty()) return;
+        pastMoves.add(new PileMove(true));
+        for(int i=0;i<COLS;++i) {
+            piles.get(i).add(stock.pop(), false);
+            for (MouseListener m : piles.get(i).cardsMap.get(piles.get(i).getLast()).getMouseListeners())
+                piles.get(i).cardsMap.get(piles.get(i).getLast()).removeMouseListener(m);
+            for (MouseMotionListener m : piles.get(i).cardsMap.get(piles.get(i).getLast()).getMouseMotionListeners())
+                piles.get(i).cardsMap.get(piles.get(i).getLast()).removeMouseMotionListener(m);
+            addMouseListeners(piles.get(i).getLast());
+            revalidate();
+            repaint();
+        }
+//			for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
+        if(stock.isEmpty()) getCards.setVisible(false);
+    }
+
+
+    @Override
 	protected void makeDeck() {
 		if(difficulty == 1) stock = new Deck(true, 4);
 		else stock = new Deck(2);
