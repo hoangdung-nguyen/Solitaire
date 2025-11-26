@@ -18,7 +18,7 @@ public class Utils {
     //For texts
     public static Color fontColor = new Color (240, 206, 160);
     //Extra, for background
-    public static Color extraColor = new Color (0, 0, 0);
+    public static Color extraColor = new Color (41, 51, 92);
 
     //Card graphics
     public static BufferedImage cardSheet;
@@ -80,6 +80,13 @@ public class Utils {
             }
         }
         return out;
+    }
+
+    public static BufferedImage getCardImage(Card c){
+        int col = RANK_ORDER.indexOf(c.rank)+1;
+
+        int row = SUIT_ORDER.indexOf(c.suit);
+        return Menu.cardSheet.getSubimage(col * Menu.CARD_WIDTH, row* Menu.CARD_HEIGHT, Menu.CARD_WIDTH, Menu.CARD_HEIGHT);
     }
 
 }

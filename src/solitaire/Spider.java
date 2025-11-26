@@ -12,7 +12,7 @@ public class Spider extends PileSolitaire{
 	private static final long serialVersionUID = 1L;
 	JButton getCards;
 	
-	public static void main(String[] args) {
+	public static void start() {
 		SwingUtilities.invokeLater(() -> {
 			JFrame frame = new JFrame("Spider");
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
