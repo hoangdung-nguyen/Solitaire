@@ -30,19 +30,19 @@ public class Pile extends ArrayList<Card> {
     }
     /** A bare bones add that does not make an accompanying JCard */
     public boolean add(Card c) {
-        c.parent=this;
-        return super.add(c);
+        return add(c, false);
     }
     /** add a card as well as its jcard */
     public boolean add(Card c, boolean b) {
-        add(c);
         pilePane.add(c,b);
-        return true;
+        c.parent=this;
+        return super.add(c);
     }
     /** add all cards in the pile, assuming there is a preexisting JCard in the pile */
     public boolean addAll(Pile pile) {
         for(Card c:pile) {
-            add(c);
+            c.parent=this;
+            if (!super.add(c)) return false;
             pilePane.add(c, pile.pilePane.cardsMap.get(c));
         }
         return true;
@@ -50,7 +50,8 @@ public class Pile extends ArrayList<Card> {
     /** add all cards in the pile, making the JCard */
     public boolean addAll(ArrayList<Card> pile) {
         for(Card c:pile) {
-            add(c);
+            c.parent=this;
+            if (!super.add(c)) return false;
             pilePane.add(c);
         }
         return true;
@@ -73,7 +74,7 @@ public class Pile extends ArrayList<Card> {
         ArrayList<Card> out = new ArrayList<Card>();
         out.add(getLast());
         for(int i=size()-2;i>=0;--i) {
-            if(cardsMap.get(get(i)).isFaceDown) break;
+            if(cardsMap.get(get(i)).isFaceDown()) break;
             if(Card.compareRank(get(i+1), get(i)) != -1 || !Card.isSameColor(get(i), get(i+1))) break;
             out.add(get(i));
         }
@@ -85,7 +86,7 @@ public class Pile extends ArrayList<Card> {
         ArrayList<Card> out = new ArrayList<Card>();
         out.add(getLast());
         for(int i=size()-2;i>=0;--i) {
-            if(cardsMap.get(get(i)).isFaceDown) break;
+            if(cardsMap.get(get(i)).isFaceDown()) break;
             if(Card.compareRank(get(i+1), get(i)) != -1 || !Card.isSameSuit(get(i), get(i+1))) break;
             out.add(get(i));
         }
@@ -97,7 +98,7 @@ public class Pile extends ArrayList<Card> {
         ArrayList<Card> out = new ArrayList<Card>();
         out.add(getLast());
         for(int i=size()-2;i>=0;--i) {
-            if(cardsMap.get(get(i)).isFaceDown) break;
+            if(cardsMap.get(get(i)).isFaceDown()) break;
             if(Card.compareRank(get(i+1), get(i)) != -1 || Card.isSameColor(get(i), get(i+1))) break;
             out.add(get(i));
         }
@@ -110,7 +111,7 @@ public class Pile extends ArrayList<Card> {
         out.add(getLast());
         --maxLength;
         for(int i=size()-2;i>=0;--i) {
-            if(maxLength-- == 0 || cardsMap.get(get(i)).isFaceDown) break;
+            if(maxLength-- == 0 || cardsMap.get(get(i)).isFaceDown()) break;
             if(Card.compareRank(get(i+1), get(i)) != -1 || Card.isSameColor(get(i), get(i+1))) break;
             out.add(get(i));
         }

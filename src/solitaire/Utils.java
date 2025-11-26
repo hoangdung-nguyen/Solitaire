@@ -32,11 +32,16 @@ public class Utils {
     }
     static final int CARD_WIDTH = cardSheet.getWidth() / 14;
     static final int CARD_HEIGHT = cardSheet.getHeight() / 6;
-    public static BufferedImage cardBack = Utils.centerImage(cardSheet.getSubimage(0, CARD_HEIGHT *2, CARD_WIDTH, CARD_HEIGHT));
-
-    static final List<Character> RANK_ORDER = Arrays.asList(new Character[]{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K'});
-	static final List<Character> SUIT_ORDER = Arrays.asList(new Character[]{ 'h', 's', 'd', 'c' });
-
+    public final static BufferedImage cardBack = getCardAsset(0, CARD_HEIGHT *2, CARD_WIDTH, CARD_HEIGHT);
+    public final static BufferedImage greyedCardBack = tint(cardBack, Color.lightGray);
+    static final List<Character> RANK_ORDER = Arrays.asList('1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K');
+	static final List<Character> SUIT_ORDER = Arrays.asList('h', 's', 'd', 'c');
+    public static BufferedImage getCardAsset(Card c){
+        return getCardAsset(CARD_WIDTH * (RANK_ORDER.indexOf(c.rank)+1), CARD_HEIGHT * SUIT_ORDER.indexOf(c.suit), CARD_WIDTH, CARD_HEIGHT);
+    }
+    public static BufferedImage getCardAsset(int x, int y, int w, int h){
+        return centerImage(cardSheet.getSubimage(x, y, w, h));
+    }
 	public static BufferedImage centerImage(BufferedImage src) {
 		int w = src.getWidth();
 		int h = src.getHeight();

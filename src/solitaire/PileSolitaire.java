@@ -20,14 +20,14 @@ public abstract class PileSolitaire extends JLayeredPane{
         try {
             winAudio = AudioSystem.getAudioInputStream(new File("winnersound.wav"));
         } catch (UnsupportedAudioFileException e) {
-            throw new RuntimeException(e);
+            System.out.println("AudioFile not supported");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("Could not find audio file");
         }
         try {
             clip = AudioSystem.getClip();
         } catch (LineUnavailableException e) {
-            throw new RuntimeException(e);
+            System.out.println("Audio Output unavailable");
         }
     }
 
@@ -169,7 +169,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 				else {
 					// select the part that is movable
 					((Pile)c.parent).pilePane.highlightCards(topOfPile);
-					selectedCard = topOfPile.get(0);
+					selectedCard = topOfPile.getFirst();
 				}
 			}
 			@Override
@@ -275,8 +275,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 			}
 			else {
                 if (move.fromFlipped != null) {
-                    move.movedFrom.cardsMap.get(move.fromFlipped).isFaceDown = true;
-                    move.movedFrom.cardsMap.get(move.fromFlipped).setIcon();
+                    move.movedFrom.cardsMap.get(move.fromFlipped).setFaceDown(true);
                 }
                 if (move.clearedStack != null) {
                     for (Card c : move.clearedStack) {
@@ -291,8 +290,7 @@ public abstract class PileSolitaire extends JLayeredPane{
                     labelContainer.remove(0);
                 }
                 if (move.toFlipped != null) {
-                    move.movedTo.cardsMap.get(move.toFlipped).isFaceDown = true;
-                    move.movedTo.cardsMap.get(move.toFlipped).setIcon();
+                    move.movedTo.cardsMap.get(move.toFlipped).setFaceDown(true);
                 }
                 move.movedTo.removeAll(move.cardsMoved);
                 move.movedFrom.addAll(move.cardsMoved);
@@ -338,10 +336,9 @@ public abstract class PileSolitaire extends JLayeredPane{
 	}
 	/** Checking if the pile has a flipped card on top, then flipping it if there is */
 	protected void checkPileTop(Pile pile) {
-		if(!pile.isEmpty() && pile.cardsMap.get(pile.getLast()).isFaceDown) {
+		if(!pile.isEmpty() && pile.cardsMap.get(pile.getLast()).isFaceDown()) {
 			// System.out.println("REVEALING CARD "+ pile.cardsMap.get(pile.getLast()));
-			pile.cardsMap.get(pile.getLast()).isFaceDown = false;
-			pile.cardsMap.get(pile.getLast()).setIcon();
+			pile.cardsMap.get(pile.getLast()).setFaceDown(false);
             if(pile == pastMoves.getLast().movedFrom)
                 pastMoves.getLast().fromFlipped = pile.getLast();
             if(pile == pastMoves.getLast().movedTo)
@@ -356,7 +353,7 @@ public abstract class PileSolitaire extends JLayeredPane{
     /** ArrayList.contains, but by reference only */
     protected <T> boolean pilesContains(ArrayList<T> piles, T p)
     {
-        for (int i=0;i<piles.size();++i) if (piles.get(i) == p) return true;
+        for (T pile : piles) if (pile == p) return true;
         return false;
     }
 	
