@@ -1,6 +1,7 @@
 package solitaire;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -19,6 +20,8 @@ public class Utils {
     public static Color fontColor = new Color (240, 206, 160);
     //Extra, for background
     public static Color extraColor = new Color (41, 51, 92);
+    public final static Font titleFont = new Font("Comic Sans MS", Font.BOLD, 72);
+    public final static Font otherFont = new Font("Comic Sans MS", Font.PLAIN, 25);
 
     //Card graphics
     public static BufferedImage cardSheet;
@@ -36,6 +39,7 @@ public class Utils {
     public final static BufferedImage greyedCardBack = tint(cardBack, Color.lightGray);
     static final List<Character> RANK_ORDER = Arrays.asList('1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K');
 	static final List<Character> SUIT_ORDER = Arrays.asList('h', 's', 'd', 'c');
+
     public static BufferedImage getCardAsset(Card c){
         return getCardAsset(CARD_WIDTH * (RANK_ORDER.indexOf(c.rank)+1), CARD_HEIGHT * SUIT_ORDER.indexOf(c.suit), CARD_WIDTH, CARD_HEIGHT);
     }
@@ -91,8 +95,55 @@ public class Utils {
         int col = RANK_ORDER.indexOf(c.rank)+1;
 
         int row = SUIT_ORDER.indexOf(c.suit);
-        return Menu.cardSheet.getSubimage(col * Menu.CARD_WIDTH, row* Menu.CARD_HEIGHT, Menu.CARD_WIDTH, Menu.CARD_HEIGHT);
+        return cardSheet.getSubimage(col * CARD_WIDTH, row* CARD_HEIGHT, CARD_WIDTH, CARD_HEIGHT);
     }
 
 }
 
+class RoundedButton extends JButton {
+    private int radius = 60;
+    public RoundedButton(String name){
+        super(name);
+        setFocusPainted(false);
+        setContentAreaFilled(false);
+        setOpaque(false);
+    }
+
+    public void setRadius(int r){
+        this.radius = r;
+        repaint();
+    }
+
+    @Override
+    protected void paintComponent(Graphics g){
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        if(getModel().isPressed()){
+            g2.setColor(getBackground().darker());
+        } else if (getModel().isRollover()){
+            g2.setColor(getBackground().brighter());
+        }else{
+            g2.setColor(getBackground());
+        }
+
+        g2.fillRoundRect(0, 0, getWidth(), getHeight(), radius, radius);
+
+        super.paintComponent(g);
+        g2.dispose();
+    }
+
+    @Override
+    protected void paintBorder(Graphics g){
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        g2.setColor(getForeground());
+        g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, radius, radius);
+
+        g2.dispose();
+    }
+
+
+
+}

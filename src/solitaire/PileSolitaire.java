@@ -35,10 +35,13 @@ public abstract class PileSolitaire extends JLayeredPane{
 	ArrayList<Pile> piles;
 	Stack<PileMove> pastMoves;
 	JPanel pilePanes,utilPane, mainPane, parPane, toolbar;
+    Menu mainMenu;
 	
 	Card selectedCard;
 	Pile heldPile;
 	Point clickOffset;
+
+    public abstract void start(Menu menu);
 
 	public PileSolitaire(int Columns, int Difficulty){
 		super();
@@ -58,11 +61,24 @@ public abstract class PileSolitaire extends JLayeredPane{
                 return new Dimension(getParent().getWidth(), 100);
             }
         };
-        toolbar.add(new JButton("Undo"){
+        toolbar.setOpaque(false);
+        toolbar.add(new RoundedButton("Menu"){
             @Override
             protected void init(String text, Icon icon) {
                 super.init(text, icon);
-                setOpaque(false);
+                setBackground(Utils.buttonColor);
+                setForeground(Utils.fontColor);
+                addActionListener(e->{
+
+                });
+            }
+        });
+        toolbar.add(new RoundedButton("Undo"){
+            @Override
+            protected void init(String text, Icon icon) {
+                super.init(text, icon);
+                setBackground(Utils.buttonColor);
+                setForeground(Utils.fontColor);
                 addActionListener(e->undoLastMove());
             }
         });

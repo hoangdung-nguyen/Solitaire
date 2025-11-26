@@ -14,16 +14,6 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class Menu extends JPanel {
-    //For title
-    public Color titleColor = new Color(243, 167, 18);
-    //For buttons
-    public Color buttonColor = new Color(224, 119, 125);
-    //For background
-    public Color bgkColor = new Color(113, 0, 0 );
-    //For texts
-    public Color fontColor = new Color (240, 206, 160);
-    //Extra, for background
-    public Color extraColor = new Color (41, 51, 92);
 
     //User Interface
     private RoundedButton[] buttons = new RoundedButton[6];
@@ -49,19 +39,19 @@ public class Menu extends JPanel {
     public static void main(String[] args){
         JFrame frame = new JFrame("Solitaires");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setBounds(0,0,900,900);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-
-        frame.add(new Menu());
-
+        JPanel cardLayoutPanel = new JPanel(new CardLayout());
+        JPanel menu = new Menu();
+        cardLayoutPanel.add(menu, "Menu");
+        frame.add(cardLayoutPanel);
         frame.setVisible(true);
-
 
     }
 
     public Menu(){
-        setBackground(bgkColor);
+        setBackground(Utils.bgkColor);
         setLayout(new BorderLayout());
-
         //-------Center Panel (menu)----------
         centerPanel = new JPanel();
         centerPanel.setOpaque(false);
@@ -71,9 +61,9 @@ public class Menu extends JPanel {
 
 
         JLabel title = new JLabel("Welcome!");
-        title.setForeground(fontColor);
+        title.setForeground(Utils.fontColor);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
-        title.setFont(new Font("Serif", Font.BOLD, 72));
+        title.setFont(Utils.titleFont);
 
 
         centerPanel.add(title);
@@ -82,9 +72,9 @@ public class Menu extends JPanel {
         //Add all the buttons to the centerPanel
         for (int i = 0; i < 6; i++){
             buttons[i] = new RoundedButton(bNames[i]);
-            buttons[i].setBackground(buttonColor);
-            buttons[i].setForeground(fontColor);
-            buttons[i].setFont(new Font("Serif", Font.PLAIN, 25));
+            buttons[i].setBackground(Utils.buttonColor);
+            buttons[i].setForeground(Utils.fontColor);
+            buttons[i].setFont(Utils.otherFont);
 
             buttons[i].setPreferredSize(new Dimension(400, 65));
             buttons[i].setMaximumSize(new Dimension (400, 65));
@@ -167,10 +157,10 @@ public class Menu extends JPanel {
                 //new Tripeak().start();
                 break;
             case "Spider":
-                new Spider(1).start();
+                new Spider(1).start(this);
                 break;
             case "Free Cell":
-                new FreeCell().start();
+                new FreeCell().start(this);
                 break;
         }
     }
@@ -226,55 +216,9 @@ public class Menu extends JPanel {
 
 
 
-    public static class RoundedButton extends JButton{
-        private int radius = 60;
-        public RoundedButton(String name){
-            super(name);
-            setFocusPainted(false);
-            setContentAreaFilled(false);
-            setOpaque(false);
-        }
-
-        public void setRadius(int r){
-            this.radius = r;
-            repaint();
-        }
-
-        @Override
-        protected void paintComponent(Graphics g){
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            if(getModel().isPressed()){
-                g2.setColor(getBackground().darker());
-            } else if (getModel().isRollover()){
-                g2.setColor(getBackground().brighter());
-            }else{
-                g2.setColor(getBackground());
-            }
-
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), radius, radius);
-
-            super.paintComponent(g);
-            g2.dispose();
-        }
-
-        @Override
-        protected void paintBorder(Graphics g){
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            g2.setColor(getForeground());
-            g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, radius, radius);
-
-            g2.dispose();
-        }
 
 
-
-    }
-
-    private class CardPanel extends JLayeredPane {
+    private class CardPanel extends JPanel {
 
         private final java.util.List<BufferedImage> cards = new ArrayList<>();
         private final int offset = (int)(SCALED_CARD_HEIGHT * 0.25);   // vertical stacking offset

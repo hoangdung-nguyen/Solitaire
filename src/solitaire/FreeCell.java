@@ -8,7 +8,7 @@ public class FreeCell extends PileSolitaire{
 	private static final long serialVersionUID = 1L;
 	ArrayList<Pile> utilPiles;
 
-	public static void start() {
+	public void start(Menu menu) {
 		SwingUtilities.invokeLater(() -> {
 			JFrame frame = new JFrame("FreeCell");
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

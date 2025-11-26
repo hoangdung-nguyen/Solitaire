@@ -9,7 +9,7 @@ public class Klondike extends PileSolitaire{
     private static final long serialVersionUID = 1L;
     ArrayList<Pile> foundationPiles;
 
-	public static void main(String[] args) {
+	public void start(Menu menu) {
 		SwingUtilities.invokeLater(() -> {
 			JFrame frame = new JFrame("Klondike");
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
