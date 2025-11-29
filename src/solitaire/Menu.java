@@ -5,6 +5,8 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -12,10 +14,10 @@ public class Menu extends JPanel {
 
     //User Interface
     private RoundedButton[] buttons = new RoundedButton[6];
-    private String[] bNames = {"Klondike", "Pyramid", "Tripeaks", "Spider", "Free Cell", "Exit"};
+    private String[] bNames = {"Klondike", "Pyramid", "Tripeaks", "Spider", "FreeCell", "Exit"};
     private JPanel centerPanel, leftPanel, rightPanel;
     JPanel cardLayoutPanel;
-    HashMap<String, GameSave> saves = new HashMap<>();
+    HashMap<String, JComponent> cards = new HashMap<>();
     private final static int CARD_SCALE = 6;
     //Card graphics
     private static final long serialVersionUID = 1L;
@@ -28,6 +30,7 @@ public class Menu extends JPanel {
         Menu menu = new Menu();
         menu.cardLayoutPanel = new JPanel(new CardLayout());
         menu.cardLayoutPanel.add(menu, "Menu");
+        menu.cards.put("menu", menu);
         frame.add(menu.cardLayoutPanel);
         frame.setVisible(true);
 
@@ -86,13 +89,7 @@ public class Menu extends JPanel {
         rightPanel.setOpaque(false);
         add(rightPanel, BorderLayout.EAST);
 
-        addComponentListener(new ComponentAdapter(){
-            @Override
-            public void componentResized(ComponentEvent e){
-                generatePanelCards();
-                repaint();
-            }
-        });
+        generatePanelCards();
     }
 
     private void handleButtonClick(int index){
@@ -134,10 +131,14 @@ public class Menu extends JPanel {
                 //new Tripeaks().start();
                 break;
             case "Spider":
-                cardLayoutPanel.add(new Spider(1).start(this), gameName);
+                Spider spider = new Spider(1);
+                cardLayoutPanel.add(spider.start(this), gameName);
+                cards.put(gameName,(JComponent) spider);
                 break;
-            case "Free Cell":
-                cardLayoutPanel.add(new FreeCell().start(this), gameName);
+            case "FreeCell":
+                FreeCell freecell = new FreeCell();
+                cardLayoutPanel.add(freecell.start(this), gameName);
+                cards.put(gameName, freecell);
                 break;
         }
         ((CardLayout) cardLayoutPanel.getLayout()).show(cardLayoutPanel, gameName);
@@ -145,6 +146,67 @@ public class Menu extends JPanel {
 
     //Write logic for this
     private void continueSavedGame(String gameName){
+        String saveFileName = "GameSave_" + gameName + ".dat";
+        File saveFile = new File(saveFileName);
+        if(!saveFile.exists()) return;
+        JComponent game = cards.get(gameName);
+        if(game == null){
+            switch (gameName){
+                case "Klondike":
+                    // new Klondike().start();
+                    break;
+                case "Pyramid":
+                    //new Pyramid().start();
+                    break;
+                case "Tripeaks":
+                    //new Tripeaks().start();
+                    break;
+                case "Spider":
+                    Spider spider = new Spider("GameSave_" + gameName + ".dat");
+                    cardLayoutPanel.add(spider.start(this), gameName);
+                    cards.put(gameName,(JComponent) spider);
+                    break;
+                case "FreeCell":
+                    FreeCell freecell = new FreeCell("GameSave_" + gameName + ".dat");
+                    cardLayoutPanel.add(freecell.start(this), gameName);
+                    cards.put(gameName, freecell);
+                    break;
+            }
+            ((CardLayout) cardLayoutPanel.getLayout()).show(cardLayoutPanel, gameName);
+        }
+        else{
+            switch (gameName){
+                case "Klondike":
+                    // new Klondike().start();
+                    break;
+                case "Pyramid":
+                    //new Pyramid().start();
+                    break;
+                case "Tripeaks":
+                    //new Tripeaks().start();
+                    break;
+                case "Spider":
+                    try {
+                        ((Spider) game).loadFromFile(saveFile);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                    break;
+                case "FreeCell":
+                    try {
+                        ((FreeCell) game).loadFromFile(saveFile);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                    break;
+            }
+            game.requestFocusInWindow();
+            ((CardLayout) cardLayoutPanel.getLayout()).show(cardLayoutPanel, gameName);
+        }
 
     }
 
@@ -202,8 +264,6 @@ public class Menu extends JPanel {
 
         public void addCard(BufferedImage img) {
             cards.add(img);
-            revalidate();
-            repaint();
         }
 
         @Override
@@ -212,8 +272,8 @@ public class Menu extends JPanel {
         }
 
         @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
+        public void paint(Graphics g) {
+            super.paint(g);
             int h = getHeight();
             int cardWidth = getWidth();
             int cardHeight = (int) (cardWidth * JCard.getRatio());

@@ -4,29 +4,34 @@ import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Stack;
 
 public abstract class PileSolitaire extends JLayeredPane{
 	private static final long serialVersionUID = 1L;
-	protected int COLS;
+    final static int GRAVITY = 1;
+    protected int COLS;
 	protected int difficulty;
 
     Deck stock;
 	ArrayList<Pile> piles;
 	Stack<PileMove> pastMoves;
+
 	JPanel pilePanes,utilPane, mainPane, parPane, toolbar;
     Timer time;
     Instant start;
     Menu mainMenu;
     JLabel timeLabel;
-	
-	Card selectedCard;
+
+    Card selectedCard;
 	Pile heldPile;
 	Point clickOffset;
+    boolean gameEnded;
 
     public PileSolitaire start(Menu menu) {
         mainMenu = menu;
@@ -35,10 +40,68 @@ public abstract class PileSolitaire extends JLayeredPane{
     }
 
     public PileSolitaire(int Columns, int Difficulty){
-		super();
-		COLS = Columns;
-		difficulty = Difficulty;
-		pastMoves = new Stack<PileMove>();
+        super();
+        COLS = Columns;
+        difficulty = Difficulty;
+        setupUI();
+        pastMoves = new Stack<PileMove>();
+        makeDeck();
+        stock.shuffle();
+        setupPiles();
+        placeCards();
+        addUIFunctions();
+//		for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
+    }
+    public PileSolitaire(int Columns, String saveFile){
+        super();
+        PileSave saveData;
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(saveFile))) {
+            saveData = ((PileSave) in.readObject());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        COLS = Columns;
+        difficulty = saveData.difficulty;
+        start = Instant.now().minusSeconds(saveData.timePast);
+        setupUI();
+        pastMoves = new Stack<PileMove>();
+        stock = new Deck(0);
+        for (PileSave.CardState cs : saveData.stock) {
+            stock.add(new Card(cs.rank, cs.suit));
+        }
+        piles = new ArrayList<Pile>();
+        pilePanes = new JPanel(new GridLayout(1,COLS, 10, 0));
+        pilePanes.setOpaque(false);
+        mainPane.add(pilePanes, BorderLayout.CENTER);
+        mainPane.addMouseListener(new MouseAdapter(){
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                // System.out.println("LISTENING TO MAIN");
+                if(selectedCard!=null) ((Pile)selectedCard.parent).pilePane.unhighlightAllCards();
+                heldPile = null;
+                selectedCard = null;
+                revalidate();
+                repaint();
+            }
+        });
+        // Piles
+        piles.clear();
+        for (ArrayList<PileSave.CardState> pileList : saveData.piles) {
+            Pile p = new Pile(COLS);
+            for (PileSave.CardState cs : pileList) {
+                p.add(new Card(cs.rank, cs.suit), cs.faceDown);
+            }
+            piles.add(p);
+            pilePanes.add(p.pilePane);
+        }
+
+        addUIFunctions();
+//		for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
+    }
+
+    public void setupUI(){
         parPane = new JPanel(new BorderLayout());
         parPane.setBackground(Utils.bgkColor);
         add(parPane,JLayeredPane.DEFAULT_LAYER);
@@ -67,35 +130,33 @@ public abstract class PileSolitaire extends JLayeredPane{
             }
         });
         parPane.add(toolbar, BorderLayout.SOUTH);
-		makeDeck();
-		stock.shuffle();
-		piles = new ArrayList<Pile>();
-		pilePanes = new JPanel(new GridLayout(1,COLS, 10, 0));
+
+    }
+    public void setupPiles(){
+        piles = new ArrayList<Pile>();
+        pilePanes = new JPanel(new GridLayout(1,COLS, 10, 0));
         pilePanes.setOpaque(false);
-		mainPane.add(pilePanes, BorderLayout.CENTER);
-		mainPane.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mouseReleased(MouseEvent e) {
-				// System.out.println("LISTENING TO MAIN");
-				if(selectedCard!=null) ((Pile)selectedCard.parent).pilePane.unhighlightAllCards();
-				heldPile = null;
-				selectedCard = null;
-				revalidate();
-				repaint();
-			}
-		});	
-		for(int i=0;i<COLS;++i) {
-			piles.add(new Pile(COLS));
-			pilePanes.add(piles.get(i).pilePane);
-		}
-		placeCards();
-		for (Pile pile:piles) {
-			addMouseListeners(pile);
-			for(Card c:pile) {
-				addMouseListeners(c);
-			}
-		}
-		setupKeyBindings();
+        mainPane.add(pilePanes, BorderLayout.CENTER);
+        mainPane.addMouseListener(new MouseAdapter(){
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                // System.out.println("LISTENING TO MAIN");
+                if(selectedCard!=null) ((Pile)selectedCard.parent).pilePane.unhighlightAllCards();
+                heldPile = null;
+                selectedCard = null;
+                revalidate();
+                repaint();
+            }
+        });
+        for(int i=0;i<COLS;++i) {
+            piles.add(new Pile(COLS));
+            pilePanes.add(piles.get(i).pilePane);
+        }
+    }
+
+    public void addUIFunctions(){
+        addMouseListeners(piles);
+        setupKeyBindings();
         timeLabel = new JLabel("0:00",SwingConstants.RIGHT);
         timeLabel.setFont(Utils.otherFont);
         timeLabel.setForeground(Utils.fontColor);
@@ -110,14 +171,28 @@ public abstract class PileSolitaire extends JLayeredPane{
             }
         });
         time.start();
-//		for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
-	}
+    }
 
+    public void addMouseListeners(ArrayList<Pile> piles){
+        for (Pile pile:piles) {
+            addMouseListeners(pile);
+            for(Card c:pile) {
+                addMouseListeners(c);
+            }
+        }
+    }
     /** Where you should initiate stock */
 	protected abstract void makeDeck();
     /** Where you should place cards into the piles */
 	protected abstract void placeCards();
     private void switchToMainMenu(){
+        if(!gameEnded) {
+            try {
+                saveToFile(new File("GameSave_" + getClass().getSimpleName() + ".dat"));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
         ((CardLayout) mainMenu.cardLayoutPanel.getLayout()).show(mainMenu.cardLayoutPanel, "Menu");
         mainMenu.requestFocusInWindow();
     }
@@ -205,7 +280,9 @@ public abstract class PileSolitaire extends JLayeredPane{
 				// since there is a move done, we remove anything from drag
 				remove(heldPile.pilePane);
 				// Get the pile that we will place on
-				Pile hoveringOver=getHoveringOver(SwingUtilities.convertPoint(((Pile)c.parent).cardsMap.get(c), e.getPoint(), PileSolitaire.this));
+                // e.point - offset + getwidth/2
+                Point cardMid = new Point(e.getPoint().x - clickOffset.x + ((Pile)c.parent).cardsMap.get(c).getWidth()/2, e.getPoint().y - clickOffset.y + ((Pile)c.parent).cardsMap.get(c).getHeight()/2);
+				Pile hoveringOver=getHoveringOver(SwingUtilities.convertPoint(((Pile)c.parent).cardsMap.get(c), cardMid, PileSolitaire.this));
 				// System.out.println("Released at pile pile "+piles.indexOf(hoveringOver));
 				// If Out of bounds || same pile || invalid move, just move them back
 				if(isValidMove(heldPile, parentPile, hoveringOver)){
@@ -244,7 +321,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 						add(heldPile.pilePane,JLayeredPane.DRAG_LAYER);
 						
 						clickOffset = e.getPoint();
-						heldPile.pilePane.setSize(heldPile.pilePane.getPreferredSize());
+						heldPile.pilePane.setSize(((Pile)c.parent).pilePane.getPreferredSize());
 						heldPile.pilePane.doLayout();
 						((Pile)c.parent).pilePane.setVisible(topOfPile,false);
 
@@ -292,7 +369,8 @@ public abstract class PileSolitaire extends JLayeredPane{
 			}
 			else {
                 if (move.fromFlipped != null) {
-                    move.movedFrom.cardsMap.get(move.fromFlipped).setFaceDown(true);
+                    if(move.movedFrom.cardsMap.get(move.fromFlipped)!=null) move.movedFrom.cardsMap.get(move.fromFlipped).setFaceDown(true);
+                    else move.movedFrom.cardsMap.get(move.movedFrom.getLast()).setFaceDown(true);
                 }
                 if (move.clearedStack != null) {
                     for (Card c : move.clearedStack) {
@@ -307,7 +385,8 @@ public abstract class PileSolitaire extends JLayeredPane{
                     labelContainer.remove(0);
                 }
                 if (move.toFlipped != null) {
-                    move.movedTo.cardsMap.get(move.toFlipped).setFaceDown(true);
+                    if(move.movedTo.cardsMap.get(move.toFlipped)!=null) move.movedTo.cardsMap.get(move.toFlipped).setFaceDown(true);
+                    else move.movedTo.cardsMap.get(move.movedTo.getLast()).setFaceDown(true);
                 }
                 move.movedTo.removeAll(move.cardsMoved);
                 move.movedFrom.addAll(move.cardsMoved);
@@ -341,6 +420,7 @@ public abstract class PileSolitaire extends JLayeredPane{
         }
         time.stop();
         Utils.clip.start();
+        gameEnded = true;
     }
 	/** move them over, check for any changes in the pile */
 	private void makeMove(Pile held, Pile from, Pile to) {
@@ -363,34 +443,45 @@ public abstract class PileSolitaire extends JLayeredPane{
                 pastMoves.getLast().toFlipped = pile.getLast();
 		}
 	}
+
+    /** Load game from a PileSolitaire already set up */
     protected void loadSave(PileSave save) {
+        clearTable();
         // Stock
-        stock.clear();
         for (PileSave.CardState cs : save.stock) {
             stock.add(new Card(cs.rank, cs.suit));
         }
 
         // Piles
-        piles.clear();
-        for (ArrayList<PileSave.CardState> pileList : save.piles) {
-            Pile p = new Pile(COLS);
+        for (int i=0; i<piles.size(); ++i) {
+            Pile p = piles.get(i);
+            ArrayList<PileSave.CardState> pileList = save.piles.get(i);
             for (PileSave.CardState cs : pileList) {
                 p.add(new Card(cs.rank, cs.suit), cs.faceDown);
             }
-            piles.add(p);
         }
 
         // Past moves
-        pastMoves.clear();
         for (PileSave.PileMoveState pm : save.pastMoves) {
             pastMoves.push(new PileMove(pm, piles));
         }
-
+        addMouseListeners(piles);
+        start = Instant.now().minusSeconds(save.timePast);
         revalidate();
         repaint();
     }
+
+    void clearTable() {
+        for(Pile pile : piles) {
+            pile.clear();
+            pile.pilePane.removeAll();
+        }
+        stock.clear();
+        pastMoves.clear();
+    }
+
     public void saveToFile(File file) throws IOException {
-        PileSave state = new PileSave(stock, piles, pastMoves);
+        PileSave state = new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
             out.writeObject(state);
         }
@@ -401,19 +492,67 @@ public abstract class PileSolitaire extends JLayeredPane{
             loadSave((PileSave) in.readObject());
         }
     }
+
     /** ArrayList.indexOf, but by reference only */
-	public static <T> int pilesIndexOf(ArrayList<T> piles, T p) {
-		for (int i=0;i<piles.size();++i) if (piles.get(i) == p) return i;
-		return -1;
-	}
+    public static <T> int pilesIndexOf(ArrayList<T> piles, T p) {
+        for (int i=0;i<piles.size();++i) if (piles.get(i) == p) return i;
+        return -1;
+    }
     /** ArrayList.contains, but by reference only */
     public static <T> boolean pilesContains(ArrayList<T> piles, T p)
     {
         for (T pile : piles) if (pile == p) return true;
         return false;
     }
-	
-	@Override
+
+    void DVDLogo(ArrayList<BufferedImage> images, ArrayList<Point> points, ArrayList<Integer> velocitiesX, ArrayList<Integer> velocitiesY){
+        for(int i = 0;i<images.size();++i){
+            int newX = points.get(i).x+velocitiesX.get(i);
+            int newY = points.get(i).y+velocitiesY.get(i);
+            if(newX<=0 || newX+images.get(i).getWidth()>=getWidth()){
+                if (newX<=0)
+                    newX = -newX;
+                else newX = 2 * getWidth() - newX - 2*images.get(i).getWidth();
+                velocitiesX.set(i,-velocitiesX.get(i));
+            }
+            if(newY<=0 || newY+images.get(i).getHeight()>=getHeight()){
+                if (newY<=0)
+                    newY = -newY;
+                else newY = 2* getHeight() - newY - 2*images.get(i).getHeight();
+                velocitiesY.set(i,-velocitiesY.get(i));
+            }
+            points.set(i, new Point(newX, newY));
+        }
+    }
+    void gravityCards(ArrayList<BufferedImage> images, ArrayList<Point> points, ArrayList<Integer> velocitiesX, ArrayList<Integer> velocitiesY){
+        for (int i = 0; i < images.size(); i++) {
+            int newX = points.get(i).x + velocitiesX.get(i);
+            if(newX<=0 || newX+images.get(i).getWidth()>=getWidth()){
+                if (newX<=0)
+                    newX = -newX;
+                else newX = 2 * getWidth() - newX - 2*images.get(i).getWidth();
+                velocitiesX.set(i,-velocitiesX.get(i));
+            }
+            int vy = velocitiesY.get(i) + GRAVITY;
+            int newY = points.get(i).y + vy;
+            if(newY<=0 || newY+images.get(i).getHeight()>=getHeight()){
+                if (newY<=0)
+                    newY = -newY;
+                else newY = 2* getHeight() - newY - 2*images.get(i).getHeight();
+                vy = -(int)(vy * 0.7);
+            }
+            velocitiesY.set(i,vy);
+            if(newY == getHeight()-images.get(i).getHeight())  velocitiesX.set(i, (int) (velocitiesX.get(i)*0.7));
+            if(velocitiesX.get(i)==0) {
+                newY = 0;
+                velocitiesX.set(i, (int) (Math.random()*20-10));
+                velocitiesY.set(i, (int) (Math.random()*20-10));
+            }
+            points.set(i, new Point(newX, newY));
+        }
+    }
+
+    @Override
 	public void doLayout() {
 		parPane.setBounds(0, 0, getWidth(), getHeight());
 	}
@@ -442,6 +581,7 @@ class PileMove{
         drawMove = save.drawMove;
         if (drawMove)
             return;
+        cardsMoved = new ArrayList<>();
         for (PileSave.CardState cs : save.cardsMoved)
             cardsMoved.add(new Card(cs.rank, cs.suit));
 
@@ -459,18 +599,53 @@ class PileMove{
         if (save.toFlipped != null)
             toFlipped = new Card(save.toFlipped.rank, save.toFlipped.suit);
     }
+    public PileMove(PileSave.PileMoveState save, ArrayList<Pile> piles1, ArrayList<Pile> piles2){
+        drawMove = save.drawMove;
+        if (drawMove)
+            return;
+        cardsMoved = new ArrayList<>();
+        for (PileSave.CardState cs : save.cardsMoved)
+            cardsMoved.add(new Card(cs.rank, cs.suit));
+
+        if(save.movedFromIndex>-1) movedFrom = piles1.get(save.movedFromIndex);
+        else movedFrom = piles2.get(-save.movedFromIndex-1);
+        if(save.movedToIndex>-1) movedTo = piles1.get(save.movedToIndex);
+        else movedTo = piles2.get(-save.movedToIndex-1);
+
+        if (save.clearedStack != null) {
+            clearedStack = new ArrayList<>();
+            for (PileSave.CardState cs : save.clearedStack)
+                clearedStack.add(new Card(cs.rank, cs.suit));
+        }
+
+        if (save.fromFlipped != null)
+            fromFlipped = new Card(save.fromFlipped.rank, save.fromFlipped.suit);
+        if (save.toFlipped != null)
+            toFlipped = new Card(save.toFlipped.rank, save.toFlipped.suit);
+    }
 }
 
 class PileSave extends GameSave implements Serializable{
+    int difficulty;
+    long timePast;
     public ArrayList<CardState> stock = new ArrayList<>();
     public ArrayList<ArrayList<CardState>> piles = new ArrayList<>();
     public ArrayList<ArrayList<CardState>> utilPiles;
     public ArrayList<PileMoveState> pastMoves = new ArrayList<>();
 
-    public PileSave(Deck stock, ArrayList<Pile> piles, Stack<PileMove> pastMoves) {
+    public PileSave(int diff, long time, Deck stock, ArrayList<Pile> piles, Stack<PileMove> pastMoves) {
+        this(diff, time, stock, piles);
+        // Past moves
+        for (PileMove move : pastMoves) {
+            this.pastMoves.add(new PileMoveState(move,piles));
+        }
+    }
+    public PileSave(int diff, long time, Deck stock, ArrayList<Pile> piles) {
+        difficulty = diff;
+        timePast = time;
         // Stock
         for (Card c : stock) {
-            this.stock.add(new CardState(c.getRank(), c.getSuit(), c.isFaceDown()));
+            this.stock.add(new CardState(c.getRank(), c.getSuit(), true));
         }
 
         // Piles
@@ -481,14 +656,9 @@ class PileSave extends GameSave implements Serializable{
             }
             this.piles.add(pileList);
         }
-
-        // Past moves
-        for (PileMove move : pastMoves) {
-            this.pastMoves.add(new PileMoveState(move,piles));
-        }
     }
 
-    public class CardState implements Serializable {
+    public static class CardState implements Serializable {
         private static final long serialVersionUID = 1L;
         public char rank;
         public char suit;
@@ -501,7 +671,7 @@ class PileSave extends GameSave implements Serializable{
         }
     }
 
-    public class PileMoveState implements Serializable {
+    public static class PileMoveState implements Serializable {
         private static final long serialVersionUID = 1L;
 
         public ArrayList<CardState> cardsMoved = new ArrayList<>();
@@ -520,17 +690,40 @@ class PileSave extends GameSave implements Serializable{
             movedToIndex = PileSolitaire.pilesIndexOf(piles, move.movedTo);
 
             for (Card c : move.cardsMoved)
-                cardsMoved.add(new CardState(c.getRank(), c.getSuit(), c.isFaceDown()));
+                cardsMoved.add(new CardState(c.getRank(), c.getSuit(), false));
 
             if (move.clearedStack != null) {
                 clearedStack = new ArrayList<>();
                 for (Card c : move.clearedStack)
-                    clearedStack.add(new CardState(c.getRank(), c.getSuit(), c.isFaceDown()));
+                    clearedStack.add(new CardState(c.getRank(), c.getSuit(), false));
             }
             if (move.fromFlipped != null)
-                fromFlipped = new CardState(move.fromFlipped.getRank(), move.fromFlipped.getSuit(), move.fromFlipped.isFaceDown());
+                fromFlipped = new CardState(move.fromFlipped.getRank(), move.fromFlipped.getSuit(), false);
             if (move.toFlipped != null)
-                toFlipped = new CardState(move.toFlipped.getRank(), move.toFlipped.getSuit(), move.toFlipped.isFaceDown());
+                toFlipped = new CardState(move.toFlipped.getRank(), move.toFlipped.getSuit(), false);
+        }
+        public PileMoveState(PileMove move, ArrayList<Pile> piles1, ArrayList<Pile> piles2) {
+            drawMove = move.drawMove;
+            if (drawMove) return;
+
+            movedFromIndex = PileSolitaire.pilesIndexOf(piles1, move.movedFrom);
+            movedToIndex = PileSolitaire.pilesIndexOf(piles1, move.movedTo);
+
+            if(movedFromIndex == -1) movedFromIndex = -PileSolitaire.pilesIndexOf(piles2, move.movedFrom) -1;
+            if(movedToIndex == -1) movedToIndex = -PileSolitaire.pilesIndexOf(piles2, move.movedTo) -1;
+
+            for (Card c : move.cardsMoved)
+                cardsMoved.add(new CardState(c.getRank(), c.getSuit(), false));
+
+            if (move.clearedStack != null) {
+                clearedStack = new ArrayList<>();
+                for (Card c : move.clearedStack)
+                    clearedStack.add(new CardState(c.getRank(), c.getSuit(), false));
+            }
+            if (move.fromFlipped != null)
+                fromFlipped = new CardState(move.fromFlipped.getRank(), move.fromFlipped.getSuit(), false);
+            if (move.toFlipped != null)
+                toFlipped = new CardState(move.toFlipped.getRank(), move.toFlipped.getSuit(), false);
         }
     }
 }

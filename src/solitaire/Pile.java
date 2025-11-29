@@ -61,6 +61,7 @@ public class Pile extends ArrayList<Card> {
         }
         return true;
     }
+
     /** remove all cards in pile */
     public boolean removeAll(ArrayList<Card> pile) {
         for(Card c:pile) {
@@ -70,7 +71,7 @@ public class Pile extends ArrayList<Card> {
     }
     /** remove one card */
     public boolean remove(Card c) {
-        super.remove(c);
+        if(!super.remove(c)) super.remove(size()-1); // TODO TEMP SOLUTION TO JUST POP INSTEAD WHEN YOU CANT FIND THE EL
         pilePane.remove(c);
         return true;
     }
