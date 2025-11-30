@@ -130,7 +130,11 @@ public abstract class PileSolitaire extends JLayeredPane{
             }
         });
         parPane.add(toolbar, BorderLayout.SOUTH);
-
+        timeLabel = new JLabel("0:00",SwingConstants.RIGHT);
+        timeLabel.setFont(Utils.otherFont);
+        timeLabel.setForeground(Utils.fontColor);
+        timeLabel.setOpaque(false);
+        parPane.add(timeLabel, BorderLayout.NORTH);
     }
     public void setupPiles(){
         piles = new ArrayList<Pile>();
@@ -157,11 +161,6 @@ public abstract class PileSolitaire extends JLayeredPane{
     public void addUIFunctions(){
         addMouseListeners(piles);
         setupKeyBindings();
-        timeLabel = new JLabel("0:00",SwingConstants.RIGHT);
-        timeLabel.setFont(Utils.otherFont);
-        timeLabel.setForeground(Utils.fontColor);
-        timeLabel.setOpaque(false);
-        parPane.add(timeLabel, BorderLayout.NORTH);
         start = Instant.now();
         time = new Timer(1, new ActionListener() {
             @Override
@@ -421,6 +420,12 @@ public abstract class PileSolitaire extends JLayeredPane{
         time.stop();
         Utils.clip.start();
         gameEnded = true;
+    }
+    protected void newGame(){
+        clearTable();
+        makeDeck();
+        placeCards();
+        addUIFunctions();
     }
 	/** move them over, check for any changes in the pile */
 	private void makeMove(Pile held, Pile from, Pile to) {

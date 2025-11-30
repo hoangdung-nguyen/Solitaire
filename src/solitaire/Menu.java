@@ -120,6 +120,7 @@ public class Menu extends JPanel {
     }
 
     private void startNewGame(String gameName){
+        if(cards.get(gameName)==null)
         switch (gameName){
             case "Klondike":
                 // new Klondike().start();
@@ -140,6 +141,29 @@ public class Menu extends JPanel {
                 cardLayoutPanel.add(freecell.start(this), gameName);
                 cards.put(gameName, freecell);
                 break;
+        }
+        else {
+            JComponent game = cards.get(gameName);
+            switch (gameName) {
+                case "Klondike":
+                    // new Klondike().start();
+                    break;
+                case "Pyramid":
+                    //new Pyramid().start();
+                    break;
+                case "Tripeaks":
+                    //new Tripeaks().start();
+                    break;
+                case "Spider":
+                    ((Spider) game).newGame();
+                    break;
+                case "FreeCell":
+                    FreeCell freecell = new FreeCell();
+                    cardLayoutPanel.add(freecell.start(this), gameName);
+                    cards.put(gameName, freecell);
+                    break;
+            }
+            game.requestFocusInWindow();
         }
         ((CardLayout) cardLayoutPanel.getLayout()).show(cardLayoutPanel, gameName);
     }
