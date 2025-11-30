@@ -39,7 +39,7 @@ public class FreeCell extends PileSolitaire{
         }
         addMouseListeners(utilPiles);
     }
-    public void setupUtil(){
+    private void setupUtil(){
         utilPane = new JPanel(new GridLayout(1,COLS)) {
             @Override
             public Dimension getPreferredSize() {
@@ -124,7 +124,7 @@ public class FreeCell extends PileSolitaire{
     @Override
     protected void undoDrawMove() {}
 
-    protected int getMoveLength() {
+    private int getMoveLength() {
 		int out=1;
 		for (Pile p:piles) 
 			if(p.isEmpty()) 
@@ -184,15 +184,13 @@ public class FreeCell extends PileSolitaire{
         repaint();
     }
     @Override
-    void clearTable() {
+    protected void clearTable() {
         super.clearTable();
-        for(Pile pile:utilPiles){
+        for(Pile pile:utilPiles)
             pile.clear();
-            pile.pilePane.removeAll();
-        }
     }
     @Override
-    public void saveToFile(File file) throws IOException {
+    public void saveToFile(File file) {
         PileSave state = new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
         state.utilPiles = new ArrayList<>();
         for (Pile p : utilPiles) {
@@ -207,12 +205,8 @@ public class FreeCell extends PileSolitaire{
         }
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
             out.writeObject(state);
-        }
-    }
-
-    public void loadFromFile(File file) throws IOException, ClassNotFoundException {
-        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
-            loadSave((PileSave) in.readObject());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -222,24 +216,29 @@ public class FreeCell extends PileSolitaire{
         ArrayList<Point> points = new ArrayList<>();
         ArrayList<Integer> velocitiesX = new ArrayList<>();
         ArrayList<Integer> velocitiesY = new ArrayList<>();
-
-        for(Component pane:utilPane.getComponents()){
-            if(pane instanceof JPanel){
-                Component[] paneContent = ((JPanel) pane).getComponents();
-                if(paneContent.length > 0){
-                    Image scaled = ((ImageIcon) ((JToggleButton) paneContent[0]).getIcon()).getImage().getScaledInstance(pane.getWidth(), pane.getHeight(), Image.SCALE_SMOOTH);
-                    BufferedImage bufImg = new BufferedImage(pane.getWidth(), pane.getHeight(), BufferedImage.TYPE_INT_ARGB);
-                    Graphics2D g2d = bufImg.createGraphics();
-                    g2d.drawImage(scaled, 0, 0, null);
-                    g2d.dispose();
-                    images.add(bufImg);
-                    points.add(SwingUtilities.convertPoint(pane, paneContent[0].getLocation(), this));
-                    velocitiesX.add((int) (Math.random()*20 -10));
-                    velocitiesY.add((int) (Math.random()*20 -10));
-                    ((JPanel) pane).removeAll();
-                }
+        int cardWidth = mainPane.getWidth()/COLS;
+        int cardHeight = (int) (cardWidth*JCard.getRatio());
+        Timer adder = new Timer(250, null);
+        adder.addActionListener(e->{
+            boolean allEmpty = true;
+            for(Pile pile:utilPiles){
+                if(pile.isEmpty()) continue;
+                allEmpty = false;
+                JCard jc = pile.cardsMap.get(pile.getLast());
+                Image scaled = jc.getMasterIcon().getScaledInstance(cardWidth, cardHeight, Image.SCALE_SMOOTH);
+                BufferedImage bufImg = new BufferedImage(cardWidth, cardHeight, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g2d = bufImg.createGraphics();
+                g2d.drawImage(scaled, 0, 0, null);
+                g2d.dispose();
+                images.add(0, bufImg);
+                points.add(0, SwingUtilities.convertPoint(pile.pilePane, jc.getLocation(), this));
+                velocitiesX.add(0, (int) (Math.random()*20 -10));
+                velocitiesY.add(0, (int) (Math.random()*20 -10));
+                pile.remove(pile.getLast());
             }
-        }
+            if(allEmpty) adder.stop();
+        });
+        adder.start();
         JPanel blank = new JPanel(){
             @Override
             public void paint(Graphics g) {
@@ -262,8 +261,8 @@ public class FreeCell extends PileSolitaire{
         add(blank, JLayeredPane.MODAL_LAYER);
         Timer animation = new Timer(20, e->{
             switch(ending){
-                case 0: DVDLogo(images, points, velocitiesX, velocitiesY);
-                case 1: gravityCards(images, points, velocitiesX, velocitiesY);
+                case 0: DVDLogo(images, points, velocitiesX, velocitiesY); break;
+                case 1: gravityCards(images, points, velocitiesX, velocitiesY); break;
             }
             blank.repaint();
         });

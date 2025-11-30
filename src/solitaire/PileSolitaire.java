@@ -1,6 +1,6 @@
 package solitaire;
 
-import javax.sound.sampled.*;
+import javax.sound.sampled.LineUnavailableException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -9,7 +9,6 @@ import java.io.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Stack;
 
 public abstract class PileSolitaire extends JLayeredPane{
@@ -44,7 +43,7 @@ public abstract class PileSolitaire extends JLayeredPane{
         COLS = Columns;
         difficulty = Difficulty;
         setupUI();
-        pastMoves = new Stack<PileMove>();
+        pastMoves = new Stack<>();
         makeDeck();
         stock.shuffle();
         setupPiles();
@@ -57,16 +56,14 @@ public abstract class PileSolitaire extends JLayeredPane{
         PileSave saveData;
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(saveFile))) {
             saveData = ((PileSave) in.readObject());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
         COLS = Columns;
         difficulty = saveData.difficulty;
         start = Instant.now().minusSeconds(saveData.timePast);
         setupUI();
-        pastMoves = new Stack<PileMove>();
+        pastMoves = new Stack<>();
         stock = new Deck(0);
         for (PileSave.CardState cs : saveData.stock) {
             stock.add(new Card(cs.rank, cs.suit));
@@ -186,11 +183,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 	protected abstract void placeCards();
     private void switchToMainMenu(){
         if(!gameEnded) {
-            try {
-                saveToFile(new File("GameSave_" + getClass().getSimpleName() + ".dat"));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            saveToFile(new File("GameSave_" + getClass().getSimpleName() + ".dat"));
         }
         ((CardLayout) mainMenu.cardLayoutPanel.getLayout()).show(mainMenu.cardLayoutPanel, "Menu");
         mainMenu.requestFocusInWindow();
@@ -280,7 +273,8 @@ public abstract class PileSolitaire extends JLayeredPane{
 				remove(heldPile.pilePane);
 				// Get the pile that we will place on
                 // e.point - offset + getwidth/2
-                Point cardMid = new Point(e.getPoint().x - clickOffset.x + ((Pile)c.parent).cardsMap.get(c).getWidth()/2, e.getPoint().y - clickOffset.y + ((Pile)c.parent).cardsMap.get(c).getHeight()/2);
+                Point cardMid = e.getPoint();
+                if(clickOffset!=null) cardMid= new Point(e.getPoint().x - clickOffset.x + ((Pile)c.parent).cardsMap.get(c).getWidth()/2, e.getPoint().y - clickOffset.y + ((Pile)c.parent).cardsMap.get(c).getHeight()/2);
 				Pile hoveringOver=getHoveringOver(SwingUtilities.convertPoint(((Pile)c.parent).cardsMap.get(c), cardMid, PileSolitaire.this));
 				// System.out.println("Released at pile pile "+piles.indexOf(hoveringOver));
 				// If Out of bounds || same pile || invalid move, just move them back
@@ -372,29 +366,31 @@ public abstract class PileSolitaire extends JLayeredPane{
                     else move.movedFrom.cardsMap.get(move.movedFrom.getLast()).setFaceDown(true);
                 }
                 if (move.clearedStack != null) {
-                    for (Card c : move.clearedStack) {
-                        move.movedTo.add(c);
-                    }
-                    JPanel labelContainer = null;
-                    for(Component c:utilPane.getComponents()) {
-                        if(c instanceof JPanel && ((JPanel) c).getComponents().length != 0) {
-                            labelContainer = (JPanel) c;
-                        }
-                    }
-                    labelContainer.remove(0);
+                    undoClearStack(move);
                 }
                 if (move.toFlipped != null) {
                     if(move.movedTo.cardsMap.get(move.toFlipped)!=null) move.movedTo.cardsMap.get(move.toFlipped).setFaceDown(true);
                     else move.movedTo.cardsMap.get(move.movedTo.getLast()).setFaceDown(true);
                 }
-                move.movedTo.removeAll(move.cardsMoved);
                 move.movedFrom.addAll(move.cardsMoved);
+                for(Component jc:move.movedFrom.pilePane.getComponents()){
+//                    System.out.println(jc.getMouseListeners().length);
+                    if(jc.getMouseListeners().length < 2 && jc instanceof JCard) addMouseListeners(((JCard)jc).card);
+                }
+                move.movedTo.removeAll(move.cardsMoved);
             }
 			pastMoves.pop();
 			revalidate();
 			repaint();
 		}
 	}
+
+    protected void undoClearStack(PileMove move) {
+        for (Card c : move.clearedStack) {
+            move.movedTo.add(c);
+        }
+    }
+
     /** undo a move drawing from the stock */
 	protected abstract void undoDrawMove();
     /** Returns the cards you can pick up from top of that pile */
@@ -424,6 +420,7 @@ public abstract class PileSolitaire extends JLayeredPane{
     protected void newGame(){
         clearTable();
         makeDeck();
+        stock.shuffle();
         placeCards();
         addUIFunctions();
     }
@@ -477,24 +474,29 @@ public abstract class PileSolitaire extends JLayeredPane{
     }
 
     void clearTable() {
-        for(Pile pile : piles) {
+        for(Pile pile : piles)
             pile.clear();
-            pile.pilePane.removeAll();
-        }
         stock.clear();
         pastMoves.clear();
     }
 
-    public void saveToFile(File file) throws IOException {
+    public void saveToFile(File file) {
+        System.out.println("SAVING GAME "+getClass());
         PileSave state = new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
             out.writeObject(state);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public void loadFromFile(File file) throws IOException, ClassNotFoundException {
+    public void loadFromFile(File file) {
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
             loadSave((PileSave) in.readObject());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -548,7 +550,7 @@ public abstract class PileSolitaire extends JLayeredPane{
             }
             velocitiesY.set(i,vy);
             if(newY == getHeight()-images.get(i).getHeight())  velocitiesX.set(i, (int) (velocitiesX.get(i)*0.7));
-            if(velocitiesX.get(i)==0) {
+            if(velocitiesX.get(i)==0 && velocitiesY.get(i)==0) {
                 newY = 0;
                 velocitiesX.set(i, (int) (Math.random()*20-10));
                 velocitiesY.set(i, (int) (Math.random()*20-10));
@@ -630,6 +632,7 @@ class PileMove{
     }
 }
 
+/** A serilizable class to be written into a file, containing info of a PileSolitaire and extra utilPiles for specifics */
 class PileSave extends GameSave implements Serializable{
     int difficulty;
     long timePast;

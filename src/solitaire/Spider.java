@@ -7,15 +7,17 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.*;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.Collections;
 
 public class Spider extends PileSolitaire{
 	private static final long serialVersionUID = 1L;
     JButton getCards;
+    ArrayList<Pile> utilPiles;
 
 	public Spider(int diff){
 		super(10,diff);
@@ -27,35 +29,41 @@ public class Spider extends PileSolitaire{
         PileSave saveData;
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(saveFile))) {
             saveData = ((PileSave) in.readObject());
-        } catch (IOException e) {
+        } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+        }
+        setupUtils();
+        for (int i=0; i<utilPiles.size(); ++i) {
+            Pile p = utilPiles.get(i);
+            ArrayList<PileSave.CardState> pileList = saveData.utilPiles.get(i);
+            for (PileSave.CardState cs : pileList) {
+                p.add(new Card(cs.rank, cs.suit), cs.faceDown);
+            }
         }
         // Past moves
         pastMoves.clear();
         for (PileSave.PileMoveState pm : saveData.pastMoves) {
             pastMoves.push(new PileMove(pm, piles));
         }
-        setupUtils();
     }
-    public void setupUtils(){
-        utilPane = new JPanel(new GridLayout(1,COLS));
-        utilPane.setOpaque(false);
-        mainPane.add(utilPane, BorderLayout.SOUTH);
-        for(int i=0;i<9;++i) utilPane.add(new JPanel(new GridLayout()) {
+    private void setupUtils(){
+        utilPiles = new ArrayList<>();
+        utilPane = new JPanel(new GridLayout(1,COLS)){
             @Override
             public Dimension getPreferredSize() {
-                return new Dimension(getWidth()/COLS, (int) (getWidth()*JCard.getRatio()/COLS));
-            }
-        });
-        for(Component c: utilPane.getComponents()) ((JPanel)c).setOpaque(false);
-        getCards = new JButton(new ImageIcon(Utils.cardBack)) {
-            @Override
-            public Dimension getPreferredSize() {
-                return new Dimension(getParent().getWidth()/COLS, (int) (getParent().getWidth()*JCard.getRatio()/COLS));
+                return new Dimension(getParent().getWidth(), (int) (getParent().getWidth()*JCard.getRatio()/COLS));
             }
         };
+        utilPane.setOpaque(false);
+        mainPane.add(utilPane, BorderLayout.SOUTH);
+        for(int i=0;i<8;++i) {
+            utilPiles.add(new Pile(COLS));
+            utilPane.add(utilPiles.get(i).pilePane);
+        }
+        JPanel blank = new JPanel();
+        blank.setOpaque(false);
+        utilPane.add(blank);
+        getCards = new JButton(new ImageIcon(Utils.cardBack));
         getCards.setOpaque(false);
         getCards.setBorder(null);
         getCards.setBorderPainted(false);
@@ -106,7 +114,7 @@ public class Spider extends PileSolitaire{
 	}
 	@Override
 	protected boolean isRestricted(Pile p) {
-		return false;
+		return pilesIndexOf(utilPiles, p)>-1;
 	}
 	@Override
 	protected ArrayList<Card> getSequence(Pile parent) {
@@ -146,17 +154,13 @@ public class Spider extends PileSolitaire{
 		ArrayList<Card> top = getSequence(p);
 		if(top.size() > 12) {
 			p.removeAll(top);
-			for(Component c:utilPane.getComponents()) {
-				if(c instanceof JPanel && ((JPanel) c).getComponents().length == 0) {
+			for(Pile pile:utilPiles) {
+				if(pile.isEmpty()) {
 					pastMoves.getLast().clearedStack = top;
-					JLabel temp = new JLabel(new ImageIcon(p.cardsMap.get(top.getFirst()).getMasterIcon()));
-					temp.addComponentListener(new ComponentAdapter() {
-						@Override
-						public void componentResized(ComponentEvent e) {
-							temp.setIcon(new ImageIcon(p.cardsMap.get(top.getFirst()).getMasterIcon().getScaledInstance(getWidth()/COLS, (int) (getWidth()*JCard.getRatio()/COLS),  Image.SCALE_SMOOTH)));
-						}
-					});
-					((JPanel)c).add(temp);
+                    Collections.reverse(top);
+                    pile.addAll(top);
+                    revalidate();
+                    repaint();
 					break;
 				}
 			}
@@ -188,31 +192,79 @@ public class Spider extends PileSolitaire{
 			piles.get(i).remove(c);
 		}
 	}
-
+    @Override
+    protected void undoClearStack(PileMove move){
+        super.undoClearStack(move);
+        Pile last = null;
+        for(Pile pile:utilPiles) {
+            if(pile.isEmpty())break;
+            last = pile;
+        }
+        last.clear();
+    }
+    @Override
+    protected void loadSave(PileSave save) {
+        super.loadSave(save);
+        for (int i=0; i<utilPiles.size(); ++i) {
+            Pile p = utilPiles.get(i);
+            ArrayList<PileSave.CardState> pileList = save.utilPiles.get(i);
+            for (PileSave.CardState cs : pileList) {
+                p.add(new Card(cs.rank, cs.suit), cs.faceDown);
+            }
+        }
+        revalidate();
+        repaint();
+    }
+    @Override
+    protected void clearTable() {
+        super.clearTable();
+        for(Pile pile:utilPiles)
+            pile.clear();
+    }
+    @Override
+    public void saveToFile(File file) {
+        PileSave state = new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
+        state.utilPiles = new ArrayList<>();
+        for (Pile p : utilPiles) {
+            ArrayList<PileSave.CardState> pileList = new ArrayList<>();
+            for (Card c : p) {
+                pileList.add(new PileSave.CardState(c.getRank(), c.getSuit(), c.isFaceDown()));
+            }
+            state.utilPiles.add(pileList);
+        }
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
+            out.writeObject(state);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
     public void endGame(){
         super.endGame();
         ArrayList<BufferedImage> images = new ArrayList<>();
         ArrayList<Point> points = new ArrayList<>();
         ArrayList<Integer> velocitiesX = new ArrayList<>();
         ArrayList<Integer> velocitiesY = new ArrayList<>();
-
-        for(Component pane:utilPane.getComponents()){
-            if(pane instanceof JPanel){
-                Component[] paneContent = ((JPanel) pane).getComponents();
-                if(paneContent.length > 0){
-                    Image scaled = ((ImageIcon) ((JLabel) paneContent[0]).getIcon()).getImage().getScaledInstance(pane.getWidth(), pane.getHeight(), Image.SCALE_SMOOTH);
-                    BufferedImage bufImg = new BufferedImage(pane.getWidth(), pane.getHeight(), BufferedImage.TYPE_INT_ARGB);
-                    Graphics2D g2d = bufImg.createGraphics();
-                    g2d.drawImage(scaled, 0, 0, null);
-                    g2d.dispose();
-                    images.add(bufImg);
-                    points.add(SwingUtilities.convertPoint(pane, paneContent[0].getLocation(), this));
-                    velocitiesX.add((int) (Math.random()*20 -10));
-                    velocitiesY.add((int) (Math.random()*20 -10));
-                    ((JPanel) pane).removeAll();
-                }
+        int cardWidth = getWidth()/COLS;
+        int cardHeight = (int) (cardWidth*JCard.getRatio());
+        Timer adder = new Timer(250, null);
+        adder.addActionListener(e->{
+            for(Pile pile:utilPiles){
+                if(pile.isEmpty()) continue;
+                JCard jc = pile.cardsMap.get(pile.getLast());
+                Image scaled = jc.getMasterIcon().getScaledInstance(cardWidth, cardHeight, Image.SCALE_SMOOTH);
+                BufferedImage bufImg = new BufferedImage(cardWidth, cardHeight, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g2d = bufImg.createGraphics();
+                g2d.drawImage(scaled, 0, 0, null);
+                g2d.dispose();
+                images.add(0, bufImg);
+                points.add(0, SwingUtilities.convertPoint(pile.pilePane, jc.getLocation(), this));
+                velocitiesX.add(0, (int) (Math.random()*20 -10));
+                velocitiesY.add(0, (int) (Math.random()*20 -10));
+                pile.remove(pile.getLast());
             }
-        }
+            if(utilPiles.get(0).isEmpty()) adder.stop();
+        });
+        adder.start();
         JPanel blank = new JPanel(){
             @Override
             public void paint(Graphics g) {
@@ -235,8 +287,8 @@ public class Spider extends PileSolitaire{
         add(blank, JLayeredPane.MODAL_LAYER);
         Timer animation = new Timer(20, e->{
             switch(ending){
-                case 0: DVDLogo(images, points, velocitiesX, velocitiesY);
-                case 1: gravityCards(images, points, velocitiesX, velocitiesY);
+                case 0: DVDLogo(images, points, velocitiesX, velocitiesY); break;
+                case 1: gravityCards(images, points, velocitiesX, velocitiesY); break;
             }
             blank.repaint();
         });

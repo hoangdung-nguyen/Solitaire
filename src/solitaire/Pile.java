@@ -3,6 +3,7 @@ package solitaire;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 
@@ -53,7 +54,7 @@ public class Pile extends ArrayList<Card> {
         return true;
     }
     /** add all cards in the pile, making the JCard */
-    public boolean addAll(ArrayList<Card> pile) {
+    public boolean addAll(Collection<? extends Card> pile) {
         for(Card c:pile) {
             c.parent=this;
             if (!super.add(c)) return false;
@@ -61,7 +62,10 @@ public class Pile extends ArrayList<Card> {
         }
         return true;
     }
-
+    public void clear(){
+        super.clear();
+        pilePane.removeAll();
+    }
     /** remove all cards in pile */
     public boolean removeAll(ArrayList<Card> pile) {
         for(Card c:pile) {

@@ -2,11 +2,8 @@ package solitaire;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -123,7 +120,9 @@ public class Menu extends JPanel {
         if(cards.get(gameName)==null)
         switch (gameName){
             case "Klondike":
-                // new Klondike().start();
+                Klondike klondike = new Klondike();
+                cardLayoutPanel.add(klondike.start(this), gameName);
+                cards.put(gameName, klondike);
                 break;
             case "Pyramid":
                 //new Pyramid().start();
@@ -134,7 +133,7 @@ public class Menu extends JPanel {
             case "Spider":
                 Spider spider = new Spider(1);
                 cardLayoutPanel.add(spider.start(this), gameName);
-                cards.put(gameName,(JComponent) spider);
+                cards.put(gameName, spider);
                 break;
             case "FreeCell":
                 FreeCell freecell = new FreeCell();
@@ -146,7 +145,7 @@ public class Menu extends JPanel {
             JComponent game = cards.get(gameName);
             switch (gameName) {
                 case "Klondike":
-                    // new Klondike().start();
+                    ((Klondike) game).newGame();
                     break;
                 case "Pyramid":
                     //new Pyramid().start();
@@ -158,9 +157,7 @@ public class Menu extends JPanel {
                     ((Spider) game).newGame();
                     break;
                 case "FreeCell":
-                    FreeCell freecell = new FreeCell();
-                    cardLayoutPanel.add(freecell.start(this), gameName);
-                    cards.put(gameName, freecell);
+                    ((FreeCell) game).newGame();
                     break;
             }
             game.requestFocusInWindow();
@@ -177,7 +174,9 @@ public class Menu extends JPanel {
         if(game == null){
             switch (gameName){
                 case "Klondike":
-                    // new Klondike().start();
+                    Klondike klondike = new Klondike("GameSave_" + gameName + ".dat");
+                    cardLayoutPanel.add(klondike.start(this), gameName);
+                    cards.put(gameName,(JComponent) klondike);
                     break;
                 case "Pyramid":
                     //new Pyramid().start();
@@ -201,7 +200,7 @@ public class Menu extends JPanel {
         else{
             switch (gameName){
                 case "Klondike":
-                    // new Klondike().start();
+                    ((Klondike) game).loadFromFile(saveFile);
                     break;
                 case "Pyramid":
                     //new Pyramid().start();
@@ -210,22 +209,10 @@ public class Menu extends JPanel {
                     //new Tripeaks().start();
                     break;
                 case "Spider":
-                    try {
-                        ((Spider) game).loadFromFile(saveFile);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    } catch (ClassNotFoundException e) {
-                        throw new RuntimeException(e);
-                    }
+                    ((Spider) game).loadFromFile(saveFile);
                     break;
                 case "FreeCell":
-                    try {
-                        ((FreeCell) game).loadFromFile(saveFile);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    } catch (ClassNotFoundException e) {
-                        throw new RuntimeException(e);
-                    }
+                    ((FreeCell) game).loadFromFile(saveFile);
                     break;
             }
             game.requestFocusInWindow();
