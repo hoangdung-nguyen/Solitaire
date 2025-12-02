@@ -9,7 +9,8 @@ public class Card /*implements Comparable<Card>, java.io.Serializable*/ {
 	private static final long serialVersionUID = 1L;
 	char rank; //'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K'
 	char suit; // 0=spade 1=club 2=diamond 3=heart
-	Collection<Card> parent; // Card keeps what it is a part of.
+    private boolean isFaceDown;
+    Collection<Card> parent; // Card keeps what it is a part of.
 
 	public Card(char rank, char suit) {
 		this.rank = rank;
@@ -85,7 +86,10 @@ public class Card /*implements Comparable<Card>, java.io.Serializable*/ {
         return suit;
     }
 
+    public void setFaceDown(boolean b) {
+        isFaceDown = b;
+    }
     public boolean isFaceDown() {
-        return ((Pile) parent).cardsMap.get(this).isFaceDown();
+        return isFaceDown;
     }
 }

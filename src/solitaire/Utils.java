@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -208,8 +209,28 @@ class GameSave{
 
 }
 
-interface Solitaire{
-    public void saveToFile(File file);
+interface SaveAndLoad{
+    boolean gameEnded = false;
+    GameSave makeSave();
 
-    public void loadFromFile(File file);
-}
+    /** Load game from a PileSolitaire already set up */
+    void loadSave(PileSave save);
+    public default void saveToFile(File file) {
+        System.out.println("SAVING GAME "+getClass());
+        GameSave state = makeSave();
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
+            out.writeObject(state);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public default void loadFromFile(File file) {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
+            loadSave((PileSave) in.readObject());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }}

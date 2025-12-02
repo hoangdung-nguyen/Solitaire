@@ -2,9 +2,6 @@ package solitaire;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.time.Duration;
 import java.time.Instant;
@@ -93,7 +90,7 @@ public class FreeCell extends PileSolitaire{
 		return null;
 	}
 	@Override
-	protected boolean isValidMove(Pile held, Pile from, Pile to) {
+	protected boolean isValidMove(ArrayList<Card> held, ArrayList<Card> from, ArrayList<Card> to) {
 //		System.out.println("Evaluating putting "+held+" from "+from+" to "+to+" index "+pilesIndexOf(utilPiles, to));
 		if(to == null || to == from) 
 			return false;
@@ -122,8 +119,9 @@ public class FreeCell extends PileSolitaire{
         endGame();
     }
     @Override
-    protected void undoDrawMove() {}
+    protected void undoDrawMove() {} // None to undo :)
 
+    /** FreeCell's dumbo only unique function to limit move length based on free cells. */
     private int getMoveLength() {
 		int out=1;
 		for (Pile p:piles) 
@@ -149,7 +147,7 @@ public class FreeCell extends PileSolitaire{
         }
     }
     @Override
-    protected void loadSave(PileSave save) {
+    public void loadSave(PileSave save) {
         clearTable();
         // Stock
         for (PileSave.CardState cs : save.stock) {
@@ -190,7 +188,7 @@ public class FreeCell extends PileSolitaire{
             pile.clear();
     }
     @Override
-    public void saveToFile(File file) {
+    public GameSave makeSave() {
         PileSave state = new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
         state.utilPiles = new ArrayList<>();
         for (Pile p : utilPiles) {
@@ -203,13 +201,9 @@ public class FreeCell extends PileSolitaire{
         for (PileMove move : pastMoves) {
             state.pastMoves.add(new PileSave.PileMoveState(move,piles,utilPiles));
         }
-        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
-            out.writeObject(state);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return state;
     }
-
+    @Override
     public void endGame(){
         super.endGame();
         ArrayList<Pile> piles = new ArrayList<>();

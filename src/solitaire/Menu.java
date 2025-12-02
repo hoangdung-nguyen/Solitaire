@@ -23,7 +23,7 @@ public class Menu extends JPanel {
 
     public static void main(String[] args){
         JFrame frame = new JFrame("Solitaires");
-        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // prevent auto-exit
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         frame.setBounds(0,0,900,900);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -121,9 +121,10 @@ public class Menu extends JPanel {
                 "What would you like to do for " + gameName + "?", gameName + " Options", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0] );
         switch(choice) {
             case 0: //New Game
-                if (JOptionPane.showOptionDialog( this,
-                    "Previous save available for " + gameName + ", are you sure you want to override?",  "New Game Options", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Yes", "No"}, "No" ) == 0)
-                    startNewGame(gameName);
+                if(saveFile.exists() && JOptionPane.showOptionDialog( this,
+                    "Previous save available for " + gameName + ", are you sure you want to override?",  "New Game Options", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Yes", "No"}, "No" ) == 1)
+                    showGamePopup(gameName);
+                else startNewGame(gameName);
                 break;
             case 1: //Continue Game
                 if(options.length==3) continueSavedGame(gameName, saveFile);
@@ -167,7 +168,6 @@ public class Menu extends JPanel {
         ((CardLayout) cardLayoutPanel.getLayout()).show(cardLayoutPanel, gameName);
     }
 
-    //Write logic for this
     private void continueSavedGame(String gameName, File saveFile){
         JComponent game = cards.get(gameName);
         if(game == null){
@@ -184,7 +184,7 @@ public class Menu extends JPanel {
             game.requestFocusInWindow();
         }
         ((CardLayout) cardLayoutPanel.getLayout()).show(cardLayoutPanel, gameName);
-
+        saveFile.delete();
     }
     private void autoSaveCurrentGame(){
         for(String gameName : cards.keySet()){

@@ -2,16 +2,12 @@ package solitaire;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 
 public class Spider extends PileSolitaire{
@@ -130,7 +126,7 @@ public class Spider extends PileSolitaire{
 		return null;
 	}
 	@Override
-	public boolean isValidMove(Pile held, Pile from, Pile to) {
+	public boolean isValidMove(ArrayList<Card> held, ArrayList<Card> from, ArrayList<Card> to) {
 		if(to == null || to == from) return false;
 		if(to.isEmpty()) return true;
 		return heldPile.getFirst().compareRank(to.getLast()) == -1;
@@ -149,7 +145,7 @@ public class Spider extends PileSolitaire{
         endGame();
     }
 
-    /** Checking if the pile has a full A-K on top, then removing it and adding an indicatpr if ther is */
+    /** Spider only unique function. Checking if the pile has a full A-K on top, then removing it and adding an indicatpr if ther is */
 	protected void checkPile(Pile p) {
 		ArrayList<Card> top = getSequence(p);
 		if(top.size() > 12) {
@@ -203,7 +199,20 @@ public class Spider extends PileSolitaire{
         last.clear();
     }
     @Override
-    protected void loadSave(PileSave save) {
+    public GameSave makeSave() {
+        PileSave state = new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
+        state.utilPiles = new ArrayList<>();
+        for (Pile p : utilPiles) {
+            ArrayList<PileSave.CardState> pileList = new ArrayList<>();
+            for (Card c : p) {
+                pileList.add(new PileSave.CardState(c.getRank(), c.getSuit(), c.isFaceDown()));
+            }
+            state.utilPiles.add(pileList);
+        }
+        return state;
+    }
+    @Override
+    public void loadSave(PileSave save) {
         super.loadSave(save);
         for (int i=0; i<utilPiles.size(); ++i) {
             Pile p = utilPiles.get(i);
@@ -223,26 +232,11 @@ public class Spider extends PileSolitaire{
             pile.clear();
     }
     @Override
-    public void saveToFile(File file) {
-        PileSave state = new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
-        state.utilPiles = new ArrayList<>();
-        for (Pile p : utilPiles) {
-            ArrayList<PileSave.CardState> pileList = new ArrayList<>();
-            for (Card c : p) {
-                pileList.add(new PileSave.CardState(c.getRank(), c.getSuit(), c.isFaceDown()));
-            }
-            state.utilPiles.add(pileList);
-        }
-        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
-            out.writeObject(state);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
     public void endGame(){
         super.endGame();
         startEndAnimation(utilPiles);
     }
+    @Override
     protected void newGame(){
         super.newGame();
         getCards.setVisible(true);
