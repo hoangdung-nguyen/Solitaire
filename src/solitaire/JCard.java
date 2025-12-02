@@ -14,10 +14,10 @@ public class JCard extends JToggleButton
 	 */
 	private static final long serialVersionUID = 1L;
 	private BufferedImage master;
-	private BufferedImage selected;
+	private BufferedImage greyed;
 	private BufferedImage currentImage;
-	public boolean isGreyed;
-	public boolean isFaceDown;
+	private boolean isGreyed;
+	private boolean isFaceDown;
 	Card card;
 
 	public JCard(Card c) {
@@ -29,17 +29,16 @@ public class JCard extends JToggleButton
 		setBorderPainted(false);
 		setContentAreaFilled(false);
 		setFocusPainted(false);
-		setMasterIcon(Utils.centerImage(Utils.cardSheet.getSubimage(Utils.CARD_WIDTH * (Utils.RANK_ORDER.indexOf(card.rank)+1),
-                Utils.CARD_HEIGHT * Utils.SUIT_ORDER.indexOf(card.suit), Utils.CARD_WIDTH, Utils.CARD_HEIGHT)));
-		selected = Utils.tint(getMasterIcon(), new Color(178, 178, 178, 255));
-		currentImage = getMasterIcon();
+		setMasterIcon(Utils.getCardAsset(card));
+		greyed = Utils.tint(getMasterIcon(), Color.lightGray);
+		currentImage = isFaceDown? Utils.cardBack: master;
 		setPreferredSize(new Dimension(100, 100));
-		addComponentListener(new ComponentAdapter() {
-			@Override
-			public void componentResized(ComponentEvent e) {
-				setIcon();
-			}
-		});
+//		addComponentListener(new ComponentAdapter() {
+//			@Override
+//			public void componentResized(ComponentEvent e) {
+//				setIcon();
+//			}
+//		});
 //		item = new ItemListener() {
 //			public void itemStateChanged(ItemEvent e) {
 //				if (e.getStateChange() == 1)
@@ -56,25 +55,36 @@ public class JCard extends JToggleButton
 		return (double) Utils.CARD_HEIGHT / Utils.CARD_WIDTH;
 	}
 
+    public boolean isGreyed(){
+        return isGreyed;
+    }
+    public void setGreyed(boolean isGreyed){
+        this.isGreyed = isGreyed;
+        updateCurrentImage();
+        repaint();
+    }
+    public boolean isFaceDown(){
+        return isFaceDown;
+    }
+    public void setFaceDown(boolean isFaceDown){
+        this.isFaceDown = isFaceDown;
+        updateCurrentImage();
+        repaint();
+    }
+    public void updateCurrentImage(){
+        currentImage = isGreyed? isFaceDown? Utils.greyedCardBack : greyed : isFaceDown? Utils.cardBack : master;
+    }
+    public BufferedImage getCurrentBaseImage(){
+        if(isFaceDown && isGreyed) return Utils.greyedCardBack;
+        if (isFaceDown) return Utils.cardBack;
+        if (isGreyed) return greyed;
+        return master;
+    }
     /** checks the conditions of the card and changes its icon */
-	void setIcon() {
-		int w = getWidth();
-		int h = getHeight();
-		if (h < 2 && w < 2)
-			return;
-		BufferedImage scaled = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g2 = scaled.createGraphics();
-
-		// Enable high-quality but still fast scaling
-		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-		g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-		g2.drawImage(isFaceDown ? Utils.cardBack: isGreyed ? selected : currentImage, 0, 0, w, h, null);
-		g2.dispose();
-
-		super.setIcon(new ImageIcon(scaled));
-
+    @Override
+	public void paint(Graphics g) {
+        super.paint(g);
+        g.drawImage(currentImage, 0, 0, getWidth(), getHeight(), null);
 	}
     /** rotate the currentImage by angle */
 	public void rotate(double angle) {
@@ -101,9 +111,9 @@ public class JCard extends JToggleButton
 		g2d.drawImage(getMasterIcon(), 0, 0, this);
 		g2d.dispose();
 		g2d2.setTransform(at);
-		g2d2.drawImage(selected, 0, 0, this);
+		g2d2.drawImage(greyed, 0, 0, this);
 		g2d2.dispose();
-		selected = temp;
+		greyed = temp;
 		Image scaled = currentImage.getScaledInstance((w >= h) ? -1 : w, (w < h) ? -1 : h, Image.SCALE_SMOOTH);
 		setIcon(new ImageIcon(scaled));
 	}

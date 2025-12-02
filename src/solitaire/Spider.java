@@ -6,73 +6,99 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 public class Spider extends PileSolitaire{
 	private static final long serialVersionUID = 1L;
-	JButton getCards;
-	
-	public static void main(String[] args) {
-		SwingUtilities.invokeLater(() -> {
-			JFrame frame = new JFrame("Spider");
-			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frame.setSize(800,600);
-			frame.add(new Spider(1));
-			frame.setVisible(true);
-		});
-	}
+    JButton getCards;
+    ArrayList<Pile> utilPiles;
+
 	public Spider(int diff){
 		super(10,diff);
-		difficulty = diff;
-		utilPane = new JPanel(new GridLayout(1,COLS));
+		setupUtils();
+	}
+    public Spider(String saveFile){
+        super(10, saveFile);
+        PileSave saveData;
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(saveFile))) {
+            saveData = ((PileSave) in.readObject());
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        setupUtils();
+        for (int i=0; i<utilPiles.size(); ++i) {
+            Pile p = utilPiles.get(i);
+            ArrayList<PileSave.CardState> pileList = saveData.utilPiles.get(i);
+            for (PileSave.CardState cs : pileList) {
+                p.add(new Card(cs.rank, cs.suit), cs.faceDown);
+            }
+        }
+        // Past moves
+        pastMoves.clear();
+        for (PileSave.PileMoveState pm : saveData.pastMoves) {
+            pastMoves.push(new PileMove(pm, piles));
+        }
+        if(stock.isEmpty()) getCards.setVisible(false);
+    }
+    private void setupUtils(){
+        utilPiles = new ArrayList<>();
+        utilPane = new JPanel(new GridLayout(1,COLS)){
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(getParent().getWidth(), (int) (getParent().getWidth()*JCard.getRatio()/COLS));
+            }
+        };
         utilPane.setOpaque(false);
-		mainPane.add(utilPane, BorderLayout.SOUTH);
-		for(int i=0;i<9;++i) utilPane.add(new JPanel(new GridLayout()) {
-			@Override
-			public Dimension getPreferredSize() {
-				return new Dimension(getWidth()/COLS, (int) (getWidth()/COLS*JCard.getRatio()));
-			}
-		});
-        for(Component c: utilPane.getComponents()) ((JPanel)c).setOpaque(false);
-		getCards = new JButton(new ImageIcon(Utils.cardBack)) {
-			@Override
-			public Dimension getPreferredSize() {
-				return new Dimension(getParent().getWidth()/COLS, (int) (getParent().getWidth()/COLS*JCard.getRatio()));
-			}
-		};
+        mainPane.add(utilPane, BorderLayout.SOUTH);
+        for(int i=0;i<8;++i) {
+            utilPiles.add(new Pile(COLS));
+            utilPane.add(utilPiles.get(i).pilePane);
+        }
+        JPanel blank = new JPanel();
+        blank.setOpaque(false);
+        utilPane.add(blank);
+        getCards = new JButton(new ImageIcon(Utils.cardBack)){
+            @Override
+            public void paint(Graphics g) {
+                super.paint(g);
+                if(Utils.cardBack!=null) g.drawImage(Utils.cardBack, 0, 0, getWidth(), getHeight(), null);
+            }
+        };
         getCards.setOpaque(false);
         getCards.setBorder(null);
         getCards.setBorderPainted(false);
         getCards.setContentAreaFilled(false);
         getCards.setFocusPainted(false);
-		getCards.addComponentListener(new ComponentAdapter() {
-			@Override
-			public void componentResized(ComponentEvent e) {
-				getCards.setIcon(new ImageIcon(Utils.cardBack.getScaledInstance(getWidth()/COLS, (int) (getWidth()/COLS*JCard.getRatio()),  Image.SCALE_SMOOTH)));
-			}
-		});
-		getCards.addActionListener(e -> {
-			if(stock.isEmpty()) return;
-			pastMoves.add(new PileMove(true));
-			for(int i=0;i<COLS;++i) {
-				piles.get(i).add(stock.pop(),false);
-                for(MouseListener m:piles.get(i).cardsMap.get(piles.get(i).getLast()).getMouseListeners())
-                    piles.get(i).cardsMap.get(piles.get(i).getLast()).removeMouseListener(m);
-                for(MouseMotionListener m:piles.get(i).cardsMap.get(piles.get(i).getLast()).getMouseMotionListeners())
-                    piles.get(i).cardsMap.get(piles.get(i).getLast()).removeMouseMotionListener(m);
-                addMouseListeners(piles.get(i).getLast());
-			}
-			revalidate();
-			repaint();
+        getCards.addActionListener(e -> drawCards());
+        utilPane.add(getCards);
+    }
+    private void drawCards() {
+        if(stock.isEmpty()) return;
+        for(Pile pile:piles) if(pile.isEmpty()) return;
+        pastMoves.add(new PileMove(true));
+        for(int i=0;i<COLS;++i) {
+            piles.get(i).add(stock.pop(), false);
+            for (MouseListener m : piles.get(i).cardsMap.get(piles.get(i).getLast()).getMouseListeners())
+                piles.get(i).cardsMap.get(piles.get(i).getLast()).removeMouseListener(m);
+            for (MouseMotionListener m : piles.get(i).cardsMap.get(piles.get(i).getLast()).getMouseMotionListeners())
+                piles.get(i).cardsMap.get(piles.get(i).getLast()).removeMouseMotionListener(m);
+            addMouseListeners(piles.get(i).getLast());
+            checkPile(piles.get(i));
+            revalidate();
+            repaint();
+        }
 //			for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
-			if(stock.isEmpty()) getCards.setVisible(false);
-		});
-		utilPane.add(getCards);
-	}
-	
+        if(stock.isEmpty()) getCards.setVisible(false);
+    }
 
-	
-	@Override
+
+    @Override
 	protected void makeDeck() {
 		if(difficulty == 1) stock = new Deck(true, 4);
 		else stock = new Deck(2);
@@ -88,7 +114,7 @@ public class Spider extends PileSolitaire{
 	}
 	@Override
 	protected boolean isRestricted(Pile p) {
-		return false;
+		return pilesIndexOf(utilPiles, p)>-1;
 	}
 	@Override
 	protected ArrayList<Card> getSequence(Pile parent) {
@@ -128,23 +154,20 @@ public class Spider extends PileSolitaire{
 		ArrayList<Card> top = getSequence(p);
 		if(top.size() > 12) {
 			p.removeAll(top);
-			for(Component c:utilPane.getComponents()) {
-				if(c instanceof JPanel && ((JPanel) c).getComponents().length == 0) {
+			for(Pile pile:utilPiles) {
+				if(pile.isEmpty()) {
 					pastMoves.getLast().clearedStack = top;
-					JLabel temp = new JLabel(new ImageIcon(p.cardsMap.get(top.get(0)).getMasterIcon()));
-					temp.addComponentListener(new ComponentAdapter() {
-						@Override
-						public void componentResized(ComponentEvent e) {
-							temp.setIcon(new ImageIcon(p.cardsMap.get(top.get(0)).getMasterIcon().getScaledInstance(getWidth()/COLS, (int) (getWidth()/COLS*JCard.getRatio()),  Image.SCALE_SMOOTH)));
-						}
-					});
-					((JPanel)c).add(temp);
+                    Collections.reverse(top);
+                    pile.addAll(top);
+                    revalidate();
+                    repaint();
 					break;
 				}
 			}
 		}
 		checkPileTop(p);
 		checkWin();
+
 	}
 
 	// Custom Layout, main is fullscreen, if w>h, utilPane is on top
@@ -169,8 +192,62 @@ public class Spider extends PileSolitaire{
 			piles.get(i).remove(c);
 		}
 	}
-
-
-
+    @Override
+    protected void undoClearStack(PileMove move){
+        super.undoClearStack(move);
+        Pile last = null;
+        for(Pile pile:utilPiles) {
+            if(pile.isEmpty())break;
+            last = pile;
+        }
+        last.clear();
+    }
+    @Override
+    protected void loadSave(PileSave save) {
+        super.loadSave(save);
+        for (int i=0; i<utilPiles.size(); ++i) {
+            Pile p = utilPiles.get(i);
+            ArrayList<PileSave.CardState> pileList = save.utilPiles.get(i);
+            for (PileSave.CardState cs : pileList) {
+                p.add(new Card(cs.rank, cs.suit), cs.faceDown);
+            }
+        }
+        if(stock.isEmpty()) getCards.setVisible(false);
+        revalidate();
+        repaint();
+    }
+    @Override
+    protected void clearTable() {
+        super.clearTable();
+        for(Pile pile:utilPiles)
+            pile.clear();
+    }
+    @Override
+    public void saveToFile(File file) {
+        PileSave state = new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
+        state.utilPiles = new ArrayList<>();
+        for (Pile p : utilPiles) {
+            ArrayList<PileSave.CardState> pileList = new ArrayList<>();
+            for (Card c : p) {
+                pileList.add(new PileSave.CardState(c.getRank(), c.getSuit(), c.isFaceDown()));
+            }
+            state.utilPiles.add(pileList);
+        }
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
+            out.writeObject(state);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public void endGame(){
+        super.endGame();
+        startEndAnimation(utilPiles);
+    }
+    protected void newGame(){
+        super.newGame();
+        getCards.setVisible(true);
+    }
 }
+
+
 

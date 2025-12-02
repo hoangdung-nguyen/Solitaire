@@ -1,56 +1,63 @@
 package solitaire;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Random;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
+import java.util.HashMap;
 
 public class Menu extends JPanel {
 
     //User Interface
     private RoundedButton[] buttons = new RoundedButton[6];
-    private String[] bNames = {"Klondike", "Pyramid", "Tripeak", "Spider", "Free Cell", "Exit"};
-    private JPanel centerPanel;
-
-    //Background scattered cards
-    private Rectangle sfZone;
-    private Rectangle leftZone = new Rectangle(0, 0, sfZone.x, getHeight());
-    private Rectangle rightZone = new Rectangle(sfZone.x+sfZone.width, 0, getWidth() - (sfZone.x + sfZone.width), getHeight());
-    private ArrayList<BackgroundCards> bgCards = new ArrayList<>();
+    private String[] bNames = {"Klondike", "Pyramid", "Tripeaks", "Spider", "FreeCell", "Exit"};
+    private JPanel centerPanel, leftPanel, rightPanel;
+    JPanel cardLayoutPanel;
+    HashMap<String, JComponent> cards = new HashMap<>();
+    private final static int CARD_SCALE = 6;
+    //Card graphics
+    private static final long serialVersionUID = 1L;
 
     public static void main(String[] args){
         JFrame frame = new JFrame("Solitaires");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // prevent auto-exit
+
+        frame.setBounds(0,0,900,900);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-
-        frame.add(new Menu());
-
+        Menu menu = new Menu();
+        menu.cardLayoutPanel = new JPanel(new CardLayout());
+        menu.cardLayoutPanel.add(menu, "Menu");
+        menu.cards.put("menu", menu);
+        frame.add(menu.cardLayoutPanel);
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                menu.autoSaveCurrentGame();
+                System.exit(0);
+            }
+        });
         frame.setVisible(true);
-
 
     }
 
     public Menu(){
         setBackground(Utils.bgkColor);
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-
-
-
-        //Center panel with title and buttons
+        setLayout(new BorderLayout());
+        //-------Center Panel (menu)----------
         centerPanel = new JPanel();
         centerPanel.setOpaque(false);
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+
+        centerPanel.add(Box.createVerticalGlue());
 
 
         JLabel title = new JLabel("Welcome!");
         title.setForeground(Utils.fontColor);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
-        title.setFont(new Font("Serif", Font.BOLD, 72));
+        title.setFont(Utils.titleFont);
 
 
         centerPanel.add(title);
@@ -61,126 +68,209 @@ public class Menu extends JPanel {
             buttons[i] = new RoundedButton(bNames[i]);
             buttons[i].setBackground(Utils.buttonColor);
             buttons[i].setForeground(Utils.fontColor);
-            buttons[i].setFont(new Font("Serif", Font.PLAIN, 25));
+            buttons[i].setFont(Utils.otherFont);
 
             buttons[i].setPreferredSize(new Dimension(400, 65));
             buttons[i].setMaximumSize(new Dimension (400, 65));
             buttons[i].setAlignmentX(Component.CENTER_ALIGNMENT);
 
+            int index = i;
+            buttons[i].addActionListener(e ->handleButtonClick(index));
+
             centerPanel.add(buttons[i]);
             centerPanel.add(Box.createVerticalStrut(20));
         }
 
-        add(Box.createVerticalGlue());
-        add(centerPanel);
-        add(Box.createVerticalGlue());
+        centerPanel.add(Box.createVerticalGlue());
+
+        add(centerPanel, BorderLayout.CENTER);
 
 
+        //-------Left Panel (Spades & Hearts)----------
+        leftPanel = new JPanel(new GridLayout(1,0));
+        leftPanel.setOpaque(false);
+        add(leftPanel, BorderLayout.WEST);
 
+        //-------Right Panel (Clubs & Diamonds)----------
+        rightPanel = new JPanel(new GridLayout(1,0));
+        rightPanel.setOpaque(false);
+        add(rightPanel, BorderLayout.EAST);
+
+        generatePanelCards();
     }
 
-    private void generateBackgroundCards(){
-        Random rand = new Random();
-        int centerWidth = 500;
-        int centerHeight = 650;
-        int cx = getWidth()/2 - centerWidth/2;
-        int cy = getHeight()/2 - centerHeight/2;
-        sfZone = new Rectangle(cx, cy, centerWidth, centerHeight);
+    private void handleButtonClick(int index){
+        String name = bNames[index];
+        if(name.equals("Exit")){
+            showExitConfirmation();
+            return;
+        }
+        showGamePopup(name);
+    }
 
-        Deck deck = new Deck();
-        deck.shuffle();
+    private void showGamePopup(String gameName){
+        String[] options;
+        String saveFileName = "GameSave_" + gameName + ".dat";
+        File saveFile = new File(saveFileName);
+        if(saveFile.exists())
+            options = new String[]{"New Game", "Continue Game", "Cancel"};
+        else
+            options = new String[]{"New Game", "Cancel"};
 
-        //Number of scattered cards
-        int count = 40;
+        int choice = JOptionPane.showOptionDialog( this,
+                "What would you like to do for " + gameName + "?", gameName + " Options", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0] );
+        switch(choice) {
+            case 0: //New Game
+                if (JOptionPane.showOptionDialog( this,
+                    "Previous save available for " + gameName + ", are you sure you want to override?",  "New Game Options", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Yes", "No"}, "No" ) == 0)
+                    startNewGame(gameName);
+                break;
+            case 1: //Continue Game
+                if(options.length==3) continueSavedGame(gameName, saveFile);
+                break;
+            default: //Cancel
 
-        for(int i = 0; i < count; i++){
-            //add code to grab image here V
-            BufferedImage img = Utils.cardSheet;
-
-            int x, y;
-            Rectangle r;
-
-            do{
-                x = rand.nextInt(getWidth()- Utils.CARD_WIDTH);
-                y = rand.nextInt(getHeight() - Utils.CARD_HEIGHT);
-                r = new Rectangle(x, y, Utils.CARD_WIDTH, Utils.CARD_HEIGHT);
-            } while(sfZone.intersects(r));
-
-            double angle = rand.nextDouble() * Math.PI * 2;
-            boolean flipped = Math.random() < 0.2;
-
-            bgCards.add(new BackgroundCards(img, x, y, angle, flipped));
         }
 
-        bgCards.clear();
+    }
+    private JComponent createGameInstance(String gameName, File saveFile) {
+        switch (gameName) {
+            case "Klondike": return (saveFile == null ? new Klondike() : new Klondike(saveFile.getPath())).start(this);
+            case "Pyramid":
+                //new Pyramid().start();
+                break;
+            case "Tripeaks":
+                //new Tripeaks().start();
+                break;
+            case "Spider": return (saveFile == null ? new Spider(1) : new Spider(saveFile.getPath())).start(this);
+            case "FreeCell": return (saveFile == null ? new FreeCell() : new FreeCell(saveFile.getPath())).start(this);
+            // TODO The other ones
+        }
+        throw new IllegalArgumentException("Unknown game: " + gameName);
+    }
 
+    private void startNewGame(String gameName){
+        if(cards.get(gameName)==null){
+            // Game not initialized, and has no saves
+            JComponent game = createGameInstance(gameName, null);
+            cardLayoutPanel.add(game, gameName);
+            cards.put(gameName, game);
+        }
+        else {
+            // Game initialized, new game
+            JComponent game = cards.get(gameName);
+            if(game instanceof PileSolitaire)
+                ((PileSolitaire) game).newGame();
+            // TODO The other ones
+            game.requestFocusInWindow();
+        }
+        ((CardLayout) cardLayoutPanel.getLayout()).show(cardLayoutPanel, gameName);
+    }
 
+    //Write logic for this
+    private void continueSavedGame(String gameName, File saveFile){
+        JComponent game = cards.get(gameName);
+        if(game == null){
+            // Game not initialized
+            game = createGameInstance(gameName, saveFile);
+            cardLayoutPanel.add(game, gameName);
+            cards.put(gameName, game);
+        }
+        else{
+            // Game initialized
+            if(game instanceof PileSolitaire)
+                ((PileSolitaire) game).loadFromFile(saveFile);
+            // TODO The other ones
+            game.requestFocusInWindow();
+        }
+        ((CardLayout) cardLayoutPanel.getLayout()).show(cardLayoutPanel, gameName);
+
+    }
+    private void autoSaveCurrentGame(){
+        for(String gameName : cards.keySet()){
+            JComponent game = cards.get(gameName);
+            if(game.isVisible()) {
+                if(game instanceof PileSolitaire)
+                    ((PileSolitaire) game).saveGame();
+                // TODO The other ones
+            }
+        }
+    }
+    private void showExitConfirmation(){
+        int choice = JOptionPane.showConfirmDialog(this, "Are you sure you want to exit?", "Exit Game", JOptionPane.YES_NO_OPTION);
+        if(choice == JOptionPane.YES_OPTION){
+            System.exit(0);
+        }
+    }
+
+    private void generatePanelCards(){
+        leftPanel.removeAll();
+        rightPanel.removeAll();
+
+        char[] suitsLeft = {'s', 'h'};      //spades and hearts
+        char[] suitsRight = {'c', 'd'};     //clubs and diamonds
+        char[] ranks = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K'};
+
+        //fill left panel
+        for(char suit : suitsLeft){
+            CardPanel pane = new CardPanel();
+            for(int i = 0; i < 13; i++){
+                pane.addCard(Utils.getCardImage(new Card(ranks[i], suit)));
+            }
+            leftPanel.add(pane);
+        }
+
+        //fill right panel
+        for(char suit : suitsRight){
+            CardPanel pane = new CardPanel();
+            for(int i = 0; i < 13; i++){
+                pane.addCard(Utils.getCardImage(new Card(ranks[i], suit)));
+            }
+            rightPanel.add(pane);
+        }
+
+        leftPanel.revalidate();
+        rightPanel.revalidate();
     }
 
 
-    private static class RoundedButton extends JButton{
-        private int radius = 60;
-        public RoundedButton(String name){
-            super(name);
-            setFocusPainted(false);
-            setContentAreaFilled(false);
+
+
+
+
+    private class CardPanel extends JPanel {
+
+        private final java.util.List<BufferedImage> cards = new ArrayList<>();
+
+        CardPanel() {
             setOpaque(false);
         }
 
-        public void setRadius(int r){
-            this.radius = r;
-            repaint();
+        public void addCard(BufferedImage img) {
+            cards.add(img);
         }
 
         @Override
-        protected void paintComponent(Graphics g){
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        public Dimension getPreferredSize() {
+            return new Dimension(Menu.this.getWidth()/CARD_SCALE, Menu.this.getHeight());
+        }
 
-            if(getModel().isPressed()){
-                g2.setColor(getBackground().darker());
-            } else if (getModel().isRollover()){
-                g2.setColor(getBackground().brighter());
-            }else{
-                g2.setColor(getBackground());
+        @Override
+        public void paint(Graphics g) {
+            super.paint(g);
+            int h = getHeight();
+            int cardWidth = getWidth();
+            int cardHeight = (int) (cardWidth * JCard.getRatio());
+
+            int offset = (h - cardHeight) / Math.max(1,cards.size()-1);
+            Graphics2D g2 = (Graphics2D) g;
+            int y = 0;
+
+            for (BufferedImage img : cards) {
+                g2.drawImage(img, 0, y, cardWidth, cardHeight, null);
+                y += offset; // move each next card downward
             }
-
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), radius, radius);
-
-            super.paintComponent(g);
-            g2.dispose();
         }
-
-        @Override
-        protected void paintBorder(Graphics g){
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            g2.setColor(getForeground());
-            g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, radius, radius);
-
-            g2.dispose();
-        }
-
-
-
-    }
-
-    private static class BackgroundCards{
-        BufferedImage img;
-        int x, y;
-        double angle;
-        boolean flipped;
-
-        BackgroundCards(BufferedImage img, int x, int y, double angle, boolean flipped){
-            this.img = img;
-            this.x = x;
-            this.y = y;
-            this.angle = angle;
-            this.flipped = flipped;
-        }
-
-
     }
 
 

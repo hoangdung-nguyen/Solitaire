@@ -12,10 +12,15 @@ public class Deck extends Stack<Card> {
 	public Deck() {
 		this(1);
 	}
-	
-	public Deck(int num) {
-		this(false, num);
-	}
+
+    public Deck(int num) {
+        this(false, num);
+    }
+    public Deck(char suit) {
+        for(char r : Utils.RANK_ORDER){
+            push(new Card(r, suit));
+        }
+    }
     /**
             Deck Constructor: A deck is constructed with a number of cards 26 * num if black == true and 52 * num if !black.
                               The order of generation is in deck-rank-suit order. Ex: All Aces of deck#1 will be generated, then 2s, etc.

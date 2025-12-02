@@ -1,24 +1,77 @@
 package solitaire;
 
 import javax.imageio.ImageIO;
+import javax.sound.sampled.*;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
 public class Utils {
+    static Clip winAudio;
+
+    static {
+        try {
+            AudioInputStream winnerSoundAudioStream = AudioSystem.getAudioInputStream(new File("winnersound.wav"));
+            winAudio = AudioSystem.getClip();
+            winAudio.open(winnerSoundAudioStream);
+        } catch (UnsupportedAudioFileException e) {
+            System.out.println("AudioFile not supported");
+        } catch (IOException e) {
+            System.out.println("Could not find audio file");
+        } catch (LineUnavailableException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     //For title
-    public static Color titleColor = new Color(243, 167, 18);
+    public final static Color titleColor = new Color(243, 167, 18);
     //For buttons
-    public static Color buttonColor = new Color(224, 119, 125);
+    public final  static Color buttonColor = new Color(224, 119, 125);
     //For background
-    public static Color bgkColor = new Color(113, 0, 0 );
+    public final static Color bgkColor = new Color(113, 0, 0);
     //For texts
-    public static Color fontColor = new Color (240, 206, 160);
+    public final static Color fontColor = new Color(240, 206, 160);
     //Extra, for background
-    public static Color extraColor = new Color (0, 0, 0);
+    public final static Color extraColor = new Color(41, 51, 92);
+    public static Font jersey;
+    static {
+        try {
+            jersey = Font.createFont(Font.TRUETYPE_FONT, new File("Jersey10-Regular.ttf"));
+
+        } catch (FontFormatException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public final static Font titleFont = jersey.deriveFont(Font.BOLD,72f);
+    public final static Font otherFont = jersey.deriveFont(25f);
+
+    public static BufferedImage undoIcon;
+    static {
+        try {
+            undoIcon = ImageIO.read(new File("undo.png"));
+        } catch (IOException e) {
+            System.out.println("The asset for the undo button does not exist.");
+            System.exit(1);
+        }
+    }
+
+    public static BufferedImage homeIcon;
+    static {
+        try {
+            homeIcon = ImageIO.read(new File("home-button.png"));
+        } catch (IOException e) {
+            System.out.println("The asset for the home button does not exist.");
+            System.exit(1);
+        }
+    }
 
     //Card graphics
     public static BufferedImage cardSheet;
@@ -32,11 +85,17 @@ public class Utils {
     }
     static final int CARD_WIDTH = cardSheet.getWidth() / 14;
     static final int CARD_HEIGHT = cardSheet.getHeight() / 6;
-    public static BufferedImage cardBack = Utils.centerImage(cardSheet.getSubimage(0, CARD_HEIGHT *2, CARD_WIDTH, CARD_HEIGHT));
+    public final static BufferedImage cardBack = getCardAsset(0, CARD_HEIGHT *2, CARD_WIDTH, CARD_HEIGHT);
+    public final static BufferedImage greyedCardBack = tint(cardBack, Color.lightGray);
+    static final List<Character> RANK_ORDER = Arrays.asList('1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K');
+	static final List<Character> SUIT_ORDER = Arrays.asList('h', 's', 'd', 'c');
 
-    static final List<Character> RANK_ORDER = Arrays.asList(new Character[]{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K'});
-	static final List<Character> SUIT_ORDER = Arrays.asList(new Character[]{ 'h', 's', 'd', 'c' });
-
+    public static BufferedImage getCardAsset(Card c){
+        return getCardAsset(CARD_WIDTH * (RANK_ORDER.indexOf(c.rank)+1), CARD_HEIGHT * SUIT_ORDER.indexOf(c.suit), CARD_WIDTH, CARD_HEIGHT);
+    }
+    public static BufferedImage getCardAsset(int x, int y, int w, int h){
+        return centerImage(cardSheet.getSubimage(x, y, w, h));
+    }
 	public static BufferedImage centerImage(BufferedImage src) {
 		int w = src.getWidth();
 		int h = src.getHeight();
@@ -82,5 +141,75 @@ public class Utils {
         return out;
     }
 
+    public static BufferedImage getCardImage(Card c){
+        int col = RANK_ORDER.indexOf(c.rank)+1;
+
+        int row = SUIT_ORDER.indexOf(c.suit);
+        return cardSheet.getSubimage(col * CARD_WIDTH, row* CARD_HEIGHT, CARD_WIDTH, CARD_HEIGHT);
+    }
+
 }
 
+class RoundedButton extends JButton {
+    private int radius = 60;
+    public RoundedButton(){
+        super();
+        defaultSettings();
+    }
+    public RoundedButton(String name){
+        super(name);
+        defaultSettings();
+    }
+    private void defaultSettings(){
+        setFocusPainted(false);
+        setContentAreaFilled(false);
+        setOpaque(false);
+        setBackground(Utils.buttonColor);
+        setForeground(Utils.fontColor);
+        setFont(Utils.otherFont);
+    }
+    public void setRadius(int r){
+        this.radius = r;
+        repaint();
+    }
+
+    @Override
+    protected void paintComponent(Graphics g){
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        if(getModel().isPressed()){
+            g2.setColor(getBackground().darker());
+        } else if (getModel().isRollover()){
+            g2.setColor(getBackground().brighter());
+        }else{
+            g2.setColor(getBackground());
+        }
+
+        g2.fillRoundRect(0, 0, getWidth(), getHeight(), radius, radius);
+
+        super.paintComponent(g);
+        g2.dispose();
+    }
+
+    @Override
+    protected void paintBorder(Graphics g){
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        g2.setColor(getForeground());
+        g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, radius, radius);
+
+        g2.dispose();
+    }
+}
+
+class GameSave{
+
+}
+
+interface Solitaire{
+    public void saveToFile(File file);
+
+    public void loadFromFile(File file);
+}

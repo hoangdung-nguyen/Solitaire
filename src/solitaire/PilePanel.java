@@ -36,7 +36,12 @@ public class PilePanel extends JPanel {
     }
     /** remove a JCard based on card, assumes exists */
     public void remove(Card c) {
-        remove(cardsMap.get(c));
+        JCard jc = cardsMap.get(c);
+        if (jc!=null){
+            remove(jc);
+            return;
+        }
+        remove(0); // TODO TEMP SOLUTION TO JUST POP INSTEAD WHEN YOU CANT FIND THE EL
     }
     /** set all card in the arrayList visibility, assumes exists */
     public void setVisible(ArrayList<Card> cards, boolean isVisible) {
@@ -48,15 +53,13 @@ public class PilePanel extends JPanel {
     /** grey all cards except the ones in the highlight */
     public void highlightCards(ArrayList<Card> highlight) {
         for(Card c:cards) {
-            if(!cardsMap.get(c).isFaceDown && !highlight.contains(c)) cardsMap.get(c).isGreyed=true;
-            cardsMap.get(c).setIcon();
+            if(!highlight.contains(c)) cardsMap.get(c).setGreyed(true);
         }
     }
     /** sets all cards not grey */
     public void unhighlightAllCards() {
         for(Card c:cards) {
-            cardsMap.get(c).isGreyed=false;
-            cardsMap.get(c).setIcon();
+            cardsMap.get(c).setGreyed(false);
         }
     }
     /** do the layout with overlap, going downward */
