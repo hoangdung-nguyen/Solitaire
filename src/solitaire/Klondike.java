@@ -8,8 +8,9 @@ public class Klondike extends PileSolitaire{
 	@Serial
     private static final long serialVersionUID = 1L;
     ArrayList<Pile> foundationPiles;
+    JButton drawCards;
 
-	public PileSolitaire start(Menu menu) {
+	/*public PileSolitaire start(Menu menu) {
 		SwingUtilities.invokeLater(() -> {
 			JFrame frame = new JFrame("Klondike");
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -18,9 +19,20 @@ public class Klondike extends PileSolitaire{
 			frame.setVisible(true);
 		});
         return this;
-	}
+	}*/
 	public Klondike(){
 		super(7,1);
+        setupFoundation();
+	}
+    public Klondike(String saveFile)
+    {//TODO write load data function after everything else
+        super(7,1);
+    }
+
+    public void setupFoundation()
+    {
+        foundationPiles = new ArrayList<>();
+
         utilPane = new JPanel(new GridLayout(1, COLS))
         {
             @Override
@@ -30,11 +42,8 @@ public class Klondike extends PileSolitaire{
         };
         utilPane.setOpaque(false);
         mainPane.add(utilPane,BorderLayout.NORTH);
-        foundationPiles = new ArrayList<>();
 
-
-
-	}
+    }
 
     @Override
     protected void makeDeck() {
