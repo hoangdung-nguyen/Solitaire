@@ -212,61 +212,9 @@ public class FreeCell extends PileSolitaire{
 
     public void endGame(){
         super.endGame();
-        ArrayList<BufferedImage> images = new ArrayList<>();
-        ArrayList<Point> points = new ArrayList<>();
-        ArrayList<Integer> velocitiesX = new ArrayList<>();
-        ArrayList<Integer> velocitiesY = new ArrayList<>();
-        int cardWidth = mainPane.getWidth()/COLS;
-        int cardHeight = (int) (cardWidth*JCard.getRatio());
-        Timer adder = new Timer(250, null);
-        adder.addActionListener(e->{
-            boolean allEmpty = true;
-            for(Pile pile:utilPiles){
-                if(pile.isEmpty()) continue;
-                allEmpty = false;
-                JCard jc = pile.cardsMap.get(pile.getLast());
-                Image scaled = jc.getMasterIcon().getScaledInstance(cardWidth, cardHeight, Image.SCALE_SMOOTH);
-                BufferedImage bufImg = new BufferedImage(cardWidth, cardHeight, BufferedImage.TYPE_INT_ARGB);
-                Graphics2D g2d = bufImg.createGraphics();
-                g2d.drawImage(scaled, 0, 0, null);
-                g2d.dispose();
-                images.add(0, bufImg);
-                points.add(0, SwingUtilities.convertPoint(pile.pilePane, jc.getLocation(), this));
-                velocitiesX.add(0, (int) (Math.random()*20 -10));
-                velocitiesY.add(0, (int) (Math.random()*20 -10));
-                pile.remove(pile.getLast());
-            }
-            if(allEmpty) adder.stop();
-        });
-        adder.start();
-        JPanel blank = new JPanel(){
-            @Override
-            public void paint(Graphics g) {
-                super.paint(g);
-                for(int i = 0;i<images.size();++i){
-                    g.drawImage(images.get(i), points.get(i).x, points.get(i).y, null);
-                }
-            }
-        };
-        blank.setBounds(0,0,getWidth(),getHeight());
-        blank.setOpaque(false);
-        blank.setLayout(null);
-        addComponentListener(new ComponentAdapter(){
-            @Override
-            public void componentResized(ComponentEvent e){
-                blank.setBounds(0,0,getWidth(),getHeight());
-            }
-        });
-        int ending = (int) (Math.random()*2);
-        add(blank, JLayeredPane.MODAL_LAYER);
-        Timer animation = new Timer(20, e->{
-            switch(ending){
-                case 0: DVDLogo(images, points, velocitiesX, velocitiesY); break;
-                case 1: gravityCards(images, points, velocitiesX, velocitiesY); break;
-            }
-            blank.repaint();
-        });
-        animation.start();
+        ArrayList<Pile> piles = new ArrayList<>();
+        for(Pile pile:utilPiles) if(!pile.isEmpty()) piles.add(pile);
+        super.startEndAnimation(piles);
     }
 }
 

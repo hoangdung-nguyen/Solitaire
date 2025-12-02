@@ -1,6 +1,5 @@
 package solitaire;
 
-import javax.sound.sampled.LineUnavailableException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -11,7 +10,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Stack;
 
-public abstract class PileSolitaire extends JLayeredPane{
+public abstract class PileSolitaire extends JLayeredPane implements Solitaire{
 	private static final long serialVersionUID = 1L;
     final static int GRAVITY = 1;
     protected int COLS;
@@ -51,6 +50,7 @@ public abstract class PileSolitaire extends JLayeredPane{
         addUIFunctions();
 //		for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
     }
+    /** Constructor that makes the initial object from a save instead of random */
     public PileSolitaire(int Columns, String saveFile){
         super();
         PileSave saveData;
@@ -61,30 +61,18 @@ public abstract class PileSolitaire extends JLayeredPane{
         }
         COLS = Columns;
         difficulty = saveData.difficulty;
-        start = Instant.now().minusSeconds(saveData.timePast);
+
         setupUI();
+
+        // stock
         pastMoves = new Stack<>();
         stock = new Deck(0);
         for (PileSave.CardState cs : saveData.stock) {
             stock.add(new Card(cs.rank, cs.suit));
         }
+
+        // piles
         piles = new ArrayList<Pile>();
-        pilePanes = new JPanel(new GridLayout(1,COLS, 10, 0));
-        pilePanes.setOpaque(false);
-        mainPane.add(pilePanes, BorderLayout.CENTER);
-        mainPane.addMouseListener(new MouseAdapter(){
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                // System.out.println("LISTENING TO MAIN");
-                if(selectedCard!=null) ((Pile)selectedCard.parent).pilePane.unhighlightAllCards();
-                heldPile = null;
-                selectedCard = null;
-                revalidate();
-                repaint();
-            }
-        });
-        // Piles
-        piles.clear();
         for (ArrayList<PileSave.CardState> pileList : saveData.piles) {
             Pile p = new Pile(COLS);
             for (PileSave.CardState cs : pileList) {
@@ -95,6 +83,7 @@ public abstract class PileSolitaire extends JLayeredPane{
         }
 
         addUIFunctions();
+        start = Instant.now().minusSeconds(saveData.timePast);
 //		for(int j=0;j<COLS;++j) System.err.println(piles.get(j));
     }
 
@@ -105,25 +94,85 @@ public abstract class PileSolitaire extends JLayeredPane{
         mainPane = new JPanel(new BorderLayout());
         mainPane.setOpaque(false);
         parPane.add(mainPane,BorderLayout.CENTER);
-        toolbar = new JPanel(new GridLayout(1,0, 50, 0)){
+
+        pilePanes = new JPanel(new GridLayout(1,COLS, 10, 0));
+        pilePanes.setOpaque(false);
+        mainPane.add(pilePanes, BorderLayout.CENTER);
+
+        toolbar = new JPanel(new GridLayout(1,0)){
             @Override
             public Dimension getPreferredSize() {
                 return new Dimension(getParent().getWidth(), 100);
             }
         };
         toolbar.setOpaque(false);
-        toolbar.add(new RoundedButton("Menu"){
+        // Home button
+        JPanel tool1 = new JPanel();
+        tool1.setOpaque(false);
+        toolbar.add(tool1);
+        tool1.add(new RoundedButton(){
             @Override
             protected void init(String text, Icon icon) {
                 super.init(text, icon);
                 addActionListener(e->switchToMainMenu());
             }
+            @Override
+            public Dimension getPreferredSize() {
+                int a = Math.min(getParent().getWidth(), getParent().getHeight());
+                return new Dimension(a, a);
+            }
+            @Override
+            public void paint(Graphics g) {
+                super.paint(g);
+                g.drawImage(Utils.homeIcon, 0, 0, getWidth(), getHeight(), null);
+            }
         });
-        toolbar.add(new RoundedButton("Undo"){
+        // New game button
+        JPanel tool2 = new JPanel();
+        tool2.setOpaque(false);
+        toolbar.add(tool2);
+        tool2.add(new RoundedButton("New Game"){
+            @Override
+            protected void init(String text, Icon icon) {
+                super.init(text, icon);
+                addActionListener(e->{
+                    if (JOptionPane.showOptionDialog( PileSolitaire.this,
+                            "Previous save available, are you sure you want to override?",  "Load Options", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Yes", "No"}, "No" ) == 0)
+                        newGame();
+                });
+            }
+            @Override
+            public Dimension getPreferredSize() {
+                int a = Math.min(getParent().getWidth(), getParent().getHeight());
+                return new Dimension(a, a);
+            }
+            @Override
+            public void paint(Graphics g) {
+                super.paint(g);
+//                g.drawImage(Utils.homeIcon, 0, 0, getWidth(), getHeight(), null);
+            }
+        });
+        // Undo button
+        JPanel tool3 = new JPanel();
+        tool3.setOpaque(false);
+        toolbar.add(tool3);
+        tool3.add(new RoundedButton(){
             @Override
             protected void init(String text, Icon icon) {
                 super.init(text, icon);
                 addActionListener(e->undoLastMove());
+            }
+
+            @Override
+            public Dimension getPreferredSize() {
+                int a = Math.min(getParent().getWidth(), getParent().getHeight());
+                return new Dimension(a, a);
+            }
+
+            @Override
+            public void paint(Graphics g) {
+                super.paint(g);
+                g.drawImage(Utils.undoIcon, 0, 0, getWidth(), getHeight(), null);
             }
         });
         parPane.add(toolbar, BorderLayout.SOUTH);
@@ -133,11 +182,17 @@ public abstract class PileSolitaire extends JLayeredPane{
         timeLabel.setOpaque(false);
         parPane.add(timeLabel, BorderLayout.NORTH);
     }
+    /** sets up the piles arrays and base ui */
     public void setupPiles(){
         piles = new ArrayList<Pile>();
-        pilePanes = new JPanel(new GridLayout(1,COLS, 10, 0));
-        pilePanes.setOpaque(false);
-        mainPane.add(pilePanes, BorderLayout.CENTER);
+        for(int i=0;i<COLS;++i) {
+            piles.add(new Pile(COLS));
+            pilePanes.add(piles.get(i).pilePane);
+        }
+    }
+
+    /** adds mouse functions, keybinds, timer */
+    public void addUIFunctions(){
         mainPane.addMouseListener(new MouseAdapter(){
             @Override
             public void mouseReleased(MouseEvent e) {
@@ -149,13 +204,6 @@ public abstract class PileSolitaire extends JLayeredPane{
                 repaint();
             }
         });
-        for(int i=0;i<COLS;++i) {
-            piles.add(new Pile(COLS));
-            pilePanes.add(piles.get(i).pilePane);
-        }
-    }
-
-    public void addUIFunctions(){
         addMouseListeners(piles);
         setupKeyBindings();
         start = Instant.now();
@@ -182,13 +230,12 @@ public abstract class PileSolitaire extends JLayeredPane{
     /** Where you should place cards into the piles */
 	protected abstract void placeCards();
     private void switchToMainMenu(){
-        if(!gameEnded) {
-            saveToFile(new File("GameSave_" + getClass().getSimpleName() + ".dat"));
-        }
+        saveGame();
         ((CardLayout) mainMenu.cardLayoutPanel.getLayout()).show(mainMenu.cardLayoutPanel, "Menu");
         mainMenu.requestFocusInWindow();
     }
-	protected void addMouseListeners(Pile pile) {
+
+    protected void addMouseListeners(Pile pile) {
 		pile.pilePane.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent e) {
@@ -408,21 +455,97 @@ public abstract class PileSolitaire extends JLayeredPane{
 
     protected void endGame(){
         // System.out.println("YOU WINNNNNNN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        try {
-            if(!Utils.clip.isOpen()) Utils.clip.open(Utils.winAudio);
-        } catch (LineUnavailableException | IOException e) {
-            throw new RuntimeException(e);
-        }
+        if(Utils.winAudio.isOpen()) Utils.winAudio.setFramePosition(0);
         time.stop();
-        Utils.clip.start();
+        Utils.winAudio.start();
         gameEnded = true;
     }
+    protected void startEndAnimation(ArrayList<Pile> fullCardPiles) {
+        ArrayList<BufferedImage> images = new ArrayList<>();
+        ArrayList<Point> points = new ArrayList<>();
+        ArrayList<Integer> velocitiesX = new ArrayList<>();
+        ArrayList<Integer> velocitiesY = new ArrayList<>();
+        ArrayList<Integer> initialX = new ArrayList<>();
+        ArrayList<Integer> initialY = new ArrayList<>();
+        int cardWidth = mainPane.getWidth()/COLS;
+        int cardHeight = (int) (cardWidth*JCard.getRatio());
+        boolean follow = (int) (Math.random()*2)==1;
+        Timer adder = new Timer(follow? 100: 250, null);
+        adder.addActionListener(e->{
+            boolean allEmpty = true;
+            for(Pile pile: fullCardPiles){
+                if(pile.isEmpty()) continue;
+                allEmpty = false;
+                JCard jc = pile.cardsMap.get(pile.getLast());
+                BufferedImage bufImg = new BufferedImage(cardWidth, cardHeight, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g2d = bufImg.createGraphics();
+                g2d.drawImage(jc.getMasterIcon(), 0, 0, cardWidth, cardHeight, null);
+                g2d.dispose();
+                images.add(bufImg);
+                points.add(SwingUtilities.convertPoint(pile.pilePane, jc.getLocation(), this));
+                if(follow && points.size() > fullCardPiles.size()){
+                    int i = pilesIndexOf(fullCardPiles,pile);
+                    velocitiesX.add(initialX.get(i));
+                    velocitiesY.add(initialY.get(i));
+                }
+                else{
+                    int x = (int) (Math.random()*20 -10);
+                    int y = (int) (Math.random()*20 -10);
+                    velocitiesX.add(x);
+                    velocitiesY.add(y);
+                    initialX.add(x);
+                    initialY.add(y);
+                }
+                pile.remove(pile.getLast());
+            }
+            if(allEmpty) adder.stop();
+        });
+        adder.start();
+        JPanel blank = new JPanel(){
+            @Override
+            public void paint(Graphics g) {
+                super.paint(g);
+                for(int i = images.size()-1;i>=0;--i){
+                    g.drawImage(images.get(i), points.get(i).x, points.get(i).y, null);
+                }
+            }
+        };
+        blank.setBounds(0,0,getWidth(),getHeight());
+        blank.setOpaque(false);
+        blank.setLayout(null);
+        addComponentListener(new ComponentAdapter(){
+            @Override
+            public void componentResized(ComponentEvent e){
+                blank.setBounds(0,0,getWidth(),getHeight());
+            }
+        });
+        int ending = (int) (Math.random()*2);
+        add(blank, JLayeredPane.MODAL_LAYER);
+        Timer animation = new Timer(20, null);
+        animation.addActionListener(e->{
+            if(!gameEnded) {
+                animation.stop();
+                remove(blank);
+                repaint();
+                return;
+            }
+            switch(ending){
+                case 0: DVDLogo(images, points, velocitiesX, velocitiesY); break;
+                case 1: gravityCards(images, points, velocitiesX, velocitiesY, initialX, initialY, follow); break;
+            }
+            blank.repaint();
+        });
+        animation.start();
+    }
     protected void newGame(){
+        gameEnded = false;
         clearTable();
         makeDeck();
         stock.shuffle();
         placeCards();
         addUIFunctions();
+        revalidate();
+        repaint();
     }
 	/** move them over, check for any changes in the pile */
 	private void makeMove(Pile held, Pile from, Pile to) {
@@ -445,6 +568,12 @@ public abstract class PileSolitaire extends JLayeredPane{
                 pastMoves.getLast().toFlipped = pile.getLast();
 		}
 	}
+
+    void saveGame() {
+        if(!gameEnded) {
+            saveToFile(new File("GameSave_" + getClass().getSimpleName() + ".dat"));
+        }
+    }
 
     /** Load game from a PileSolitaire already set up */
     protected void loadSave(PileSave save) {
@@ -473,13 +602,6 @@ public abstract class PileSolitaire extends JLayeredPane{
         repaint();
     }
 
-    void clearTable() {
-        for(Pile pile : piles)
-            pile.clear();
-        stock.clear();
-        pastMoves.clear();
-    }
-
     public void saveToFile(File file) {
         System.out.println("SAVING GAME "+getClass());
         PileSave state = new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
@@ -491,6 +613,7 @@ public abstract class PileSolitaire extends JLayeredPane{
     }
 
     public void loadFromFile(File file) {
+        gameEnded = false;
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
             loadSave((PileSave) in.readObject());
         } catch (IOException e) {
@@ -498,6 +621,13 @@ public abstract class PileSolitaire extends JLayeredPane{
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    void clearTable() {
+        for(Pile pile : piles)
+            pile.clear();
+        stock.clear();
+        pastMoves.clear();
     }
 
     /** ArrayList.indexOf, but by reference only */
@@ -531,7 +661,7 @@ public abstract class PileSolitaire extends JLayeredPane{
             points.set(i, new Point(newX, newY));
         }
     }
-    void gravityCards(ArrayList<BufferedImage> images, ArrayList<Point> points, ArrayList<Integer> velocitiesX, ArrayList<Integer> velocitiesY){
+    void gravityCards(ArrayList<BufferedImage> images, ArrayList<Point> points, ArrayList<Integer> velocitiesX, ArrayList<Integer> velocitiesY, ArrayList<Integer> initialX, ArrayList<Integer> initialY, boolean follow){
         for (int i = 0; i < images.size(); i++) {
             int newX = points.get(i).x + velocitiesX.get(i);
             if(newX<=0 || newX+images.get(i).getWidth()>=getWidth()){
@@ -542,19 +672,34 @@ public abstract class PileSolitaire extends JLayeredPane{
             }
             int vy = velocitiesY.get(i) + GRAVITY;
             int newY = points.get(i).y + vy;
-            if(newY<=0 || newY+images.get(i).getHeight()>=getHeight()){
-                if (newY<=0)
-                    newY = -newY;
-                else newY = 2* getHeight() - newY - 2*images.get(i).getHeight();
-                vy = -(int)(vy * 0.7);
+            if(newY>=getHeight()){
+                newY = -images.get(i).getHeight();
+                if (follow) {
+                    if (i < initialX.size()) {
+                        int ivx = (int) (Math.random() * 20 - 10);
+                        int ivy = (int) (Math.random() * 20 - 10);
+                        velocitiesX.set(i, ivx);
+                        velocitiesY.set(i, ivy);
+                        initialX.set(i, ivx);
+                        initialY.set(i, ivy);
+                    } else {
+                        int index = i % initialX.size();
+                        velocitiesX.set(i, initialX.get(index));
+                        velocitiesY.set(i, initialY.get(index));
+                    }
+                }
+                else {
+                    velocitiesX.set(i, (int) (Math.random() * 20 - 10));
+                    velocitiesY.set(i, (int) (Math.random() * 20 - 10));
+                }
+            }
+            else if(newY+images.get(i).getHeight()>=getHeight()){
+                vy = -(int) (vy * 0.7);
+                if(velocitiesX.get(i)==0 && velocitiesY.get(i)==0) newY += newY+images.get(i).getHeight()-getHeight();
+                else newY = 2 * getHeight() - newY - 2 * images.get(i).getHeight();
             }
             velocitiesY.set(i,vy);
             if(newY == getHeight()-images.get(i).getHeight())  velocitiesX.set(i, (int) (velocitiesX.get(i)*0.7));
-            if(velocitiesX.get(i)==0 && velocitiesY.get(i)==0) {
-                newY = 0;
-                velocitiesX.set(i, (int) (Math.random()*20-10));
-                velocitiesY.set(i, (int) (Math.random()*20-10));
-            }
             points.set(i, new Point(newX, newY));
         }
     }
@@ -563,6 +708,7 @@ public abstract class PileSolitaire extends JLayeredPane{
 	public void doLayout() {
 		parPane.setBounds(0, 0, getWidth(), getHeight());
 	}
+
 
 }
 

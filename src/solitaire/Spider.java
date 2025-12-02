@@ -21,7 +21,6 @@ public class Spider extends PileSolitaire{
 
 	public Spider(int diff){
 		super(10,diff);
-		difficulty = diff;
 		setupUtils();
 	}
     public Spider(String saveFile){
@@ -45,6 +44,7 @@ public class Spider extends PileSolitaire{
         for (PileSave.PileMoveState pm : saveData.pastMoves) {
             pastMoves.push(new PileMove(pm, piles));
         }
+        if(stock.isEmpty()) getCards.setVisible(false);
     }
     private void setupUtils(){
         utilPiles = new ArrayList<>();
@@ -63,18 +63,18 @@ public class Spider extends PileSolitaire{
         JPanel blank = new JPanel();
         blank.setOpaque(false);
         utilPane.add(blank);
-        getCards = new JButton(new ImageIcon(Utils.cardBack));
+        getCards = new JButton(new ImageIcon(Utils.cardBack)){
+            @Override
+            public void paint(Graphics g) {
+                super.paint(g);
+                if(Utils.cardBack!=null) g.drawImage(Utils.cardBack, 0, 0, getWidth(), getHeight(), null);
+            }
+        };
         getCards.setOpaque(false);
         getCards.setBorder(null);
         getCards.setBorderPainted(false);
         getCards.setContentAreaFilled(false);
         getCards.setFocusPainted(false);
-        getCards.addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                getCards.setIcon(new ImageIcon(Utils.cardBack.getScaledInstance(getWidth()/COLS, (int) (getWidth()*JCard.getRatio()/COLS),  Image.SCALE_SMOOTH)));
-            }
-        });
         getCards.addActionListener(e -> drawCards());
         utilPane.add(getCards);
     }
@@ -212,6 +212,7 @@ public class Spider extends PileSolitaire{
                 p.add(new Card(cs.rank, cs.suit), cs.faceDown);
             }
         }
+        if(stock.isEmpty()) getCards.setVisible(false);
         revalidate();
         repaint();
     }
@@ -240,59 +241,11 @@ public class Spider extends PileSolitaire{
     }
     public void endGame(){
         super.endGame();
-        ArrayList<BufferedImage> images = new ArrayList<>();
-        ArrayList<Point> points = new ArrayList<>();
-        ArrayList<Integer> velocitiesX = new ArrayList<>();
-        ArrayList<Integer> velocitiesY = new ArrayList<>();
-        int cardWidth = getWidth()/COLS;
-        int cardHeight = (int) (cardWidth*JCard.getRatio());
-        Timer adder = new Timer(250, null);
-        adder.addActionListener(e->{
-            for(Pile pile:utilPiles){
-                if(pile.isEmpty()) continue;
-                JCard jc = pile.cardsMap.get(pile.getLast());
-                Image scaled = jc.getMasterIcon().getScaledInstance(cardWidth, cardHeight, Image.SCALE_SMOOTH);
-                BufferedImage bufImg = new BufferedImage(cardWidth, cardHeight, BufferedImage.TYPE_INT_ARGB);
-                Graphics2D g2d = bufImg.createGraphics();
-                g2d.drawImage(scaled, 0, 0, null);
-                g2d.dispose();
-                images.add(0, bufImg);
-                points.add(0, SwingUtilities.convertPoint(pile.pilePane, jc.getLocation(), this));
-                velocitiesX.add(0, (int) (Math.random()*20 -10));
-                velocitiesY.add(0, (int) (Math.random()*20 -10));
-                pile.remove(pile.getLast());
-            }
-            if(utilPiles.get(0).isEmpty()) adder.stop();
-        });
-        adder.start();
-        JPanel blank = new JPanel(){
-            @Override
-            public void paint(Graphics g) {
-                super.paint(g);
-                for(int i = 0;i<images.size();++i){
-                    g.drawImage(images.get(i), points.get(i).x, points.get(i).y, null);
-                }
-            }
-        };
-        blank.setBounds(0,0,getWidth(),getHeight());
-        blank.setOpaque(false);
-        blank.setLayout(null);
-        addComponentListener(new ComponentAdapter(){
-            @Override
-            public void componentResized(ComponentEvent e){
-                blank.setBounds(0,0,getWidth(),getHeight());
-            }
-        });
-        int ending = (int) (Math.random()*2);
-        add(blank, JLayeredPane.MODAL_LAYER);
-        Timer animation = new Timer(20, e->{
-            switch(ending){
-                case 0: DVDLogo(images, points, velocitiesX, velocitiesY); break;
-                case 1: gravityCards(images, points, velocitiesX, velocitiesY); break;
-            }
-            blank.repaint();
-        });
-        animation.start();
+        startEndAnimation(utilPiles);
+    }
+    protected void newGame(){
+        super.newGame();
+        getCards.setVisible(true);
     }
 }
 

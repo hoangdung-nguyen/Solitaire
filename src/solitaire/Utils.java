@@ -8,26 +8,23 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class Utils {
-    static AudioInputStream winAudio;
-    static Clip clip;
+    static Clip winAudio;
 
     static {
         try {
-            winAudio = AudioSystem.getAudioInputStream(new File("winnersound.wav"));
+            AudioInputStream winnerSoundAudioStream = AudioSystem.getAudioInputStream(new File("winnersound.wav"));
+            winAudio = AudioSystem.getClip();
+            winAudio.open(winnerSoundAudioStream);
         } catch (UnsupportedAudioFileException e) {
             System.out.println("AudioFile not supported");
         } catch (IOException e) {
             System.out.println("Could not find audio file");
-        }
-        try {
-            clip = AudioSystem.getClip();
         } catch (LineUnavailableException e) {
-            System.out.println("Audio Output unavailable");
+            throw new RuntimeException(e);
         }
     }
 
@@ -55,6 +52,26 @@ public class Utils {
 
     public final static Font titleFont = jersey.deriveFont(Font.BOLD,72f);
     public final static Font otherFont = jersey.deriveFont(25f);
+
+    public static BufferedImage undoIcon;
+    static {
+        try {
+            undoIcon = ImageIO.read(new File("undo.png"));
+        } catch (IOException e) {
+            System.out.println("The asset for the undo button does not exist.");
+            System.exit(1);
+        }
+    }
+
+    public static BufferedImage homeIcon;
+    static {
+        try {
+            homeIcon = ImageIO.read(new File("home-button.png"));
+        } catch (IOException e) {
+            System.out.println("The asset for the home button does not exist.");
+            System.exit(1);
+        }
+    }
 
     //Card graphics
     public static BufferedImage cardSheet;
@@ -135,8 +152,15 @@ public class Utils {
 
 class RoundedButton extends JButton {
     private int radius = 60;
+    public RoundedButton(){
+        super();
+        defaultSettings();
+    }
     public RoundedButton(String name){
         super(name);
+        defaultSettings();
+    }
+    private void defaultSettings(){
         setFocusPainted(false);
         setContentAreaFilled(false);
         setOpaque(false);
@@ -144,7 +168,6 @@ class RoundedButton extends JButton {
         setForeground(Utils.fontColor);
         setFont(Utils.otherFont);
     }
-
     public void setRadius(int r){
         this.radius = r;
         repaint();
@@ -183,4 +206,10 @@ class RoundedButton extends JButton {
 
 class GameSave{
 
+}
+
+interface Solitaire{
+    public void saveToFile(File file);
+
+    public void loadFromFile(File file);
 }

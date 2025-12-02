@@ -2,6 +2,8 @@ package solitaire;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -21,7 +23,8 @@ public class Menu extends JPanel {
 
     public static void main(String[] args){
         JFrame frame = new JFrame("Solitaires");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // prevent auto-exit
+
         frame.setBounds(0,0,900,900);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         Menu menu = new Menu();
@@ -29,6 +32,13 @@ public class Menu extends JPanel {
         menu.cardLayoutPanel.add(menu, "Menu");
         menu.cards.put("menu", menu);
         frame.add(menu.cardLayoutPanel);
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                menu.autoSaveCurrentGame();
+                System.exit(0);
+            }
+        });
         frame.setVisible(true);
 
     }
@@ -99,136 +109,99 @@ public class Menu extends JPanel {
     }
 
     private void showGamePopup(String gameName){
-        String[] options = {"New Game", "Continue Game", "Cancel"};
+        String[] options;
+        String saveFileName = "GameSave_" + gameName + ".dat";
+        File saveFile = new File(saveFileName);
+        if(saveFile.exists())
+            options = new String[]{"New Game", "Continue Game", "Cancel"};
+        else
+            options = new String[]{"New Game", "Cancel"};
 
         int choice = JOptionPane.showOptionDialog( this,
                 "What would you like to do for " + gameName + "?", gameName + " Options", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0] );
         switch(choice) {
             case 0: //New Game
-                startNewGame(gameName);
+                if (JOptionPane.showOptionDialog( this,
+                    "Previous save available for " + gameName + ", are you sure you want to override?",  "New Game Options", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Yes", "No"}, "No" ) == 0)
+                    startNewGame(gameName);
                 break;
             case 1: //Continue Game
-                continueSavedGame(gameName);
+                if(options.length==3) continueSavedGame(gameName, saveFile);
                 break;
             default: //Cancel
 
         }
 
     }
-
-    private void startNewGame(String gameName){
-        if(cards.get(gameName)==null)
-        switch (gameName){
-            case "Klondike":
-                Klondike klondike = new Klondike();
-                cardLayoutPanel.add(klondike.start(this), gameName);
-                cards.put(gameName, klondike);
-                break;
+    private JComponent createGameInstance(String gameName, File saveFile) {
+        switch (gameName) {
+            case "Klondike": return (saveFile == null ? new Klondike() : new Klondike(saveFile.getPath())).start(this);
             case "Pyramid":
                 //new Pyramid().start();
                 break;
             case "Tripeaks":
                 //new Tripeaks().start();
                 break;
-            case "Spider":
-                Spider spider = new Spider(1);
-                cardLayoutPanel.add(spider.start(this), gameName);
-                cards.put(gameName, spider);
-                break;
-            case "FreeCell":
-                FreeCell freecell = new FreeCell();
-                cardLayoutPanel.add(freecell.start(this), gameName);
-                cards.put(gameName, freecell);
-                break;
+            case "Spider": return (saveFile == null ? new Spider(1) : new Spider(saveFile.getPath())).start(this);
+            case "FreeCell": return (saveFile == null ? new FreeCell() : new FreeCell(saveFile.getPath())).start(this);
+            // TODO The other ones
+        }
+        throw new IllegalArgumentException("Unknown game: " + gameName);
+    }
+
+    private void startNewGame(String gameName){
+        if(cards.get(gameName)==null){
+            // Game not initialized, and has no saves
+            JComponent game = createGameInstance(gameName, null);
+            cardLayoutPanel.add(game, gameName);
+            cards.put(gameName, game);
         }
         else {
+            // Game initialized, new game
             JComponent game = cards.get(gameName);
-            switch (gameName) {
-                case "Klondike":
-                    ((Klondike) game).newGame();
-                    break;
-                case "Pyramid":
-                    //new Pyramid().start();
-                    break;
-                case "Tripeaks":
-                    //new Tripeaks().start();
-                    break;
-                case "Spider":
-                    ((Spider) game).newGame();
-                    break;
-                case "FreeCell":
-                    ((FreeCell) game).newGame();
-                    break;
-            }
+            if(game instanceof PileSolitaire)
+                ((PileSolitaire) game).newGame();
+            // TODO The other ones
             game.requestFocusInWindow();
         }
         ((CardLayout) cardLayoutPanel.getLayout()).show(cardLayoutPanel, gameName);
     }
 
     //Write logic for this
-    private void continueSavedGame(String gameName){
-        String saveFileName = "GameSave_" + gameName + ".dat";
-        File saveFile = new File(saveFileName);
-        if(!saveFile.exists()) return;
+    private void continueSavedGame(String gameName, File saveFile){
         JComponent game = cards.get(gameName);
         if(game == null){
-            switch (gameName){
-                case "Klondike":
-                    Klondike klondike = new Klondike("GameSave_" + gameName + ".dat");
-                    cardLayoutPanel.add(klondike.start(this), gameName);
-                    cards.put(gameName,(JComponent) klondike);
-                    break;
-                case "Pyramid":
-                    //new Pyramid().start();
-                    break;
-                case "Tripeaks":
-                    //new Tripeaks().start();
-                    break;
-                case "Spider":
-                    Spider spider = new Spider("GameSave_" + gameName + ".dat");
-                    cardLayoutPanel.add(spider.start(this), gameName);
-                    cards.put(gameName,(JComponent) spider);
-                    break;
-                case "FreeCell":
-                    FreeCell freecell = new FreeCell("GameSave_" + gameName + ".dat");
-                    cardLayoutPanel.add(freecell.start(this), gameName);
-                    cards.put(gameName, freecell);
-                    break;
-            }
-            ((CardLayout) cardLayoutPanel.getLayout()).show(cardLayoutPanel, gameName);
+            // Game not initialized
+            game = createGameInstance(gameName, saveFile);
+            cardLayoutPanel.add(game, gameName);
+            cards.put(gameName, game);
         }
         else{
-            switch (gameName){
-                case "Klondike":
-                    ((Klondike) game).loadFromFile(saveFile);
-                    break;
-                case "Pyramid":
-                    //new Pyramid().start();
-                    break;
-                case "Tripeaks":
-                    //new Tripeaks().start();
-                    break;
-                case "Spider":
-                    ((Spider) game).loadFromFile(saveFile);
-                    break;
-                case "FreeCell":
-                    ((FreeCell) game).loadFromFile(saveFile);
-                    break;
-            }
+            // Game initialized
+            if(game instanceof PileSolitaire)
+                ((PileSolitaire) game).loadFromFile(saveFile);
+            // TODO The other ones
             game.requestFocusInWindow();
-            ((CardLayout) cardLayoutPanel.getLayout()).show(cardLayoutPanel, gameName);
         }
+        ((CardLayout) cardLayoutPanel.getLayout()).show(cardLayoutPanel, gameName);
 
     }
-
+    private void autoSaveCurrentGame(){
+        for(String gameName : cards.keySet()){
+            JComponent game = cards.get(gameName);
+            if(game.isVisible()) {
+                if(game instanceof PileSolitaire)
+                    ((PileSolitaire) game).saveGame();
+                // TODO The other ones
+            }
+        }
+    }
     private void showExitConfirmation(){
         int choice = JOptionPane.showConfirmDialog(this, "Are you sure you want to exit?", "Exit Game", JOptionPane.YES_NO_OPTION);
         if(choice == JOptionPane.YES_OPTION){
             System.exit(0);
         }
     }
-
-
 
     private void generatePanelCards(){
         leftPanel.removeAll();
