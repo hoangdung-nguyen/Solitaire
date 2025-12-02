@@ -86,7 +86,7 @@ public class Klondike extends PileSolitaire{
     }
 
     @Override
-    protected boolean isValidMove(Pile held, Pile from, Pile to) {
+    protected boolean isValidMove(ArrayList<Card> held, ArrayList<Card> from, ArrayList<Card> to) {
         if(to == null || to == from)
             return false;
         if(pilesContains(piles,to))     //if we're moving to the table
