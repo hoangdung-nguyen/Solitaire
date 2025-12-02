@@ -2,16 +2,12 @@ package solitaire;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 
 public class Spider extends PileSolitaire{
@@ -149,7 +145,7 @@ public class Spider extends PileSolitaire{
         endGame();
     }
 
-    /** Checking if the pile has a full A-K on top, then removing it and adding an indicatpr if ther is */
+    /** Spider only unique function. Checking if the pile has a full A-K on top, then removing it and adding an indicatpr if ther is */
 	protected void checkPile(Pile p) {
 		ArrayList<Card> top = getSequence(p);
 		if(top.size() > 12) {
@@ -239,10 +235,12 @@ public class Spider extends PileSolitaire{
             throw new RuntimeException(e);
         }
     }
+    @Override
     public void endGame(){
         super.endGame();
         startEndAnimation(utilPiles);
     }
+    @Override
     protected void newGame(){
         super.newGame();
         getCards.setVisible(true);

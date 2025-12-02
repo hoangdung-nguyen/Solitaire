@@ -208,8 +208,7 @@ class GameSave{
 
 }
 
-interface Solitaire{
+interface SaveAndLoad{
     public void saveToFile(File file);
-
     public void loadFromFile(File file);
 }

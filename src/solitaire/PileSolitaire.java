@@ -10,7 +10,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Stack;
 
-public abstract class PileSolitaire extends JLayeredPane implements Solitaire{
+public abstract class PileSolitaire extends JLayeredPane implements SaveAndLoad{
 	private static final long serialVersionUID = 1L;
     final static int GRAVITY = 1;
     protected int COLS;
@@ -137,7 +137,7 @@ public abstract class PileSolitaire extends JLayeredPane implements Solitaire{
                 super.init(text, icon);
                 addActionListener(e->{
                     if (JOptionPane.showOptionDialog( PileSolitaire.this,
-                            "Previous save available, are you sure you want to override?",  "Load Options", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Yes", "No"}, "No" ) == 0)
+                            "Current game unfinished, are you sure you want to override current game?",  "Load Options", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Yes", "No"}, "No" ) == 0)
                         newGame();
                 });
             }
@@ -471,6 +471,7 @@ public abstract class PileSolitaire extends JLayeredPane implements Solitaire{
         int cardHeight = (int) (cardWidth*JCard.getRatio());
         boolean follow = (int) (Math.random()*2)==1;
         Timer adder = new Timer(follow? 100: 250, null);
+        // Incrementally start animating each card
         adder.addActionListener(e->{
             boolean allEmpty = true;
             for(Pile pile: fullCardPiles){
@@ -501,6 +502,7 @@ public abstract class PileSolitaire extends JLayeredPane implements Solitaire{
             if(allEmpty) adder.stop();
         });
         adder.start();
+        // Blank Panel on mid layer for drawing
         JPanel blank = new JPanel(){
             @Override
             public void paint(Graphics g) {
@@ -519,6 +521,7 @@ public abstract class PileSolitaire extends JLayeredPane implements Solitaire{
                 blank.setBounds(0,0,getWidth(),getHeight());
             }
         });
+        // Random endings
         int ending = (int) (Math.random()*2);
         add(blank, JLayeredPane.MODAL_LAYER);
         Timer animation = new Timer(20, null);
@@ -623,6 +626,7 @@ public abstract class PileSolitaire extends JLayeredPane implements Solitaire{
         }
     }
 
+    /** clears piles, stock and pastMoves, called in game resets */
     void clearTable() {
         for(Pile pile : piles)
             pile.clear();
@@ -642,6 +646,12 @@ public abstract class PileSolitaire extends JLayeredPane implements Solitaire{
         return false;
     }
 
+    /** DVDLogo, assumes arraylists of same size, same correlating index
+     * @param images All images to be bounced
+     * @param points The current location of the image on the Component
+     * @param velocitiesX The current horizontal velocity
+     * @param velocitiesY The current vertical velocity
+     */
     void DVDLogo(ArrayList<BufferedImage> images, ArrayList<Point> points, ArrayList<Integer> velocitiesX, ArrayList<Integer> velocitiesY){
         for(int i = 0;i<images.size();++i){
             int newX = points.get(i).x+velocitiesX.get(i);
@@ -661,8 +671,16 @@ public abstract class PileSolitaire extends JLayeredPane implements Solitaire{
             points.set(i, new Point(newX, newY));
         }
     }
+    /** Simple gravity engine, assumes arraylists of same size, same correlating index
+     *  When completely still at the bottom, sinks down and respawn on top to fall down again
+     * @param images All images to be bounced
+     * @param points The current location of the image on the Component
+     * @param velocitiesX The current horizontal velocity
+     * @param velocitiesY The current vertical velocity
+     */
     void gravityCards(ArrayList<BufferedImage> images, ArrayList<Point> points, ArrayList<Integer> velocitiesX, ArrayList<Integer> velocitiesY, ArrayList<Integer> initialX, ArrayList<Integer> initialY, boolean follow){
         for (int i = 0; i < images.size(); i++) {
+            // X, fully elastic bounce
             int newX = points.get(i).x + velocitiesX.get(i);
             if(newX<=0 || newX+images.get(i).getWidth()>=getWidth()){
                 if (newX<=0)
@@ -670,35 +688,41 @@ public abstract class PileSolitaire extends JLayeredPane implements Solitaire{
                 else newX = 2 * getWidth() - newX - 2*images.get(i).getWidth();
                 velocitiesX.set(i,-velocitiesX.get(i));
             }
+            // Y
             int vy = velocitiesY.get(i) + GRAVITY;
             int newY = points.get(i).y + vy;
+            // Drop it from the top
             if(newY>=getHeight()){
                 newY = -images.get(i).getHeight();
                 if (follow) {
                     if (i < initialX.size()) {
+                        // leaders are random
                         int ivx = (int) (Math.random() * 20 - 10);
                         int ivy = (int) (Math.random() * 20 - 10);
                         velocitiesX.set(i, ivx);
                         velocitiesY.set(i, ivy);
                         initialX.set(i, ivx);
-                        initialY.set(i, ivy);
+                        vy = ivy;
                     } else {
                         int index = i % initialX.size();
                         velocitiesX.set(i, initialX.get(index));
-                        velocitiesY.set(i, initialY.get(index));
+                        vy = initialY.get(index);
                     }
                 }
+                // Random initial velocities
                 else {
                     velocitiesX.set(i, (int) (Math.random() * 20 - 10));
-                    velocitiesY.set(i, (int) (Math.random() * 20 - 10));
+                    vy = (int) (Math.random() * 20 - 10);
                 }
             }
+            // Bounce or sink
             else if(newY+images.get(i).getHeight()>=getHeight()){
                 vy = -(int) (vy * 0.7);
                 if(velocitiesX.get(i)==0 && velocitiesY.get(i)==0) newY += newY+images.get(i).getHeight()-getHeight();
                 else newY = 2 * getHeight() - newY - 2 * images.get(i).getHeight();
             }
             velocitiesY.set(i,vy);
+            // Friction
             if(newY == getHeight()-images.get(i).getHeight())  velocitiesX.set(i, (int) (velocitiesX.get(i)*0.7));
             points.set(i, new Point(newX, newY));
         }
@@ -752,6 +776,7 @@ class PileMove{
         if (save.toFlipped != null)
             toFlipped = new Card(save.toFlipped.rank, save.toFlipped.suit);
     }
+    /** Constructor where piles are searched for in 2 piles, index positive if pile1, negative if pile2 */
     public PileMove(PileSave.PileMoveState save, ArrayList<Pile> piles1, ArrayList<Pile> piles2){
         drawMove = save.drawMove;
         if (drawMove)
@@ -856,6 +881,7 @@ class PileSave extends GameSave implements Serializable{
             if (move.toFlipped != null)
                 toFlipped = new CardState(move.toFlipped.getRank(), move.toFlipped.getSuit(), false);
         }
+        /** Constructor where piles are searched for in 2 piles, index positive if pile1, negative if pile2 */
         public PileMoveState(PileMove move, ArrayList<Pile> piles1, ArrayList<Pile> piles2) {
             drawMove = move.drawMove;
             if (drawMove) return;

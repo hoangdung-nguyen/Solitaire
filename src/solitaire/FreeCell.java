@@ -122,8 +122,9 @@ public class FreeCell extends PileSolitaire{
         endGame();
     }
     @Override
-    protected void undoDrawMove() {}
+    protected void undoDrawMove() {} // None to undo :)
 
+    /** FreeCell's dumbo only unique function to limit move length based on free cells. */
     private int getMoveLength() {
 		int out=1;
 		for (Pile p:piles) 
@@ -209,7 +210,7 @@ public class FreeCell extends PileSolitaire{
             throw new RuntimeException(e);
         }
     }
-
+    @Override
     public void endGame(){
         super.endGame();
         ArrayList<Pile> piles = new ArrayList<>();
