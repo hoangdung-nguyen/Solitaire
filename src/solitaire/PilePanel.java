@@ -4,11 +4,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
-
+/** A Pile of cards that goes vertically */
 public class PilePanel extends JPanel {
     private static final long serialVersionUID = 1L;
     private final int COLS;
-    Pile cards;
+    ArrayList<Card> cards;
     HashMap<Card, JCard> cardsMap;
     static int cardWidth, cardHeight;
     /** cols is how many piles it will be placed next to */
@@ -25,14 +25,10 @@ public class PilePanel extends JPanel {
         add(jc,0);
     }
     /** adding card with the option to make it be flipped by default */
-    public void add(Card c, boolean isFaceDown) {
-        JCard jc = cardsMap.get(c);
-        if(jc==null) jc= new JCard(c,isFaceDown);
-        add(c,jc);
-    }
-    /** adding card, face up, interpreting if it exists*/
     public void add(Card c) {
-        add(c,false);
+        JCard jc = cardsMap.get(c);
+        if(jc==null) jc= new JCard(c);
+        add(c,jc);
     }
     /** remove a JCard based on card, assumes exists */
     public void remove(Card c) {

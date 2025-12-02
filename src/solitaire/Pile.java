@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 
+/** A ArrayList<Card> wrapper that communivates with a PilePanel*/
 public class Pile extends ArrayList<Card> {
     private static final long serialVersionUID = 1L;
     PilePanel pilePane;
@@ -40,7 +41,8 @@ public class Pile extends ArrayList<Card> {
     }
     /** add a card as well as its jcard */
     public boolean add(Card c, boolean b) {
-        pilePane.add(c,b);
+        c.setFaceDown(b);
+        pilePane.add(c);
         c.parent=this;
         return super.add(c);
     }
@@ -56,9 +58,7 @@ public class Pile extends ArrayList<Card> {
     /** add all cards in the pile, making the JCard */
     public boolean addAll(Collection<? extends Card> pile) {
         for(Card c:pile) {
-            c.parent=this;
-            if (!super.add(c)) return false;
-            pilePane.add(c);
+            if (!add(c)) return false;
         }
         return true;
     }
@@ -84,7 +84,7 @@ public class Pile extends ArrayList<Card> {
         ArrayList<Card> out = new ArrayList<Card>();
         out.add(getLast());
         for(int i=size()-2;i>=0;--i) {
-            if(cardsMap.get(get(i)).isFaceDown()) break;
+            if(get(i).isFaceDown()) break;
             if(Card.compareRank(get(i+1), get(i)) != -1 || !Card.isSameColor(get(i), get(i+1))) break;
             out.add(get(i));
         }
@@ -96,7 +96,7 @@ public class Pile extends ArrayList<Card> {
         ArrayList<Card> out = new ArrayList<Card>();
         out.add(getLast());
         for(int i=size()-2;i>=0;--i) {
-            if(cardsMap.get(get(i)).isFaceDown()) break;
+            if(get(i).isFaceDown()) break;
             if(Card.compareRank(get(i+1), get(i)) != -1 || !Card.isSameSuit(get(i), get(i+1))) break;
             out.add(get(i));
         }
@@ -108,7 +108,7 @@ public class Pile extends ArrayList<Card> {
         ArrayList<Card> out = new ArrayList<Card>();
         out.add(getLast());
         for(int i=size()-2;i>=0;--i) {
-            if(cardsMap.get(get(i)).isFaceDown()) break;
+            if(get(i).isFaceDown()) break;
             if(Card.compareRank(get(i+1), get(i)) != -1 || Card.isSameColor(get(i), get(i+1))) break;
             out.add(get(i));
         }
@@ -121,7 +121,7 @@ public class Pile extends ArrayList<Card> {
         out.add(getLast());
         --maxLength;
         for(int i=size()-2;i>=0;--i) {
-            if(maxLength-- == 0 || cardsMap.get(get(i)).isFaceDown()) break;
+            if(maxLength-- == 0 || get(i).isFaceDown()) break;
             if(Card.compareRank(get(i+1), get(i)) != -1 || Card.isSameColor(get(i), get(i+1))) break;
             out.add(get(i));
         }

@@ -433,9 +433,7 @@ public abstract class PileSolitaire extends JLayeredPane implements SaveAndLoad{
 	}
 
     protected void undoClearStack(PileMove move) {
-        for (Card c : move.clearedStack) {
-            move.movedTo.add(c);
-        }
+        move.movedTo.addAll(move.clearedStack);
     }
 
     /** undo a move drawing from the stock */
@@ -447,7 +445,7 @@ public abstract class PileSolitaire extends JLayeredPane implements SaveAndLoad{
     /** gets which pile that point is in, to place cards into in a move */
 	protected abstract Pile getHoveringOver(Point point);
     /** validates the move */
-	protected abstract boolean isValidMove(Pile held, Pile from, Pile to);
+	protected abstract boolean isValidMove(ArrayList<Card> held, ArrayList<Card> from, ArrayList<Card> to);
     /** what should be checked after a move is successful */
 	protected abstract void afterMoveChecks(PileMove move);
     /** win con */
@@ -562,7 +560,7 @@ public abstract class PileSolitaire extends JLayeredPane implements SaveAndLoad{
 	}
 	/** Checking if the pile has a flipped card on top, then flipping it if there is */
 	protected void checkPileTop(Pile pile) {
-		if(!pile.isEmpty() && pile.cardsMap.get(pile.getLast()).isFaceDown()) {
+		if(!pile.isEmpty() && pile.getLast().isFaceDown()) {
 			// System.out.println("REVEALING CARD "+ pile.cardsMap.get(pile.getLast()));
 			pile.cardsMap.get(pile.getLast()).setFaceDown(false);
             if(pile == pastMoves.getLast().movedFrom)
@@ -578,8 +576,12 @@ public abstract class PileSolitaire extends JLayeredPane implements SaveAndLoad{
         }
     }
 
+    public GameSave makeSave(){
+        return new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
+    }
+
     /** Load game from a PileSolitaire already set up */
-    protected void loadSave(PileSave save) {
+    public void loadSave(PileSave save) {
         clearTable();
         // Stock
         for (PileSave.CardState cs : save.stock) {
@@ -606,24 +608,12 @@ public abstract class PileSolitaire extends JLayeredPane implements SaveAndLoad{
     }
 
     public void saveToFile(File file) {
-        System.out.println("SAVING GAME "+getClass());
-        PileSave state = new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
-        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
-            out.writeObject(state);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        SaveAndLoad.super.saveToFile(file);
     }
 
     public void loadFromFile(File file) {
         gameEnded = false;
-        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
-            loadSave((PileSave) in.readObject());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        SaveAndLoad.super.loadFromFile(file);
     }
 
     /** clears piles, stock and pastMoves, called in game resets */
@@ -635,14 +625,14 @@ public abstract class PileSolitaire extends JLayeredPane implements SaveAndLoad{
     }
 
     /** ArrayList.indexOf, but by reference only */
-    public static <T> int pilesIndexOf(ArrayList<T> piles, T p) {
+    public static <T> int pilesIndexOf(ArrayList<? extends ArrayList<T>> piles, ArrayList<T> p) {
         for (int i=0;i<piles.size();++i) if (piles.get(i) == p) return i;
         return -1;
     }
     /** ArrayList.contains, but by reference only */
-    public static <T> boolean pilesContains(ArrayList<T> piles, T p)
+    public static <T> boolean pilesContains(ArrayList<? extends ArrayList<T>> piles, ArrayList<T> p)
     {
-        for (T pile : piles) if (pile == p) return true;
+        for (ArrayList<T> pile : piles) if (pile == p) return true;
         return false;
     }
 

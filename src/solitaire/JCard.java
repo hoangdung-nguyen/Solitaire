@@ -17,21 +17,16 @@ public class JCard extends JToggleButton
 	private BufferedImage greyed;
 	private BufferedImage currentImage;
 	private boolean isGreyed;
-	private boolean isFaceDown;
 	Card card;
 
 	public JCard(Card c) {
-		this(c, false);
-	}
-	public JCard(Card c, boolean isFaceDown) {
 		card = c;
-		this.isFaceDown = isFaceDown;
 		setBorderPainted(false);
 		setContentAreaFilled(false);
 		setFocusPainted(false);
 		setMasterIcon(Utils.getCardAsset(card));
 		greyed = Utils.tint(getMasterIcon(), Color.lightGray);
-		currentImage = isFaceDown? Utils.cardBack: master;
+		currentImage = c.isFaceDown() ? Utils.cardBack: master;
 		setPreferredSize(new Dimension(100, 100));
 //		addComponentListener(new ComponentAdapter() {
 //			@Override
@@ -64,19 +59,19 @@ public class JCard extends JToggleButton
         repaint();
     }
     public boolean isFaceDown(){
-        return isFaceDown;
+        return card.isFaceDown();
     }
     public void setFaceDown(boolean isFaceDown){
-        this.isFaceDown = isFaceDown;
+        card.setFaceDown(isFaceDown);
         updateCurrentImage();
         repaint();
     }
     public void updateCurrentImage(){
-        currentImage = isGreyed? isFaceDown? Utils.greyedCardBack : greyed : isFaceDown? Utils.cardBack : master;
+        currentImage = isGreyed? card.isFaceDown() ? Utils.greyedCardBack : greyed : card.isFaceDown() ? Utils.cardBack : master;
     }
     public BufferedImage getCurrentBaseImage(){
-        if(isFaceDown && isGreyed) return Utils.greyedCardBack;
-        if (isFaceDown) return Utils.cardBack;
+        if(card.isFaceDown() && isGreyed) return Utils.greyedCardBack;
+        if (card.isFaceDown()) return Utils.cardBack;
         if (isGreyed) return greyed;
         return master;
     }

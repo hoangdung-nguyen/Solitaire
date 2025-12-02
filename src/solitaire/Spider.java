@@ -126,7 +126,7 @@ public class Spider extends PileSolitaire{
 		return null;
 	}
 	@Override
-	public boolean isValidMove(Pile held, Pile from, Pile to) {
+	public boolean isValidMove(ArrayList<Card> held, ArrayList<Card> from, ArrayList<Card> to) {
 		if(to == null || to == from) return false;
 		if(to.isEmpty()) return true;
 		return heldPile.getFirst().compareRank(to.getLast()) == -1;
@@ -199,7 +199,20 @@ public class Spider extends PileSolitaire{
         last.clear();
     }
     @Override
-    protected void loadSave(PileSave save) {
+    public GameSave makeSave() {
+        PileSave state = new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
+        state.utilPiles = new ArrayList<>();
+        for (Pile p : utilPiles) {
+            ArrayList<PileSave.CardState> pileList = new ArrayList<>();
+            for (Card c : p) {
+                pileList.add(new PileSave.CardState(c.getRank(), c.getSuit(), c.isFaceDown()));
+            }
+            state.utilPiles.add(pileList);
+        }
+        return state;
+    }
+    @Override
+    public void loadSave(PileSave save) {
         super.loadSave(save);
         for (int i=0; i<utilPiles.size(); ++i) {
             Pile p = utilPiles.get(i);
@@ -217,23 +230,6 @@ public class Spider extends PileSolitaire{
         super.clearTable();
         for(Pile pile:utilPiles)
             pile.clear();
-    }
-    @Override
-    public void saveToFile(File file) {
-        PileSave state = new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
-        state.utilPiles = new ArrayList<>();
-        for (Pile p : utilPiles) {
-            ArrayList<PileSave.CardState> pileList = new ArrayList<>();
-            for (Card c : p) {
-                pileList.add(new PileSave.CardState(c.getRank(), c.getSuit(), c.isFaceDown()));
-            }
-            state.utilPiles.add(pileList);
-        }
-        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
-            out.writeObject(state);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
     @Override
     public void endGame(){
