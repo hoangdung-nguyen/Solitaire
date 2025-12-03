@@ -50,7 +50,7 @@ public class CardNode {
         card = c;
     }
 
-    //---------Getters------------------
+    //---------Getters
     public boolean isFaceUp(){
         return isVisible;
     }

@@ -13,7 +13,7 @@ public class Menu extends JPanel {
 
     //User Interface
     private RoundedButton[] buttons = new RoundedButton[6];
-    private String[] bNames = {"Klondike", "Pyramid", "Tripeaks", "Spider", "FreeCell", "Exit"};
+    private String[] bNames = {"Klondike", "Pyramid", "TriPeaks", "Spider", "FreeCell", "Exit"};
     private JPanel centerPanel, leftPanel, rightPanel;
     JPanel cardLayoutPanel;
     HashMap<String, JComponent> cards = new HashMap<>();
@@ -39,6 +39,7 @@ public class Menu extends JPanel {
                 System.exit(0);
             }
         });
+
         frame.setVisible(true);
 
     }
@@ -140,9 +141,8 @@ public class Menu extends JPanel {
             case "Pyramid":
                 //new Pyramid().start();
                 break;
-            case "Tripeaks":
-                //new Tripeaks().start();
-                break;
+            case "TriPeaks":
+                return new Tripeaks();
             case "Spider": return (saveFile == null ? new Spider(1) : new Spider(saveFile.getPath())).start(this);
             case "FreeCell": return (saveFile == null ? new FreeCell() : new FreeCell(saveFile.getPath())).start(this);
             // TODO The other ones

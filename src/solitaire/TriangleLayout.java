@@ -58,51 +58,72 @@ public class TriangleLayout {
         return getDecksNeeded() * 52 - getTotalCardsNeeded();
     }
 
-   public void applyLayout(List<CardNode> nodes){
+    public void applyLayout(List<CardNode> nodes) {
         int n = getTotalCardsNeeded();
-        if(nodes.size() < n){
-            throw new IllegalArgumentException("Not enough CardNodes provided: need " + n);
+        if (nodes.size() < n) {
+            throw new IllegalArgumentException("Not enough nodes");
         }
 
         int index = 0;
 
-        for(int peak = 0; peak < numPeaks; peak++){
-            int baseIndex = index;
-            int peakOffsetX = peak * (peakHeight * cardWidth);
+        int cardH = (int)(cardWidth * 1.45);
+       // double hOverlap = cardWidth * 0.30;
+        double vOverlap = cardH * 0.35;
 
-            for(int row = 0; row< peakHeight; row++){
-                int cardsInRow = row + 1;
-                int y = row * rowSpacing;
-                int startX = peakOffsetX + ((peakHeight - cardsInRow)* cardWidth) /2;
+        int peakPixelsWidth = (int)(peakHeight * (cardWidth ));
+        double totalPeaksWidth = numPeaks * peakPixelsWidth;
 
-                for(int col = 0; col < cardsInRow; col++){
+        double gap = frameWidth > totalPeaksWidth
+                ? (frameWidth - totalPeaksWidth) / (numPeaks + 1)
+                : 0;
+
+        // ROW-MAJOR layout
+        for (int row = 0; row < peakHeight; row++) {
+
+            int cardsInRow = row + 1;
+            int rowWidth = (int)(cardsInRow * (cardWidth ));
+            int y = (int)(row * (cardH - vOverlap));
+
+            for (int peak = 0; peak < numPeaks; peak++) {
+
+                int peakBaseX = (int)(gap + peak * (peakPixelsWidth + gap));
+                int startX = peakBaseX + (peakPixelsWidth - rowWidth) / 2;
+
+                for (int col = 0; col <= row; col++) {
+
                     CardNode node = nodes.get(index);
-                    int x = startX + col * cardWidth;
+
+                    int x = (int)(startX + col * (cardWidth ));
 
                     node.setPosition(x, y);
-                    node.setSize(cardWidth, (int)(cardWidth * 1.45));
+                    node.setSize(cardWidth, cardH);
 
                     index++;
                 }
             }
+        }
 
-            for(int row = 0; row< peakHeight -1; row++){
-                for(int col = 0; col <= row; col++){
-                    int parentIndex = baseIndex + triIndex(row, col);
-                    int leftIndex = baseIndex + triIndex(row+1, col);
-                    int rightIndex = baseIndex + triIndex(row+1, col +1);
+        // cover mapping — unchanged
+        index = 0;
+        for (int peak = 0; peak < numPeaks; peak++) {
+            int base = peak * getCardsPerPeak();
 
-                    CardNode parent = nodes.get(parentIndex);
-                    parent.setLeftCover(nodes.get(leftIndex));
-                    parent.setRightCover(nodes.get(rightIndex));
+            for (int row = 0; row < peakHeight - 1; row++) {
+                for (int col = 0; col <= row; col++) {
+
+                    int parent = base + triIndex(row, col);
+                    int left   = base + triIndex(row + 1, col);
+                    int right  = base + triIndex(row + 1, col + 1);
+
+                    nodes.get(parent).setLeftCover(nodes.get(left));
+                    nodes.get(parent).setRightCover(nodes.get(right));
                 }
             }
         }
+    }
 
 
-   }
-
-   //Convert the triangle (row col) to flat indexing
+    //Convert the triangle (row col) to flat indexing
     private int triIndex(int r, int c){
         return (r * (r +1))/2 + c;
     }
