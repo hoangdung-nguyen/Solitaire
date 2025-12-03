@@ -8,8 +8,9 @@ public class Klondike extends PileSolitaire{
 	@Serial
     private static final long serialVersionUID = 1L;
     ArrayList<Pile> foundationPiles;
+    JButton drawCards;
 
-	public PileSolitaire start(Menu menu) {
+	/*public PileSolitaire start(Menu menu) {
 		SwingUtilities.invokeLater(() -> {
 			JFrame frame = new JFrame("Klondike");
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -18,9 +19,20 @@ public class Klondike extends PileSolitaire{
 			frame.setVisible(true);
 		});
         return this;
-	}
+	}*/
 	public Klondike(){
 		super(7,1);
+        setupFoundation();
+	}
+    public Klondike(String saveFile)
+    {//TODO write load data function after everything else
+        super(7,1);
+    }
+
+    public void setupFoundation()
+    {
+        foundationPiles = new ArrayList<>();
+
         utilPane = new JPanel(new GridLayout(1, COLS))
         {
             @Override
@@ -30,11 +42,8 @@ public class Klondike extends PileSolitaire{
         };
         utilPane.setOpaque(false);
         mainPane.add(utilPane,BorderLayout.NORTH);
-        foundationPiles = new ArrayList<>();
 
-
-
-	}
+    }
 
     @Override
     protected void makeDeck() {
@@ -77,7 +86,7 @@ public class Klondike extends PileSolitaire{
     }
 
     @Override
-    protected boolean isValidMove(Pile held, Pile from, Pile to) {
+    protected boolean isValidMove(ArrayList<Card> held, ArrayList<Card> from, ArrayList<Card> to) {
         if(to == null || to == from)
             return false;
         if(pilesContains(piles,to))     //if we're moving to the table
@@ -88,12 +97,12 @@ public class Klondike extends PileSolitaire{
         }
         if(pilesContains(foundationPiles,to)) //if we're moving to the foundation
         {
-            if(held.size() > 1)
+            if(held.size() > 1) //can only put 1 card down at a time
                 return false;
 
-            if(to.isEmpty())
+            if(to.isEmpty())    //can only start a pile with 1
                 return held.getFirst().getRank() == '1';
-            else
+            else                //it has to be one higher rank and the same suit
                 return held.getFirst().compareRank(to.getLast()) == -1 && held.getFirst().isSameSuit(to.getLast());
         }
 
@@ -104,7 +113,7 @@ public class Klondike extends PileSolitaire{
     @Override
     protected void afterMoveChecks(PileMove move)
     {
-
+        checkPileTop(move.movedFrom);
         checkWin();
     }
 

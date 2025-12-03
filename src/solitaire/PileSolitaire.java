@@ -797,7 +797,7 @@ class PileMove{
     }
 }
 
-/** A serilizable class to be written into a file, containing info of a PileSolitaire and extra utilPiles for specifics */
+/** A serializable class to be written into a file, containing info of a PileSolitaire and extra utilPiles for specifics */
 class PileSave extends GameSave implements Serializable{
     int difficulty;
     long timePast;
