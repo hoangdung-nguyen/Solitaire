@@ -136,7 +136,7 @@ public class Menu extends JPanel {
     }
     private JComponent createGameInstance(String gameName, File saveFile) {
         switch (gameName) {
-            case "Klondike": return (saveFile == null ? new Klondike() : new Klondike(saveFile.getPath())).start(this);
+            case "Klondike": //return (saveFile == null ? new Klondike() : new Klondike(saveFile.getPath())).start(this);
             case "Pyramid":
                 //new Pyramid().start();
                 break;
