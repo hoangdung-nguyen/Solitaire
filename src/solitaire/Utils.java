@@ -209,14 +209,18 @@ class GameSave{
 
 }
 
-interface SaveAndLoad{
+interface SaveAndLoad {
     boolean gameEnded = false;
+
     GameSave makeSave();
 
-    /** Load game from a PileSolitaire already set up */
+    /**
+     * Load game from a PileSolitaire already set up
+     */
     void loadSave(PileSave save);
-    public default void saveToFile(File file) {
-        System.out.println("SAVING GAME "+getClass());
+
+    default void saveToFile(File file) {
+        System.out.println("SAVING GAME " + getClass());
         GameSave state = makeSave();
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
             out.writeObject(state);
@@ -225,7 +229,7 @@ interface SaveAndLoad{
         }
     }
 
-    public default void loadFromFile(File file) {
+    default void loadFromFile(File file) {
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
             loadSave((PileSave) in.readObject());
         } catch (IOException e) {
@@ -233,4 +237,5 @@ interface SaveAndLoad{
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-    }}
+    }
+}

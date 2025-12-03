@@ -20,11 +20,19 @@ public abstract class PileSolitaire extends JLayeredPane implements SaveAndLoad{
 	ArrayList<Pile> piles;
 	Stack<PileMove> pastMoves;
 
-	JPanel pilePanes,utilPane, mainPane, parPane, toolbar;
+    // This is the hirachrchy of how it's placed within the LayeredPane, all wthin the DEFAULT_LAYER
+    JPanel parPane;
+        JLabel timeLabel; // Displays the time
+        JPanel mainPane;
+            JPanel pilePanes; // The panel that stores pilePanel.
+            JPanel utilPane; // Unitializaed, unused, for your own use
+        JPanel toolbar;
+
+
     Timer time;
     Instant start;
+    // Link back to the menu
     Menu mainMenu;
-    JLabel timeLabel;
 
     Card selectedCard;
 	Pile heldPile;
@@ -605,10 +613,6 @@ public abstract class PileSolitaire extends JLayeredPane implements SaveAndLoad{
         start = Instant.now().minusSeconds(save.timePast);
         revalidate();
         repaint();
-    }
-
-    public void saveToFile(File file) {
-        SaveAndLoad.super.saveToFile(file);
     }
 
     public void loadFromFile(File file) {
