@@ -157,6 +157,7 @@ public class Menu extends JPanel {
         }
         throw new IllegalArgumentException("Unknown game: " + gameName);
     }
+    //
 
     int getDifficulty(){
         ArrayList<String> options = new ArrayList<>(Arrays.asList("Normal", "Hard", "Master"));
