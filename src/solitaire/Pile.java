@@ -18,7 +18,7 @@ public class Pile extends ArrayList<Card> {
     }
     public Pile(Deck deck, int cols) {
         pilePane = new PilePanel(this, cols);
-        addAll(deck);
+        addAll(deck, true);
         cardsMap = pilePane.cardsMap;
     }
     /**make subpile only consisting of the cards in the arrayList, transfers the listeners over from pile. Only call on cards that is sub array of pile. */
@@ -59,6 +59,13 @@ public class Pile extends ArrayList<Card> {
     public boolean addAll(Collection<? extends Card> pile) {
         for(Card c:pile) {
             if (!add(c)) return false;
+        }
+        return true;
+    }
+    /**Sets all cards in the pile face down. */
+    public boolean addAll(Collection<? extends Card> pile, Boolean faceDown) {
+        for(Card c:pile) {
+            if (!add(c, faceDown)) return false;
         }
         return true;
     }

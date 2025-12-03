@@ -4,35 +4,29 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.Collections;
+
 public class Klondike extends PileSolitaire{
 	@Serial
     private static final long serialVersionUID = 1L;
-    ArrayList<Pile> foundationPiles;
-    JButton drawCards;
+    ArrayList<Pile> utilPiles;
+    Pile wastePile; //pile that holds waste cards
+    JButton getCards;
+    JPanel leftPane, rightPane;
 
-	/*public PileSolitaire start(Menu menu) {
-		SwingUtilities.invokeLater(() -> {
-			JFrame frame = new JFrame("Klondike");
-			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frame.setSize(800,600);
-			frame.add(new Klondike());
-			frame.setVisible(true);
-		});
-        return this;
-	}*/
 	public Klondike(){
 		super(7,1);
-        setupFoundation();
+        setupUtils();
 	}
     public Klondike(String saveFile)
-    {//TODO write load data function after everything else
-        super(7,1);
+    {
+        super(7,saveFile);
+
+
     }
 
-    public void setupFoundation()
+    public void setupUtils()
     {
-        foundationPiles = new ArrayList<>();
-
         utilPane = new JPanel(new GridLayout(1, COLS))
         {
             @Override
@@ -43,6 +37,50 @@ public class Klondike extends PileSolitaire{
         utilPane.setOpaque(false);
         mainPane.add(utilPane,BorderLayout.NORTH);
 
+        getCards = new JButton(new ImageIcon(Utils.cardBack)){
+            @Override
+            public void paint(Graphics g) {
+                super.paint(g);
+                if(!stock.isEmpty())
+                    g.drawImage(Utils.cardBack, 0, 0, getWidth(), getHeight(), null);
+                else g.drawImage(Utils.emptyStock, 0, 0, getWidth(), getHeight(), null);
+            }
+        };
+        getCards.setOpaque(false);
+        getCards.setBorder(null);
+        getCards.setBorderPainted(false);
+        getCards.setContentAreaFilled(false);
+        getCards.setFocusPainted(false);
+        getCards.addActionListener(e -> drawCard());
+        utilPane.add(getCards);//the getCards lines set up the button that acts as the deck to draw cards from stock
+
+        utilPiles = new ArrayList<>();
+
+        utilPiles.add(new Pile(COLS));
+        wastePile = utilPiles.getFirst();
+        utilPane.add(utilPiles.getFirst().pilePane);
+        addMouseListeners(utilPiles.getFirst());//the waste pile is added
+
+        JPanel emptyPanel = new JPanel();
+        emptyPanel.setOpaque(false);
+        utilPane.add(emptyPanel);//an empty panel is added as a divider between the foundations and stock/waste piles
+
+
+
+        for(int i = 1; i<5;++i)//the foundation piles are set up
+        {
+            utilPiles.add(new Pile(COLS));
+            utilPane.add(utilPiles.get(i).pilePane);
+            addMouseListeners(utilPiles.get(i));
+        }
+
+
+        leftPane = new JPanel();
+        leftPane.setOpaque(false);
+        rightPane = new JPanel();
+        rightPane.setOpaque(false);
+        parPane.add(leftPane,BorderLayout.WEST);
+        parPane.add(rightPane,BorderLayout.EAST);
     }
 
     @Override
@@ -61,7 +99,50 @@ public class Klondike extends PileSolitaire{
 
     @Override
     protected void undoDrawMove() {
+        if(wastePile.isEmpty()) {
+            Collections.reverse(stock);
+            wastePile.addAll(stock);
+            stock.clear();
+        }
+        else {
+            Card c = wastePile.getLast();
+            stock.push(c);
+            wastePile.remove(c);
+        }
+    }
 
+    private void drawCard()
+    {
+        pastMoves.add(new PileMove(true));
+        wastePile.pilePane.unhighlightAllCards();
+
+        if(stock.isEmpty())
+        {
+            Collections.reverse(wastePile);
+            stock.addAll(wastePile);
+            wastePile.clear();
+
+
+
+            getCards.repaint();
+            utilPiles.getFirst().pilePane.revalidate();
+            utilPiles.getFirst().pilePane.repaint();
+            return;
+        }
+
+        utilPiles.get(0).add(stock.pop(), false);
+
+        /*for (MouseListener m : piles.get(0).cardsMap.get(piles.get(0).getLast()).getMouseListeners())
+            piles.get(0).cardsMap.get(piles.get(0).getLast()).removeMouseListener(m);
+        for (MouseMotionListener m : piles.get(0).cardsMap.get(piles.get(0).getLast()).getMouseMotionListeners())
+            piles.get(0).cardsMap.get(piles.get(0).getLast()).removeMouseMotionListener(m);*/
+
+        addMouseListeners(utilPiles.get(0).getLast());
+
+        utilPiles.getFirst().pilePane.revalidate();
+        utilPiles.getFirst().pilePane.repaint();
+
+        if(stock.isEmpty()) getCards.repaint();
     }
 
     @Override
@@ -79,7 +160,7 @@ public class Klondike extends PileSolitaire{
         for (Pile p:piles)
             if(p.pilePane.getBounds().contains(SwingUtilities.convertPoint(this, point, pilePanes)))
                 return p;
-        for (Pile p:foundationPiles)
+        for (Pile p: utilPiles)
             if(p.pilePane.getBounds().contains(SwingUtilities.convertPoint(this, point, utilPane)))
                 return p;
         return null;
@@ -91,19 +172,22 @@ public class Klondike extends PileSolitaire{
             return false;
         if(pilesContains(piles,to))     //if we're moving to the table
         {
-            if (to.isEmpty() && from.getFirst().getRank() == 'K')
+            if (to.isEmpty() && held.getFirst().getRank() == 'K') //only a King can take an empty slot
                 return true;
             return !to.isEmpty() && held.getFirst().compareRank(to.getLast()) == -1 && !to.getLast().isSameColor(held.getFirst());
+                    //a card can stack if it is the alternative color and descending in rank
         }
-        if(pilesContains(foundationPiles,to)) //if we're moving to the foundation
+        if(pilesContains(utilPiles,to)) //if we're moving to the foundation
         {
             if(held.size() > 1) //can only put 1 card down at a time
                 return false;
+            if(pilesIndexOf(utilPiles, to) < 1)// trying to move to the stockpile or wastepile is illegal
+                return false;
 
-            if(to.isEmpty())    //can only start a pile with 1
+            if(to.isEmpty())    //can only start a foundation pile with 1
                 return held.getFirst().getRank() == '1';
             else                //it has to be one higher rank and the same suit
-                return held.getFirst().compareRank(to.getLast()) == -1 && held.getFirst().isSameSuit(to.getLast());
+                return held.getFirst().compareRank(to.getLast()) == 1 && held.getFirst().isSameSuit(to.getLast());
         }
 
 
@@ -121,11 +205,30 @@ public class Klondike extends PileSolitaire{
     {
         for(int i = 0; i<4;++i)
         {
-            if (foundationPiles.get(i).size() != 13)
+            if (utilPiles.get(i+1).size() != 13)
                 return;
         }
         endGame();
     }
 
+    public void doLayout(){
+        super.doLayout();
+        if(getWidth()>getHeight()){
+            leftPane.setVisible(true);
+            rightPane.setVisible(true);
+            leftPane.setPreferredSize(new Dimension((getWidth()-getHeight())/2, getHeight()));
+            rightPane.setPreferredSize(new Dimension((getWidth()-getHeight())/2, getHeight()));
+        }
+        else {
+            leftPane.setVisible(false);
+            rightPane.setVisible(false);
+        }
+    }
+    @Override
+    void clearTable() {
+        super.clearTable();
+        for(Pile pile : utilPiles)
+            pile.clear();
+    }
 
 }
