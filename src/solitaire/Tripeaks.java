@@ -94,7 +94,7 @@ public class Tripeaks extends JPanel{
             JCard jc = new JCard(node.getCard());
             jc.setFaceDown(!node.isFaceUp());
             jc.setBounds(node.getX(), node.getY(), node.getWidth(), node.getHeight());
-            add(jc);
+            add(jc, 0);
             jcards.add(jc);
 
         }
@@ -107,7 +107,7 @@ public class Tripeaks extends JPanel{
     private void showPeakSelectionDialog(){
         String[] options = {"2 Peaks", "3 Peaks", "4 Peaks", "5 Peaks", };
 
-        String choice = (String) JOptionPane.showInputDialog(this, "Select numper of peaks:", "TriPeaks Setup", JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
+        String choice = (String) JOptionPane.showInputDialog(this, "Select number of peaks:", "TriPeaks Setup", JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
 
         if(choice == null) return;
 

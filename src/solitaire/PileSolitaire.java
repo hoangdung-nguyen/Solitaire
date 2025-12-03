@@ -21,11 +21,17 @@ public abstract class PileSolitaire extends JLayeredPane implements SaveAndLoad{
 	Stack<PileMove> pastMoves;
 
     // This is the hirachrchy of how it's placed within the LayeredPane, all wthin the DEFAULT_LAYER
+    /** BorderLayout, the parent panel */
     JPanel parPane;
-        JLabel timeLabel; // Displays the time
+        /** Displays the time*/
+        JLabel timeLabel;
+        /** BorderLayout*/
         JPanel mainPane;
-            JPanel pilePanes; // The panel that stores pilePanel.
-            JPanel utilPane; // Unitializaed, unused, for your own use
+            /** The panel that stores pilePanel, GridLayout.*/
+            JPanel pilePanes;
+            /** Unitializaed, unused, for your own use */
+            JPanel utilPane;
+        /** Stpres tool buttons Home, Newgame, Undo */
         JPanel toolbar;
 
 
@@ -39,6 +45,7 @@ public abstract class PileSolitaire extends JLayeredPane implements SaveAndLoad{
 	Point clickOffset;
     boolean gameEnded;
 
+    /** connect to the menu and request focus in the current window */
     public PileSolitaire start(Menu menu) {
         mainMenu = menu;
         requestFocusInWindow();
@@ -251,7 +258,7 @@ public abstract class PileSolitaire extends JLayeredPane implements SaveAndLoad{
 				// When there is no dragging, but there is a card selected, aka enable them to touch to move the selected card
 				if(!isRestricted(pile) && selectedCard!=null && heldPile==null) {
 					// System.out.println("TUCH TO MUV");
-					ArrayList<Card> topOfPile = getSequence((Pile)selectedCard.parent);					
+					ArrayList<Card> topOfPile = getSequence((Pile)selectedCard.parent);
 					for(int i=topOfPile.indexOf(selectedCard)-1;i>=0;--i) topOfPile.remove(i);
 					heldPile = new Pile(((Pile)selectedCard.parent), topOfPile, COLS);
 					parentPile = ((Pile)selectedCard.parent);

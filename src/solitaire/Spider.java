@@ -96,7 +96,7 @@ public class Spider extends PileSolitaire{
 
     @Override
 	protected void makeDeck() {
-		if(difficulty == 1) stock = new Deck(true, 4);
+		if(difficulty == 0) stock = new Deck(true, 4);
 		else stock = new Deck(2);
 	}
 	
@@ -114,7 +114,7 @@ public class Spider extends PileSolitaire{
 	}
 	@Override
 	protected ArrayList<Card> getSequence(Pile parent) {
-		if(difficulty == 4) 
+		if(difficulty == 2)
 			parent.getSameSuitSequence();
 		return parent.getSameSequence();
 	}
@@ -238,6 +238,11 @@ public class Spider extends PileSolitaire{
     }
     @Override
     protected void newGame(){
+        int diff = mainMenu.getDifficulty();
+        if(diff == -1) {
+            return;
+        }
+        difficulty = diff;
         super.newGame();
         getCards.setVisible(true);
     }

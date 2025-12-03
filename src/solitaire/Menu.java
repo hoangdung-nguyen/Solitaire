@@ -7,6 +7,7 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class Menu extends JPanel {
@@ -143,17 +144,32 @@ public class Menu extends JPanel {
                 break;
             case "TriPeaks":
                 return new Tripeaks();
-            case "Spider": return (saveFile == null ? new Spider(1) : new Spider(saveFile.getPath())).start(this);
+            case "Spider":
+                if (saveFile != null) return new Spider(saveFile.getPath()).start(this);
+                int diff = getDifficulty();
+                if(diff == -1) {
+                    showGamePopup(gameName);
+                    return null;
+                }
+                return new Spider(diff).start(this);
             case "FreeCell": return (saveFile == null ? new FreeCell() : new FreeCell(saveFile.getPath())).start(this);
             // TODO The other ones
         }
         throw new IllegalArgumentException("Unknown game: " + gameName);
     }
 
+    int getDifficulty(){
+        ArrayList<String> options = new ArrayList<>(Arrays.asList("Normal", "Hard", "Master"));
+        String choice = (String) JOptionPane.showInputDialog(this, "Select difficulty:", "Difficulty", JOptionPane.QUESTION_MESSAGE, null, new String[]{"Normal", "Hard", "Master"}, "Normal");
+        if(choice == null) return -1;
+        return options.indexOf(choice);
+    }
+
     private void startNewGame(String gameName){
         if(cards.get(gameName)==null){
             // Game not initialized, and has no saves
             JComponent game = createGameInstance(gameName, null);
+            if(game == null) return;
             cardLayoutPanel.add(game, gameName);
             cards.put(gameName, game);
         }
