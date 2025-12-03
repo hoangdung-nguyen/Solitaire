@@ -24,6 +24,10 @@ public class TriangleLayout {
             this.y = y;
         }
     }
+    public static class Cover{
+        public int left = -1;
+        public int right = -1;
+    }
 
 
     //Creates a PeakLayout based on the number of peaks desired, peak height, the width of the frame,
@@ -54,29 +58,53 @@ public class TriangleLayout {
         return getDecksNeeded() * 52 - getTotalCardsNeeded();
     }
 
-    //Computes the list of (x, y) positions for all cards.
-    //Cards are returned top to bottom, left to right
-    public List<Pos> computePositions(){
-        List<Pos> positions = new ArrayList<>();
-        int peakBaseWidth = peakHeight * cardWidth;
+   public void applyLayout(List<CardNode> nodes){
+        int n = getTotalCardsNeeded();
+        if(nodes.size() < n){
+            throw new IllegalArgumentException("Not enough CardNodes provided: need " + n);
+        }
 
-        for(int p = 0; p< numPeaks; p++){
-            int peakOffsetX = p * peakBaseWidth;
-            for(int row = 0; row < peakHeight; row++){
-                int cardsInRow = row+1;
-                int y = row*rowSpacing;
+        int index = 0;
 
-                int startX = peakOffsetX + ((peakHeight - cardsInRow)* cardWidth)/2;
+        for(int peak = 0; peak < numPeaks; peak++){
+            int baseIndex = index;
+            int peakOffsetX = peak * (peakHeight * cardWidth);
 
-                for(int c = 0; c < cardsInRow; c++){
-                    int x = startX + c * cardWidth;
-                    positions.add(new Pos (x, y));
+            for(int row = 0; row< peakHeight; row++){
+                int cardsInRow = row + 1;
+                int y = row * rowSpacing;
+                int startX = peakOffsetX + ((peakHeight - cardsInRow)* cardWidth) /2;
+
+                for(int col = 0; col < cardsInRow; col++){
+                    CardNode node = nodes.get(index);
+                    int x = startX + col * cardWidth;
+
+                    node.setPosition(x, y);
+                    node.setSize(cardWidth, (int)(cardWidth * 1.45));
+
+                    index++;
+                }
+            }
+
+            for(int row = 0; row< peakHeight -1; row++){
+                for(int col = 0; col <= row; col++){
+                    int parentIndex = baseIndex + triIndex(row, col);
+                    int leftIndex = baseIndex + triIndex(row+1, col);
+                    int rightIndex = baseIndex + triIndex(row+1, col +1);
+
+                    CardNode parent = nodes.get(parentIndex);
+                    parent.setLeftCover(nodes.get(leftIndex));
+                    parent.setRightCover(nodes.get(rightIndex));
                 }
             }
         }
 
-        return positions;
 
+   }
+
+   //Convert the triangle (row col) to flat indexing
+    private int triIndex(int r, int c){
+        return (r * (r +1))/2 + c;
     }
 
 
