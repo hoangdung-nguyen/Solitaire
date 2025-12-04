@@ -26,6 +26,7 @@ public class PyramidLogic {
         for(int i = 0; i < 28; ++i) //The pyramid is initialized.
         {
             pyramidCards.add(new CardNode(stock.pop()));
+            pyramidCards.getLast().setFaceUp(true);
         }
 
         stockAndWaste = new ArrayList<>();//The stock and waste piles are initialized and their aliases are set.
