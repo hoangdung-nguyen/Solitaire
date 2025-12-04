@@ -367,7 +367,7 @@ public class Tripeaks extends Solitaire{
 
         discardPile.add(n.card);
         topDiscardCard.setCard(n.card);
-        if(n.)
+//        if(n.)
         for(int i = 0; i < allNodes.size(); i++){
             CardNode c = allNodes.get(i);
             if(c.getLeftCover() == n || c.getRightCover() == n){

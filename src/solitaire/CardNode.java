@@ -42,11 +42,11 @@ public class CardNode implements Serializable {
     }
 
     public void setLeftBeneath(CardNode x){
-        lCover = x;
+        lBeneath = x;
     }
 
     public void setRightBeneath(CardNode x){
-        rCover = x;
+        rBeneath = x;
     }
 
     public void setPosition(int m, int n){
