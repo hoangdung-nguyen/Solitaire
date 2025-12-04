@@ -286,7 +286,7 @@ public abstract class PileSolitaire extends Solitaire{
                     else return;
                 }
                 // Move it around according to where it it on the Spider panel in general
-                Point p = SwingUtilities.convertPoint(((Pile)c.parent).cardsMap.get(c), e.getPoint(), PileSolitaire.this);
+                Point p = SwingUtilities.convertPoint(((Pile)c.parent).cardsMap.get(c), e.getPoint(), layered);
                 // Offset it by the original click pos for smoothness
                 p.x -= clickOffset.x;
                 p.y -= clickOffset.y;
