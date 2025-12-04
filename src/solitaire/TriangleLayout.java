@@ -64,7 +64,7 @@ public class TriangleLayout {
             throw new IllegalArgumentException("Not enough nodes");
         }
 
-        int index = 0;
+
 
         int cardH = (int)(cardWidth * 1.45);
        // double hOverlap = cardWidth * 0.30;
@@ -74,6 +74,9 @@ public class TriangleLayout {
         double totalPeaksWidth = numPeaks * peakPixelsWidth;
 
         double gap = frameWidth > totalPeaksWidth ? (frameWidth - totalPeaksWidth) / (numPeaks + 1): 0;
+
+        int [][][] map = new int[numPeaks][peakHeight][peakHeight];
+        int index = 0;
 
         // ROW-MAJOR layout
         for (int row = 0; row < peakHeight; row++) {
@@ -95,6 +98,7 @@ public class TriangleLayout {
 
                     node.setPosition(x, y);
                     node.setSize(cardWidth, cardH);
+                    map[peak][row][col] = index;
 
                     index++;
                 }
@@ -107,24 +111,37 @@ public class TriangleLayout {
             int base = peak * getCardsPerPeak();
 
             for (int level = 0; level < peakHeight - 1; level++) {
-                for (int offset = 0; offset <= level; offset++) {
+                int cardsInLevel = level +1;
+                int cardsInNextLevel = level +2;
 
-                    int parent = base + triIndex(level, offset);
-                    int left   = base + triIndex(level + 1, offset);
-                    int right  = base + triIndex(level + 1, offset + 1);
+                for (int offset = 0; offset <cardsInNextLevel; offset++) {
 
-                    nodes.get(parent).setLeftCover(nodes.get(left));
-                    nodes.get(parent).setRightCover(nodes.get(right));
+                    int parentIn = map[peak][level + 1][offset];
+                    CardNode parent = nodes.get(parentIn);
+
+                    if(offset < cardsInLevel){
+                        int leftC = map[peak][level][offset];
+                        CardNode c = nodes.get(leftC);
+
+                        if(c.getLeftCover() == null) c.setLeftCover(parent);
+                        else c.setRightCover(parent);
+                    }
+
+                    if(offset>0){
+                        int rightC = map[peak][level][offset -1];
+                        CardNode c = nodes.get(rightC);
+
+                        if(c.getLeftCover() == null) c.setLeftCover(parent);
+                        else c.setRightCover(parent);
+                    }
+
                 }
             }
         }
     }
 
 
-    //Convert the triangle (row col) to flat indexing
-    private int triIndex(int r, int c){
-        return (r * (r +1))/2 + c;
-    }
+
 
 
 

@@ -84,13 +84,17 @@ public class Tripeaks extends JPanel{
 
             node.setSize(cardW, (int) (cardW * JCard.getRatio()));
 
-            node.setFaceUp(i>=cardsNeeded - numPeaks*peakHeight);
+           // node.setFaceUp(i>=cardsNeeded - numPeaks*peakHeight);
 
             allNodes.add(node);
         }
 
         layout.applyLayout(allNodes);
         setLayout(null);
+
+        for(CardNode node : allNodes){
+            node.setFaceUp(node.isUncovered());
+        }
 
         for (int i = 0 ; i <allNodes.size(); i++) {
             CardNode node = allNodes.get(i);
@@ -274,6 +278,13 @@ public class Tripeaks extends JPanel{
 
     }
 
+    private boolean checkWin(){
+        for(CardNode n : allNodes){
+            if(!n.isRemoved()) return false;
+        }
+        return true;
+    }
+
     private void playCard(JCard jc){
         int index = jcards.indexOf(jc);
         if(index == -1) return;
@@ -297,11 +308,12 @@ public class Tripeaks extends JPanel{
 
          for(int i = 0; i < allNodes.size(); i++){
              CardNode c = allNodes.get(i);
-             if(!c.isRemoved() && !c.isFaceUp() && c.isUncovered()){
-                 c.setFaceUp(true);
+             if(c.getLeftCover() == n || c.getRightCover() == n){
+                 if(!c.isRemoved() && !c.isFaceUp() && c.isUncovered()){
+                     c.setFaceUp(true);
+                     jcards.get(i).setFaceDown(false);
+                 }
 
-                 JCard m = jcards.get(i);
-                 m.setFaceDown(false);
              }
          }
 
