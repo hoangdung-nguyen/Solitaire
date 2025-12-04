@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 
-public class PyramidLogic {
+public class PyramidLogic extends Solitaire {
 	private static final long serialVersionUID = 1L;
 	Deck stock;
     ArrayList<Pile> stockAndWaste;
@@ -97,8 +97,8 @@ public class PyramidLogic {
         return pyramidCards.getFirst().isRemoved();
     }
 
-    public void undoMove()
-    {
+    @Override
+    protected void undoLastMove() {
         if(pastMoves.isEmpty())
             return;
 
@@ -125,8 +125,23 @@ public class PyramidLogic {
         }
     }
 
+    @Override
+    protected void newGame() {
 
+    }
 
+    @Override
+    void saveGame() {
 
-	
+    }
+
+    @Override
+    public GameSave makeSave() {
+        return null;
+    }
+
+    @Override
+    public void loadSave(PileSave save) {
+
+    }
 }
