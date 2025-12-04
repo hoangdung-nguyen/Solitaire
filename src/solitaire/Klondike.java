@@ -34,6 +34,7 @@ public class Klondike extends PileSolitaire{
             throw new RuntimeException(e);
         }
 
+        //restore the wastepile and foundations
         for (int i=0; i<utilPiles.size(); ++i) {
             Pile p = utilPiles.get(i);
             ArrayList<PileSave.CardState> pileList = saveData.utilPiles.get(i);
@@ -42,7 +43,10 @@ public class Klondike extends PileSolitaire{
             }
         }
 
-        addMouseListeners(piles);
+        //restore past moves
+        for (PileSave.PileMoveState pm : saveData.pastMoves) {
+            pastMoves.push(new PileMove(pm, piles, utilPiles));
+        }
         addMouseListeners(utilPiles);
         start = Instant.now().minusSeconds(saveData.timePast);
 

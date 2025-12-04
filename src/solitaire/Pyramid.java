@@ -2,9 +2,13 @@ package solitaire;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
+
 public class Pyramid extends JPanel{
 	private static final long serialVersionUID = 1L;
 	Deck stock;
+    List<CardNode> nodeSet;
+
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> {
 			JFrame frame = new JFrame("Pyramid");
