@@ -4,10 +4,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import static solitaire.Utils.*;
 
 public class Tripeaks extends Solitaire{
 	private static final long serialVersionUID = 1L;
@@ -17,6 +16,8 @@ public class Tripeaks extends Solitaire{
     protected static final double STOCK_AREA_RATIO = 0.20;
 
     private JPanel mainPanel;
+    private JPanel cardsPanel;
+    private JPanel utilPanel;
 
     List<CardNode> allNodes;
     List<JCard> jcards;
@@ -33,17 +34,42 @@ public class Tripeaks extends Solitaire{
 
 	public Tripeaks(){
         super();
-        mainPanel = new JPanel();
-        mainPanel.setLayout(null);
-        super.add(mainPanel, BorderLayout.CENTER);
-        mainPanel.setOpaque(false);
+        setupUI();
 
         showPeakSelectionDialog();
         showPeakHeightSelectionDialog();
 
         initializeGameBoard();
-	}
+        createStockDiscard();
+        revalidate();
+        repaint();
 
+    }
+
+    public Tripeaks(String saveFile){
+
+    }
+
+    public void setupUI(){
+        mainPanel = new JPanel(new BorderLayout());
+        super.add(mainPanel, BorderLayout.CENTER);
+        mainPanel.setOpaque(false);
+        cardsPanel = new JPanel(null);
+        cardsPanel.setOpaque(false);
+        mainPanel.add(cardsPanel, BorderLayout.CENTER);
+        utilPanel = new JPanel(){
+            @Override
+            public Dimension getPreferredSize() {
+                // x = h - x * 0.65 * (peakHeight-1) - x
+                // x + ajdjk x = h
+                double h = mainPanel.getHeight() / ((peakHeight-1)*(1-TriangleLayout.OVERLAP)+2);
+                return new Dimension(mainPanel.getWidth(), (int) h);
+            }
+        };
+        utilPanel.setLayout(null);
+        utilPanel.setOpaque(false);
+        mainPanel.add(utilPanel, BorderLayout.SOUTH);
+    }
     @Override
     protected void undoLastMove() {
 
@@ -51,15 +77,14 @@ public class Tripeaks extends Solitaire{
 
     @Override
     protected void newGame() {
-        replayGame();
+        cardsPanel.removeAll();
+        utilPanel.removeAll();
+        revalidate();
+        repaint();
+        initializeGameBoard();
     }
 
-    @Override
-    void saveGame() {
-
-    }
-
-    private int[] computeCardSize(int frameW, int frameH){
+    private Dimension computeCardSize(int frameW, int frameH){
         double ratio = JCard.getRatio();
         // Width-based constraint
         int cardW_byWidth = Math.max(40, frameW / (numPeaks * peakHeight * 2));
@@ -76,20 +101,11 @@ public class Tripeaks extends Solitaire{
         int cardW = (int) Math.max(40, Math.min(cardW_byWidth, cardW_byHeight));
         int cardH = (int) (cardW * ratio);
 
-        return new int[]{cardW, cardH};
+        return new Dimension(cardW, cardH);
     }
 
     private void initializeGameBoard(){
-        int frameW = mainPanel.getWidth();
-        int frameH = (int) (mainPanel.getHeight() * (1.0-STOCK_AREA_RATIO));
-
-
-
-        int[] size = computeCardSize(frameW, frameH);
-        int cardW = size[0];
-        int cardH = size[1];
-
-        layout = new TriangleLayout(numPeaks, peakHeight, mainPanel);
+        layout = new TriangleLayout(numPeaks, peakHeight, cardsPanel);
 
         int decksNeeded = layout.getDecksNeeded();
         int cardsNeeded = layout.getTotalCardsNeeded();
@@ -103,9 +119,6 @@ public class Tripeaks extends Solitaire{
         for(int i = 0; i < cardsNeeded; i++){
             Card card = allCards.pop();
             CardNode node = new CardNode(card);
-
-            node.setSize(cardW, (int) (cardW * JCard.getRatio()));
-
            // node.setFaceUp(i>=cardsNeeded - numPeaks*peakHeight);
 
             allNodes.add(node);
@@ -123,7 +136,7 @@ public class Tripeaks extends Solitaire{
             JCard jc = new JCard(node.getCard());
             jc.setFaceDown(!node.isFaceUp());
             jc.setBounds(node.getX(), node.getY(), node.getWidth(), node.getHeight());
-            mainPanel.add(jc, 0);
+            cardsPanel.add(jc, 0);
             jcards.add(jc);
             jc.addMouseListener(new MouseAdapter(){
                 @Override
@@ -133,18 +146,13 @@ public class Tripeaks extends Solitaire{
             });
 
         }
-
-        createStockDiscard();
-        revalidate();
-        repaint();
-
-
     }
 
     private void createStockDiscard(){
-        if(topStockCard != null) mainPanel.remove(topStockCard);
-        if(topDiscardCard != null) mainPanel.remove(topDiscardCard);
+        if(topStockCard != null) utilPanel.remove(topStockCard);
+        if(topDiscardCard != null) utilPanel.remove(topDiscardCard);
 
+        utilPanel.add(Box.createHorizontalGlue());
         stockPile.clear();
         discardPile.clear();
 
@@ -154,21 +162,33 @@ public class Tripeaks extends Solitaire{
 
         if(!stockPile.isEmpty()){
             Card stockTop = stockPile.getLast();
-            topStockCard = new JCard(stockTop);
+            topStockCard = new JCard(stockTop){
+                @Override
+                public Dimension getPreferredSize() {
+                    double h = mainPanel.getHeight() / ((peakHeight-1)*(1-TriangleLayout.OVERLAP)+1);
+                    return new Dimension((int) (h / JCard.getRatio()), (int) h);
+                }
+            };
             topStockCard.setFaceDown(true);
-            mainPanel.add(topStockCard, 0);
+            utilPanel.add(topStockCard);
         } else{
            topStockCard = new JCard(Utils.cardShadow);
-           mainPanel.add(topStockCard, 0);
+           utilPanel.add(topStockCard);
         }
 
         Card f = stockPile.removeLast();
         discardPile.add(f);
-        topDiscardCard = new JCard(f);
+        topDiscardCard = new JCard(f){
+            @Override
+            public Dimension getPreferredSize() {
+                double h = mainPanel.getHeight() / ((peakHeight-1)*(1-TriangleLayout.OVERLAP)+1);
+                return new Dimension((int) (h / JCard.getRatio()), (int) h);
+            }
+        };
         topDiscardCard.setFaceDown(false);
-        mainPanel.add(topDiscardCard, 0);
+        utilPanel.add(topDiscardCard);
 
-
+        utilPanel.add(Box.createHorizontalGlue());
         positionStockDiscardPiles();
 
         topStockCard.addMouseListener(new MouseAdapter(){
@@ -182,10 +202,10 @@ public class Tripeaks extends Solitaire{
 
     private void handleStockClick(){
         if(stockPile.isEmpty()){
-            mainPanel.remove(topStockCard);
+            utilPanel.remove(topStockCard);
             topStockCard = new JCard(Utils.cardShadow);
             topStockCard.setFaceDown(false);
-            mainPanel.add(topStockCard);
+            utilPanel.add(topStockCard);
             positionStockDiscardPiles();
             repaint();
             return;
@@ -202,10 +222,10 @@ public class Tripeaks extends Solitaire{
             topStockCard.setCard(newTop);
             topStockCard.setFaceDown(true);
         }else {
-            mainPanel.remove(topStockCard);
+            utilPanel.remove(topStockCard);
             topStockCard = new JCard(Utils.cardShadow);
             topStockCard.setFaceDown(false);
-            mainPanel.add(topStockCard);
+            utilPanel.add(topStockCard);
 
         }
 
@@ -230,8 +250,8 @@ public class Tripeaks extends Solitaire{
         int stockX = midX - spacing - w /2;
         int discardX = midX + spacing - w / 2;
 
-        topStockCard.setBounds(stockX, y, w, cardH);
-        topDiscardCard.setBounds(discardX, y, w, cardH);
+        topStockCard.setBounds(stockX, 0, w, cardH);
+        topDiscardCard.setBounds(discardX, 0, w, cardH);
 
 
 
@@ -262,14 +282,6 @@ public class Tripeaks extends Solitaire{
     public void doLayout() {
         super.doLayout();
         if (allNodes == null || allNodes.isEmpty()) return;
-
-        int frameW   = mainPanel.getWidth();
-        int frameH = (int) (mainPanel.getHeight() * (1.0-STOCK_AREA_RATIO));
-        int totalH = mainPanel.getHeight();
-
-        int[] size = computeCardSize(frameW, frameH);
-        int cardW = size[0];
-        int cardH = size[1];
 
         layout.applyLayout(allNodes);
 
@@ -323,7 +335,7 @@ public class Tripeaks extends Solitaire{
 
         n.setRemoved(true);
         n.setFaceUp(false);
-        mainPanel.remove(jc);
+        cardsPanel.remove(jc);
 
         discardPile.add(n.card);
         topDiscardCard.setCard(n.card);
@@ -355,31 +367,52 @@ public class Tripeaks extends Solitaire{
         if(choice == 0){
             replayGame();
         } else if (choice == 1){
-            goHome();
+            switchToMainMenu();
         }else if (choice == 2){
             System.exit(0);
         }
     }
 
-    private void replayGame(){
-        mainPanel.removeAll();
+    @Override
+    protected void replayGame(){
+        cardsPanel.removeAll();
+        utilPanel.removeAll();
         revalidate();
         repaint();
         initializeGameBoard();
-    }
-
-    private void goHome(){
-
+        createStockDiscard();
     }
 
 
     @Override
     public GameSave makeSave() {
-        return null;
+        return new TripeaksSave(numPeaks, peakHeight, allNodes, stockPile, discardPile);
     }
 
     @Override
-    public void loadSave(PileSave save) {
+    public void loadSave(GameSave save) {
+        TripeaksSave saveData = (TripeaksSave) save;
+        numPeaks = saveData.numPeaks;
+        peakHeight = saveData.peakHeight;
+        allNodes = saveData.allNodes;
+        initializeGameBoard();
+        stockPile = saveData.stockPile;
+        discardPile = saveData.discardPile;
+        createStockDiscard();
+    }
+}
 
+class TripeaksSave extends GameSave implements Serializable {
+    int numPeaks;
+    int peakHeight;
+    List<CardNode> allNodes;
+    List<Card> stockPile = new ArrayList<>();
+    List<Card> discardPile = new ArrayList<>();
+    public TripeaksSave(int np, int ph, List<CardNode> nodes, List<Card> stock, List<Card> discard){
+        numPeaks = np;
+        peakHeight = ph;
+        allNodes = nodes;
+        stockPile = stock;
+        discardPile = discard;
     }
 }

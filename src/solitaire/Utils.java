@@ -224,14 +224,12 @@ class GameSave {
 }
 
 interface SaveAndLoad {
-    boolean gameEnded = false;
-
     GameSave makeSave();
 
     /**
      * Load game from a PileSolitaire already set up
      */
-    void loadSave(PileSave save);
+    void loadSave(GameSave save);
 
     default void saveToFile(File file) {
         System.out.println("SAVING GAME " + getClass());

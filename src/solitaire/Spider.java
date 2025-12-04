@@ -224,11 +224,12 @@ public class Spider extends PileSolitaire {
     }
 
     @Override
-    public void loadSave(PileSave save) {
+    public void loadSave(GameSave save) {
         super.loadSave(save);
+        PileSave saveData = (PileSave) save;
         for (int i = 0; i < utilPiles.size(); ++i) {
             Pile p = utilPiles.get(i);
-            ArrayList<Card> pileList = save.utilPiles.get(i);
+            ArrayList<Card> pileList = saveData.utilPiles.get(i);
             for (Card cs : pileList) {
                 p.add(cs, cs.isFaceDown());
             }

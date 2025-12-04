@@ -1,10 +1,7 @@
 package solitaire;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -80,8 +77,11 @@ public class PyramidGame extends Solitaire {
         initializeGameBoard();
     }
 
+    /**
+     *
+     */
     @Override
-    void saveGame() {
+    protected void replayGame() {
 
     }
 
@@ -91,7 +91,7 @@ public class PyramidGame extends Solitaire {
     }
 
     @Override
-    public void loadSave(PileSave save) {
+    public void loadSave(GameSave save) {
 
     }
 
