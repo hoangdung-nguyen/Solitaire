@@ -2,8 +2,8 @@ package solitaire;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -16,6 +16,8 @@ public class PyramidGame extends Solitaire {
     JPanel mainPanel;
     List<JCard> jCards;
     int difficulty;
+    PairHandler pairHandler;
+
 
 
     PyramidGame() {
@@ -25,7 +27,7 @@ public class PyramidGame extends Solitaire {
         mainPanel.setOpaque(false);
         showDifficultySelectionDialog();
         logic = new PyramidLogic(difficulty);
-
+        pairHandler = new PairHandler();
         initializeGameBoard();
 
 
@@ -82,7 +84,7 @@ public class PyramidGame extends Solitaire {
         int rSpacing = (int) (cardW * 0.60);
 
 
-        TriangleLayout layout = new TriangleLayout(1, 7, frameW, rSpacing);
+        layout = new TriangleLayout(1, 7, frameW, rSpacing);
 
         jCards = new ArrayList<>();
 
@@ -95,11 +97,13 @@ public class PyramidGame extends Solitaire {
         for (int i = 0; i < logic.pyramidCards.size(); i++) {
             CardNode node = logic.pyramidCards.get(i);
 
-            JCard jc = new JCard(node.getCard());
+            JCard jc = new JCard(node);
             jc.setFaceDown(!node.isFaceUp());
             jc.setBounds(node.getX(), node.getY(), node.getWidth(), node.getHeight());
             mainPanel.add(jc, 0);
             jCards.add(jc);
+            jc.addItemListener(pairHandler);
+
             jc.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
@@ -109,6 +113,8 @@ public class PyramidGame extends Solitaire {
 
         }
     }
+
+
 
     @Override
     public void doLayout() {
@@ -132,5 +138,30 @@ public class PyramidGame extends Solitaire {
 
         revalidate();
         repaint();
+    }
+
+    private class PairHandler implements ItemListener
+    {
+        JCard firstCard;
+        JCard secondCard;
+
+        @Override
+        public void itemStateChanged(ItemEvent e) { //figure out how to deselect the card
+            if(firstCard == null)
+                firstCard = (JCard) e.getItem();
+            if(firstCard.card.rank == 'K')
+            {
+                logic.kingRemove(firstCard.cardNode);
+                firstCard.cardNode.setRemoved(true);
+
+                firstCard = null;
+            }
+            else if(secondCard == null)
+            {
+
+            }
+
+
+        }
     }
 }
