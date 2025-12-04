@@ -2,8 +2,8 @@ package solitaire;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -16,6 +16,8 @@ public class PyramidGame extends Solitaire {
     JPanel mainPanel;
     List<JCard> jCards;
     int difficulty;
+    PairHandler pairHandler;
+
 
 
     PyramidGame() {
@@ -25,7 +27,7 @@ public class PyramidGame extends Solitaire {
         mainPanel.setOpaque(false);
         showDifficultySelectionDialog();
         logic = new PyramidLogic(difficulty);
-
+        pairHandler = new PairHandler();
         initializeGameBoard();
 
 
@@ -78,13 +80,11 @@ public class PyramidGame extends Solitaire {
 
     private void initializeGameBoard() {
         int frameW = mainPanel.getWidth();
-        int frameH = (int) (mainPanel.getHeight() * (1.0-Tripeaks.STOCK_AREA_RATIO));
-        int[] size = computeCardSize(frameW, frameH);
-        int cardW = size[0];
-        int cardH = size[1];
+        int cardW = Math.max(40, frameW / (28));
+        int rSpacing = (int) (cardW * 0.60);
 
 
-        TriangleLayout layout = new TriangleLayout(1, 7, frameW, frameH,  cardW, cardH);
+        layout = new TriangleLayout(1, 7, frameW, rSpacing);
 
         jCards = new ArrayList<>();
 
@@ -97,11 +97,14 @@ public class PyramidGame extends Solitaire {
         for (int i = 0; i < logic.pyramidCards.size(); i++) {
             CardNode node = logic.pyramidCards.get(i);
 
-            JCard jc = new JCard(node.getCard());
+            JCard jc = new JCard(node);
             jc.setFaceDown(!node.isFaceUp());
             jc.setBounds(node.getX(), node.getY(), node.getWidth(), node.getHeight());
             mainPanel.add(jc, 0);
             jCards.add(jc);
+
+            jc.addMouseListener(pairHandler);
+
             jc.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
@@ -112,20 +115,18 @@ public class PyramidGame extends Solitaire {
         }
     }
 
+
+
     @Override
     public void doLayout() {
         super.doLayout();
         if (logic.pyramidCards == null || logic.pyramidCards.isEmpty()) return;
 
         int frameW   = mainPanel.getWidth();
-        int frameH = (int) (mainPanel.getHeight() * (1.0-Tripeaks.STOCK_AREA_RATIO));
-        int[] size = computeCardSize(frameW, frameH);
-        int cardW = size[0];
-        int cardH = size[1];
+        int cardW    = Math.max(40, frameW / (14)); // SCALE
+        int rSpacing = (int)(cardW * 0.60); // also scales with card size
 
-
-        TriangleLayout layout = new TriangleLayout(1, 7, frameW, frameH,  cardW, cardH);
-
+        TriangleLayout layout = new TriangleLayout(1, 7, frameW, rSpacing);
         layout.applyLayout(logic.pyramidCards);
 
         // Update all JCard components
@@ -140,23 +141,35 @@ public class PyramidGame extends Solitaire {
         repaint();
     }
 
-    private int[] computeCardSize(int frameW, int frameH){
-        double ratio = JCard.getRatio();
-        // Width-based constraint
-        int cardW_byWidth = Math.max(40, frameW / (1 * 7 * 2));
-        double cardH_byWidth = cardW_byWidth * ratio;
+    private class PairHandler extends MouseAdapter {
+        JCard firstCard;
+        JCard secondCard;
 
-        // Height-based constraint assuming up to 80% overlap (20% visible)
-        // Max height of pyramid with overlapFraction = 0.8:
-        // H = cardH * (0.8 + 0.2 * peakHeight)
-        double denom = 0.8 + 0.2 * 7;
-        if (denom <= 0) denom = 1; // safety
-        double cardH_maxByHeight = frameH / denom;
-        double cardW_byHeight = cardH_maxByHeight / ratio;
 
-        int cardW = (int) Math.max(40, Math.min(cardW_byWidth, cardW_byHeight));
-        int cardH = (int) (cardW * ratio);
+        public void mouseClicked(ItemEvent e) { //figure out how to deselect the card
 
-        return new int[]{cardW, cardH};
+            if(e.getSource() instanceof JCard)
+            {
+                if(((JCard) e.getSource()).cardNode.isPlayable())
+                {
+                    if (firstCard == null) {
+
+                        firstCard = (JCard) e.getItem();
+
+                        if (firstCard.card.rank == 'K') {
+                            logic.kingRemove(firstCard.cardNode);
+                            firstCard.setVisible(false);
+                            firstCard = null;
+                        }
+                    } else if (secondCard == null) {
+                        secondCard = (JCard) e.getItem();
+
+                    }
+
+
+                }
+            }
+
+        }
     }
 }

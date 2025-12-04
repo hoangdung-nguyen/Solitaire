@@ -64,7 +64,7 @@ public class PyramidLogic {
         }
     }
 
-    /** Converts the rank of a card (char value) into an integer for adds13 checking. */
+
     private int rankToVal(Card card)
     {
             return Utils.RANK_ORDER.indexOf(card.rank) +1;
@@ -100,9 +100,9 @@ public class PyramidLogic {
         return pyramidCards.getFirst().isRemoved();
     }
 
-    protected void undoMove() {
+    protected PyramidMove undoMove() {
         if(pastMoves.isEmpty())
-            return;
+            return null;
 
         PyramidMove lastMove = pastMoves.pop();
 
@@ -125,5 +125,7 @@ public class PyramidLogic {
             lastMove.firstCard.setRemoved(false);
             lastMove.secondCard.setRemoved(false);
         }
+        return lastMove;
+        //TODO have PyramidGame handle reviving the cards UI element
     }
 }

@@ -16,6 +16,8 @@ public class JCard extends JToggleButton {
     private boolean isGreyed;
     Card card;
 
+    CardNode cardNode;
+
     public JCard(Card c) {
         card = c;
         setBorderPainted(false);
@@ -24,6 +26,18 @@ public class JCard extends JToggleButton {
         setMasterIcon(Utils.getCardAsset(card));
         greyed = Utils.tint(getMasterIcon(), Color.lightGray);
         currentImage = c.isFaceDown() ? Utils.cardBack : master;
+        setPreferredSize(new Dimension(100, 100));
+    }
+
+    public JCard(CardNode cNode) {
+        cardNode = cNode;
+        card = cardNode.card;
+        setBorderPainted(false);
+        setContentAreaFilled(false);
+        setFocusPainted(false);
+        setMasterIcon(Utils.getCardAsset(card));
+        greyed = Utils.tint(getMasterIcon(), Color.lightGray);
+        currentImage = cardNode.card.isFaceDown() ? Utils.cardBack : master;
         setPreferredSize(new Dimension(100, 100));
     }
 
