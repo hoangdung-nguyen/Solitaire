@@ -8,45 +8,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PyramidGame extends Solitaire {
-    PyramidLogic logic;
-    TriangleLayout layout;
+    private PyramidLogic logic;
+    private TriangleLayout layout;
     JButton drawCard;
-    JPanel mainPanel;
-    List<JCard> jCards;
-    int difficulty;
-    PairHandler pairHandler;
+    private JPanel mainPanel, pyramidPanel;
+    private ArrayList<JCard> stockUI, wasteUI;
+    private List<JCard> jCards;
+    private int difficulty;
+    private PairHandler pairHandler;
 
 
 
     PyramidGame() {
         super();
-        mainPanel = new JPanel(null);
+        mainPanel = new JPanel(new BorderLayout());
         add(mainPanel, BorderLayout.CENTER);
+
         mainPanel.setOpaque(false);
         showDifficultySelectionDialog();
         logic = new PyramidLogic(difficulty);
         pairHandler = new PairHandler();
 
-        drawCard = new RoundedButton("+")
-        {
-            @Override
-            protected void init(String text, Icon icon)
-            {
-                super.init(text, icon);
-                addActionListener(e -> {
-                    logic.drawCard();
-                    //TODO add logic for UI handling
-                });
-            }
-        };
-
         initializeGameBoard();
-
-
-
-
-        repaint();
-        revalidate();
 
     }
 
@@ -96,8 +79,12 @@ public class PyramidGame extends Solitaire {
     }
 
     private void initializeGameBoard() {
-        int frameW = mainPanel.getWidth();
-        int frameH = (int) (mainPanel.getHeight() * (1.0-Tripeaks.STOCK_AREA_RATIO));
+        pyramidPanel = new JPanel(null);
+        pyramidPanel.setBackground(Utils.bgkColor);
+        mainPanel.add(pyramidPanel,BorderLayout.CENTER);
+
+        int frameW = pyramidPanel.getWidth();
+        int frameH = (int) (pyramidPanel.getHeight() * (1.0-Tripeaks.STOCK_AREA_RATIO));
 
 
 
@@ -105,7 +92,7 @@ public class PyramidGame extends Solitaire {
         int cardW = size[0];
         int cardH = size[1];
 
-        layout = new TriangleLayout(1, 7, mainPanel);
+        layout = new TriangleLayout(1, 7, pyramidPanel);
 
         jCards = new ArrayList<>();
 
@@ -121,12 +108,39 @@ public class PyramidGame extends Solitaire {
             JCard jc = new JCard(node);
             jc.setFaceDown(!node.isFaceUp());
             jc.setBounds(node.getX(), node.getY(), node.getWidth(), node.getHeight());
-            mainPanel.add(jc, 0);
+            pyramidPanel.add(jc, 0);
             jCards.add(jc);
 
             jc.addMouseListener(pairHandler);
 
         }
+
+        //Setting up stock and waste piles
+        stockUI.clear();
+        wasteUI.clear();
+        for(int i = 0; i < logic.stockPile.size(); ++i)
+        {
+            stockUI.add(new JCard(logic.stockPile.get(i)));
+            stockUI.get(i).addMouseListener(pairHandler);
+        }
+
+
+        drawCard = new RoundedButton("+")
+        {
+            @Override
+            protected void init(String text, Icon icon)
+            {
+                super.init(text, icon);
+                addActionListener(e -> {
+                    logic.drawCard();
+                    wasteUI.add(stockUI.removeLast());
+                    //TODO add logic for UI handling
+                });
+            }
+        };
+
+        repaint();
+        revalidate();
     }
 
 
@@ -136,8 +150,8 @@ public class PyramidGame extends Solitaire {
         super.doLayout();
         if (logic.pyramidCards == null || logic.pyramidCards.isEmpty()) return;
 
-        int frameW   = mainPanel.getWidth();
-        int frameH = (int) (mainPanel.getHeight() * (1.0-Tripeaks.STOCK_AREA_RATIO));
+        int frameW   = pyramidPanel.getWidth();
+        int frameH = (int) (pyramidPanel.getHeight() * (1.0-Tripeaks.STOCK_AREA_RATIO));
 
 
 
@@ -169,7 +183,7 @@ public class PyramidGame extends Solitaire {
 
         public void mouseClicked(MouseEvent e) { //figure out how to deselect the card
 
-            if(e.getSource() instanceof JCard)
+            if(e.getSource() instanceof JCard && ((JCard) e.getSource()).cardNode !=null )
             {
                 if(((JCard) e.getSource()).cardNode.isPlayable())
                 {
