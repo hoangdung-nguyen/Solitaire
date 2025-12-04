@@ -286,4 +286,7 @@ public class Klondike extends PileSolitaire{
         for(Pile pile:utilPiles) if(!pile.isEmpty()) piles.add(pile);
         super.startEndAnimation(piles);
     }
+
+
 }
+
