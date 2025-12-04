@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static solitaire.Utils.CARD_WIDTH;
+import static solitaire.Utils.bgkColor;
 
 public class Tripeaks extends JPanel{
 	private static final long serialVersionUID = 1L;
@@ -29,8 +30,11 @@ public class Tripeaks extends JPanel{
 	//}
 	public Tripeaks(){
         super(null);
+        setBackground(bgkColor);
 
         showPeakSelectionDialog();
+        showPeakHeightSelectionDialog();
+
         // Initialize ONCE when panel gets a real size
         addComponentListener(new ComponentAdapter() {
             private boolean initialized = false;
@@ -63,7 +67,7 @@ public class Tripeaks extends JPanel{
 
 
 
-        TriangleLayout layout = new TriangleLayout(numPeaks, peakHeight, frameW, cardW, rSpacing);
+        TriangleLayout layout = new TriangleLayout(numPeaks, peakHeight, frameW, rSpacing);
 
         int decksNeeded = layout.getDecksNeeded();
         int cardsNeeded = layout.getTotalCardsNeeded();
@@ -115,6 +119,16 @@ public class Tripeaks extends JPanel{
         numPeaks = Integer.parseInt(choice.substring(0,1));
     }
 
+    private void showPeakHeightSelectionDialog(){
+        String[] options = {"3 Cards", "4 Cards", "5 Cards", "6 Cards", "7 Cards", "8 Cards"};
+
+        String choice = (String) JOptionPane.showInputDialog(this, "Select height of peaks:", "TriPeaks Setup", JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
+
+        if(choice == null) return;
+
+        peakHeight = Integer.parseInt(choice.substring(0,1));
+    }
+
     private void resizeLayout() {
         if (allNodes == null || allNodes.isEmpty()) return;
 
@@ -122,7 +136,7 @@ public class Tripeaks extends JPanel{
         int cardW    = Math.max(40, frameW / (numPeaks * peakHeight * 2)); // SCALE
         int rSpacing = (int)(cardW * 0.60); // also scales with card size
 
-        TriangleLayout layout = new TriangleLayout(numPeaks, peakHeight, frameW, cardW, rSpacing);
+        TriangleLayout layout = new TriangleLayout(numPeaks, peakHeight, frameW, rSpacing);
         layout.applyLayout(allNodes);
 
         // Update all JCard components
