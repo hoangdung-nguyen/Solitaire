@@ -26,10 +26,6 @@ public class PyramidGame extends Solitaire {
         showDifficultySelectionDialog();
         logic = new PyramidLogic(difficulty);
 
-        int frameW = getWidth();
-        int cardW = Math.max(40, frameW / (14));
-        int rSpacing = (int) (cardW * 0.60);
-
         // Initialize ONCE when panel gets a real size
         mainPanel.addComponentListener(new ComponentAdapter() {
             private boolean initialized = false;
@@ -68,7 +64,8 @@ public class PyramidGame extends Solitaire {
     private void showDifficultySelectionDialog() {
         String[] options = {"Endless Restocks", "Limited Restocks"};
 
-        String choice = (String) JOptionPane.showInputDialog(this, "Select difficulty", "Pyramid Difficulty", JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+        String choice = (String) JOptionPane.showInputDialog(this, "Select difficulty",
+                "Pyramid Difficulty", JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 
         if (choice == null) return;
 
@@ -102,7 +99,7 @@ public class PyramidGame extends Solitaire {
 
     private void initializeGameBoard() {
         int frameW = getWidth();
-        int cardW = Math.max(40, frameW / (14));
+        int cardW = Math.max(40, frameW / (28));
         int rSpacing = (int) (cardW * 0.60);
 
 
