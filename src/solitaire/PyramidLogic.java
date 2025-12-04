@@ -3,6 +3,7 @@ package solitaire;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Stack;
 
 public class PyramidLogic {
 	private static final long serialVersionUID = 1L;
@@ -14,7 +15,7 @@ public class PyramidLogic {
     int difficulty; //0 for infinite stockFlips, 1 for 2 stockFlips
     int stockFlips;
     private static final char[] ranks = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K' };
-    ArrayList<PyramidMove> pyramidMoves;
+    Stack<PyramidMove> pastMoves;
 
 	public PyramidLogic(int diff){
         difficulty = diff;  //Endless flips or no?
@@ -36,7 +37,7 @@ public class PyramidLogic {
             stockPile.add(stock.pop());
         }
 
-        pyramidMoves = new ArrayList<>();
+        pastMoves = new Stack<>();
 	}
 
     /** Shifts cards from the stockpile to the wastepile. If the stockpile is empty and the player has
@@ -52,11 +53,11 @@ public class PyramidLogic {
             stockPile.addAll(wastePile);
             wastePile.clear();
             stockFlips++;
-            pyramidMoves.add(new PyramidMove(2));
+            pastMoves.push(new PyramidMove(2));
         }
         else {
             wastePile.add(stockPile.removeLast());
-            pyramidMoves.add(new PyramidMove(1));
+            pastMoves.push(new PyramidMove(1));
         }
     }
 
@@ -79,6 +80,7 @@ public class PyramidLogic {
             return;
         firstCard.setRemoved(true);
         secondCard.setRemoved(true);
+        pastMoves.push(new PyramidMove(firstCard,secondCard));
 
     }
 
@@ -86,12 +88,41 @@ public class PyramidLogic {
     public void kingRemove(CardNode kingCard)
     {
         kingCard.setRemoved(true);
+        pastMoves.push(new PyramidMove(kingCard));
     }
 
     /** The player wins if the root level card of the pyramid has been removed!*/
     public boolean checkWin()
     {
         return pyramidCards.getFirst().isRemoved();
+    }
+
+    public void undoMove()
+    {
+        if(pastMoves.isEmpty())
+            return;
+
+        PyramidMove lastMove = pastMoves.pop();
+
+        if(lastMove.isKingMove)
+        {
+            lastMove.firstCard.setRemoved(false);
+        }
+        else if(lastMove.drawMoveType == 1)
+        {
+            stockPile.add(wastePile.removeLast());
+        }
+        else if(lastMove.drawMoveType == 2)
+        {
+            Collections.reverse(stockPile);
+            wastePile.addAll(stockPile);
+            stockPile.clear();
+            stockFlips--;
+        }
+        else {
+            lastMove.firstCard.setRemoved(false);
+            lastMove.secondCard.setRemoved(false);
+        }
     }
 
 
