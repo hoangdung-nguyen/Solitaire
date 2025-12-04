@@ -23,8 +23,6 @@ public abstract class PileSolitaire extends Solitaire{
     // This is the hirachrchy of how it's placed within the LayeredPane, all wthin the DEFAULT_LAYER
 
     JLayeredPane layered;
-        /** BorderLayout, the parent panel */
-        JPanel parPane;
             /** BorderLayout*/
             JPanel mainPane;
                 /** The panel that stores pilePanel, GridLayout.*/
@@ -97,12 +95,9 @@ public abstract class PileSolitaire extends Solitaire{
         layered = new JLayeredPane();
         layered.setOpaque(false);
         add(layered, BorderLayout.CENTER);
-        parPane = new JPanel(new BorderLayout());
-        parPane.setOpaque(false);
-        layered.add(parPane, JLayeredPane.DEFAULT_LAYER);
         mainPane = new JPanel(new BorderLayout());
         mainPane.setOpaque(false);
-        parPane.add(mainPane,BorderLayout.CENTER);
+        layered.add(mainPane, JLayeredPane.DEFAULT_LAYER);
 
         pilePanes = new JPanel(new GridLayout(1,COLS, 10, 10));
         pilePanes.setOpaque(false);
@@ -638,7 +633,7 @@ public abstract class PileSolitaire extends Solitaire{
     @Override
     public void doLayout() {
         super.doLayout();
-        parPane.setBounds(0, 0, layered.getWidth(), layered.getHeight());
+        mainPane.setBounds(0, 0, layered.getWidth(), layered.getHeight());
     }
 
 

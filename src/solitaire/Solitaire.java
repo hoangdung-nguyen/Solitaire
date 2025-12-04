@@ -5,7 +5,7 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-public class Solitaire extends JPanel implements SaveAndLoad{
+public abstract class Solitaire extends JPanel implements SaveAndLoad{
     // Link back to the menu
     Menu mainMenu;
 
@@ -19,16 +19,7 @@ public class Solitaire extends JPanel implements SaveAndLoad{
         requestFocusInWindow();
         return this;
     }
-//
-    public static void main(String[]args){
-        JFrame frame = new JFrame("Solitaires");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setBounds(0,0,900,900);
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        Solitaire menu = new Solitaire();
-        frame.add(menu);
-        frame.setVisible(true);
-    }
+
     public Solitaire(){
         super(new BorderLayout());
         setBackground(Utils.bgkColor);
@@ -120,17 +111,7 @@ public class Solitaire extends JPanel implements SaveAndLoad{
         ((CardLayout) mainMenu.cardLayoutPanel.getLayout()).show(mainMenu.cardLayoutPanel, "Menu");
         mainMenu.requestFocusInWindow();
     }
-    protected  void undoLastMove(){}
-    protected  void newGame(){}
-     void saveGame(){}
-
-    @Override
-    public GameSave makeSave() {
-        return null;
-    }
-
-    @Override
-    public void loadSave(PileSave save) {
-
-    }
+    protected abstract void undoLastMove();
+    protected abstract void newGame();
+    abstract void saveGame();
 }
