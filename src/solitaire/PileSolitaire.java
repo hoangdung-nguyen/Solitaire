@@ -36,7 +36,6 @@ public abstract class PileSolitaire extends Solitaire{
     Card selectedCard;
     Pile heldPile;
     Point clickOffset;
-    boolean gameEnded;
 
 
     public PileSolitaire(int Columns, int Difficulty){
@@ -360,13 +359,6 @@ public abstract class PileSolitaire extends Solitaire{
     /** win con */
     protected abstract void checkWin();
 
-    protected void endGame(){
-        // System.out.println("YOU WINNNNNNN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        if(Utils.winAudio.isOpen()) Utils.winAudio.setFramePosition(0);
-        time.stop();
-        Utils.winAudio.start();
-        gameEnded = true;
-    }
     protected void startEndAnimation(ArrayList<Pile> fullCardPiles) {
         ArrayList<BufferedImage> images = new ArrayList<>();
         ArrayList<Point> points = new ArrayList<>();
@@ -447,6 +439,14 @@ public abstract class PileSolitaire extends Solitaire{
         });
         animation.start();
     }
+    /**
+     *
+     */
+    @Override
+    protected void replayGame() {
+        while(!pastMoves.isEmpty()) undoLastMove();
+    }
+
     protected void newGame(){
         gameEnded = false;
         clearTable();
@@ -480,38 +480,35 @@ public abstract class PileSolitaire extends Solitaire{
         }
     }
 
-    void saveGame() {
-        if(!gameEnded) {
-            saveToFile(new File("GameSave_" + getClass().getSimpleName() + ".dat"));
-        }
-    }
+
 
     public GameSave makeSave(){
         return new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
     }
 
     /** Load game from a PileSolitaire already set up */
-    public void loadSave(PileSave save) {
+    public void loadSave(GameSave save) {
+        PileSave saveData = (PileSave) save;
         // Stock
-        for (Card cs : save.stock) {
+        for (Card cs : saveData.stock) {
             stock.add(cs);
         }
 
         // Piles
         for (int i=0; i<piles.size(); ++i) {
             Pile p = piles.get(i);
-            ArrayList<Card> pileList = save.piles.get(i);
+            ArrayList<Card> pileList = saveData.piles.get(i);
             for (Card cs : pileList) {
                 p.add(cs, cs.isFaceDown());
             }
         }
 
         // Past moves
-        for (PileSave.PileMoveState pm : save.pastMoves) {
+        for (PileSave.PileMoveState pm : saveData.pastMoves) {
             pastMoves.push(new PileMove(pm, piles));
         }
         addMouseListeners(piles);
-        start = Instant.now().minusSeconds(save.timePast);
+        start = Instant.now().minusSeconds(saveData.timePast);
         revalidate();
         repaint();
     }

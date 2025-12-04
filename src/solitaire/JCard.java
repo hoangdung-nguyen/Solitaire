@@ -102,6 +102,8 @@ public class JCard extends JToggleButton {
         g.drawImage(currentImage, 0, 0, getWidth(), getHeight(), null);
     }
 
+
+
     /**
      * rotate the currentImage by angle
      */

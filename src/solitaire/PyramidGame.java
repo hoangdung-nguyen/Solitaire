@@ -60,8 +60,11 @@ public class PyramidGame extends Solitaire {
         initializeGameBoard();
     }
 
+    /**
+     *
+     */
     @Override
-    void saveGame() {
+    protected void replayGame() {
 
     }
 
@@ -71,7 +74,7 @@ public class PyramidGame extends Solitaire {
     }
 
     @Override
-    public void loadSave(PileSave save) {
+    public void loadSave(GameSave save) {
 
     }
 

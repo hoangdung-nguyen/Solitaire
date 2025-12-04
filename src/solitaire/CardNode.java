@@ -1,6 +1,8 @@
 package solitaire;
 
-public class CardNode {
+import java.io.Serializable;
+
+public class CardNode implements Serializable {
     Card card;
     private boolean isVisible;
     private boolean removed;

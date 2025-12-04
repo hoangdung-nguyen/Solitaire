@@ -141,7 +141,7 @@ public class Menu extends JPanel {
             case "Pyramid":
                 return (saveFile == null ? new PyramidGame() : new PyramidGame(saveFile.getPath())).start(this);
             case "TriPeaks":
-                return new Tripeaks().start(this);
+                return (saveFile == null ? new Tripeaks() : new Tripeaks(saveFile.getPath())).start(this);
             case "Spider":
                 if (saveFile != null) return new Spider(saveFile.getPath()).start(this);
                 int diff = getDifficulty();
@@ -174,11 +174,7 @@ public class Menu extends JPanel {
         }
         else {
             // Game initialized, new game
-            Solitaire game = cards.get(gameName);
-            if(game instanceof PileSolitaire)
-                ((PileSolitaire) game).newGame();
-            // TODO The other ones
-            game.requestFocusInWindow();
+            cards.get(gameName).start(this).newGame();
         }
         ((CardLayout) cardLayoutPanel.getLayout()).show(cardLayoutPanel, gameName);
     }
@@ -193,22 +189,14 @@ public class Menu extends JPanel {
         }
         else{
             // Game initialized
-            if(game instanceof PileSolitaire)
-                ((PileSolitaire) game).loadFromFile(saveFile);
-            // TODO The other ones
-            game.requestFocusInWindow();
+            game.start(this).loadFromFile(saveFile);
         }
         ((CardLayout) cardLayoutPanel.getLayout()).show(cardLayoutPanel, gameName);
         saveFile.delete();
     }
     private void autoSaveCurrentGame(){
         for(String gameName : cards.keySet()){
-            Solitaire game = cards.get(gameName);
-            if(game.isVisible()) {
-                if(game instanceof PileSolitaire)
-                    ((PileSolitaire) game).saveGame();
-                // TODO The other ones
-            }
+            cards.get(gameName).saveGame();
         }
     }
     private void showExitConfirmation(){

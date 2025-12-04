@@ -13,8 +13,7 @@ public class TriangleLayout {
     private int cardWidth;
     private int cardHeight;
     private int rowSpacing;
-    private static final double V_OVERLAP = 0.35;   // keeps original mapping overlap
-    private static final double H_SCALE = 1.0;      // horizontal spacing factor (original: 1.0)
+    static final double OVERLAP = 0.5;
 
     //Small class used to store the positions of the cards
     public static class Pos{
@@ -67,19 +66,18 @@ public class TriangleLayout {
         cardWidth =  parent.getWidth() / (numPeaks * peakHeight) ;
         cardHeight = (int) (cardWidth * JCard.getRatio());
 
-        double vOverlap = cardHeight * (1 - V_OVERLAP);
-        double totalPeaksHeight = cardHeight + (peakHeight - 1) * vOverlap;
+        int vOverlap = (int) (cardHeight * (1 - OVERLAP));
+
+        double totalPeaksHeight = cardHeight + (peakHeight - 1) * cardHeight * (1 - OVERLAP);
 
         if (totalPeaksHeight > parent.getHeight()) {
             double scale = parent.getHeight() / totalPeaksHeight;
             cardWidth = (int) (cardWidth * scale);
+            cardHeight = (int) (cardWidth * JCard.getRatio());
+            vOverlap = (int) (cardHeight * (1 - OVERLAP));
         }
-
-        cardWidth = Math.max(25, cardWidth);
-        cardHeight = (int) (cardWidth * JCard.getRatio());
-
-        vOverlap = (int) (cardHeight * (1 - V_OVERLAP));
-        int peakPixelsWidth = (int) (peakHeight * (cardWidth * H_SCALE));
+        
+        int peakPixelsWidth = (int) (peakHeight * (cardWidth));
         double totalPeaksWidth = numPeaks * peakPixelsWidth;
 
         double gap = parent.getWidth() > totalPeaksWidth ? (parent.getWidth() - totalPeaksWidth) / 2 : 0;

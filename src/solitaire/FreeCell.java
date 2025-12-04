@@ -163,36 +163,37 @@ public class FreeCell extends PileSolitaire {
     }
 
     @Override
-    public void loadSave(PileSave save) {
+    public void loadSave(GameSave save) {
         clearTable();
+        PileSave saveData = (PileSave) save;
         // Stock
-        for (Card cs : save.stock) {
+        for (Card cs : saveData.stock) {
             stock.add(new Card(cs.rank, cs.suit));
         }
 
         // Piles
         for (int i = 0; i < piles.size(); ++i) {
             Pile p = piles.get(i);
-            ArrayList<Card> pileList = save.piles.get(i);
+            ArrayList<Card> pileList = saveData.piles.get(i);
+            for (Card cs : pileList) {
+                p.add(new Card(cs.rank, cs.suit), cs.isFaceDown());
+            }
+        }
+        for (int i = 0; i < utilPiles.size(); ++i) {
+            Pile p = utilPiles.get(i);
+            ArrayList<Card> pileList = saveData.utilPiles.get(i);
             for (Card cs : pileList) {
                 p.add(new Card(cs.rank, cs.suit), cs.isFaceDown());
             }
         }
 
         // Past moves
-        for (PileSave.PileMoveState pm : save.pastMoves) {
+        for (PileSave.PileMoveState pm : saveData.pastMoves) {
             pastMoves.push(new PileMove(pm, piles, utilPiles));
-        }
-        for (int i = 0; i < utilPiles.size(); ++i) {
-            Pile p = utilPiles.get(i);
-            ArrayList<Card> pileList = save.utilPiles.get(i);
-            for (Card cs : pileList) {
-                p.add(new Card(cs.rank, cs.suit), cs.isFaceDown());
-            }
         }
         addMouseListeners(piles);
         addMouseListeners(utilPiles);
-        start = Instant.now().minusSeconds(save.timePast);
+        start = Instant.now().minusSeconds(saveData.timePast);
 
         revalidate();
         repaint();
@@ -216,6 +217,7 @@ public class FreeCell extends PileSolitaire {
             }
             state.utilPiles.add(pileList);
         }
+        state.pastMoves.clear();
         for (PileMove move : pastMoves) {
             state.pastMoves.add(new PileSave.PileMoveState(move, piles, utilPiles));
         }

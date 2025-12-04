@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -19,6 +20,7 @@ public abstract class Solitaire extends JPanel implements SaveAndLoad{
     JPanel toolbar;
     Timer time;
     Instant start;
+    boolean gameEnded;
 
     /** connect to the menu and request focus in the current window */
     public Solitaire start(Menu menu) {
@@ -56,6 +58,31 @@ public abstract class Solitaire extends JPanel implements SaveAndLoad{
             public void paint(Graphics g) {
                 super.paint(g);
                 g.drawImage(Utils.homeIcon, 0, 0, getWidth(), getHeight(), null);
+            }
+        });
+        // Home button
+        JPanel tool4 = new JPanel();
+        tool4.setOpaque(false);
+        toolbar.add(tool4);
+        tool4.add(new RoundedButton("Retry"){
+            @Override
+            protected void init(String text, Icon icon) {
+                super.init(text, icon);
+                addActionListener(e->{
+                    if (JOptionPane.showOptionDialog( Solitaire.this,
+                            "Confirm retry?",  "Retry", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Yes", "No"}, "No" ) == 0)
+                        replayGame();
+                });
+            }
+            @Override
+            public Dimension getPreferredSize() {
+                int a = Math.min(getParent().getWidth(), getParent().getHeight());
+                return new Dimension(a, a);
+            }
+            @Override
+            public void paint(Graphics g) {
+                super.paint(g);
+//                g.drawImage(Utils.homeIcon, 0, 0, getWidth(), getHeight(), null);
             }
         });
         // New game button
@@ -123,12 +150,26 @@ public abstract class Solitaire extends JPanel implements SaveAndLoad{
         time.start();
 
     }
-    private void switchToMainMenu(){
+    void switchToMainMenu(){
         saveGame();
         ((CardLayout) mainMenu.cardLayoutPanel.getLayout()).show(mainMenu.cardLayoutPanel, "Menu");
         mainMenu.requestFocusInWindow();
     }
     protected abstract void undoLastMove();
     protected abstract void newGame();
-    abstract void saveGame();
+    protected abstract void replayGame();
+
+    protected void saveGame() {
+        if(!gameEnded) {
+            saveToFile(new File("GameSave_" + getClass().getSimpleName() + ".dat"));
+        }
+    }
+
+    protected void endGame(){
+        // System.out.println("YOU WINNNNNNN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        if(Utils.winAudio.isOpen()) Utils.winAudio.setFramePosition(0);
+        time.stop();
+        Utils.winAudio.start();
+        gameEnded = true;
+    }
 }
