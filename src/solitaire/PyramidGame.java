@@ -1,6 +1,7 @@
 package solitaire;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -22,12 +23,13 @@ public class PyramidGame extends Solitaire {
 
     PyramidGame() {
         super();
-        mainPanel = new JPanel(null);
+        mainPanel = new JPanel(new BorderLayout());
         add(mainPanel, BorderLayout.CENTER);
         mainPanel.setOpaque(false);
         showDifficultySelectionDialog();
         logic = new PyramidLogic(difficulty);
         pairHandler = new PairHandler();
+
         initializeGameBoard();
 
 
@@ -109,12 +111,12 @@ public class PyramidGame extends Solitaire {
 
             jc.addMouseListener(pairHandler);
 
-            jc.addMouseListener(new MouseAdapter() {
+            /*jc.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     //playCard(jc);
                 }
-            });
+            });*/
 
         }
     }
@@ -138,6 +140,8 @@ public class PyramidGame extends Solitaire {
 
         layout.applyLayout(logic.pyramidCards);
 
+
+
         // Update all JCard components
         for (int i = 0; i < logic.pyramidCards.size(); i++) {
             CardNode n = logic.pyramidCards.get(i);
@@ -155,7 +159,7 @@ public class PyramidGame extends Solitaire {
         JCard secondCard;
 
 
-        public void mouseClicked(ItemEvent e) { //figure out how to deselect the card
+        public void mouseClicked(MouseEvent e) { //figure out how to deselect the card
 
             if(e.getSource() instanceof JCard)
             {
@@ -163,21 +167,36 @@ public class PyramidGame extends Solitaire {
                 {
                     if (firstCard == null) {
 
-                        firstCard = (JCard) e.getItem();
+                        firstCard = (JCard) e.getSource();
 
                         if (firstCard.card.rank == 'K') {
                             logic.kingRemove(firstCard.cardNode);
                             firstCard.setVisible(false);
                             firstCard = null;
                         }
-                    } else if (secondCard == null) {
-                        secondCard = (JCard) e.getItem();
+                    }
+                    else if(e.getSource() == firstCard)
+                    {
+                        firstCard = null;
+                    }
+                    else if (secondCard == null) {
+                        secondCard = (JCard) e.getSource();
+                        if(logic.successfulPair(firstCard.cardNode,secondCard.cardNode))
+                        {
+                            firstCard.setVisible(false);
+                            secondCard.setVisible(false);
+                        }
+
+                        firstCard = null;
+                        secondCard = null;
+
 
                     }
 
 
                 }
             }
+            else firstCard = null;
 
         }
     }

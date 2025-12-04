@@ -77,14 +77,14 @@ public class PyramidLogic {
     }
 
     /** If the two cards selected add to 13, they are removed. Otherwise, nothing happens. */
-    public void successfulPair(CardNode firstCard, CardNode secondCard)
+    public boolean successfulPair(CardNode firstCard, CardNode secondCard)
     {
         if(!adds13(firstCard.card,secondCard.card))
-            return;
+            return false;
         firstCard.setRemoved(true);
         secondCard.setRemoved(true);
         pastMoves.push(new PyramidMove(firstCard,secondCard));
-
+        return true;
     }
 
     /** Removes a King from the board. Should only be called from a function that checks that the node is a King. */
