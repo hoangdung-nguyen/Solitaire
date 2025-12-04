@@ -140,8 +140,7 @@ public class Menu extends JPanel {
         switch (gameName) {
             case "Klondike": return (saveFile == null ? new Klondike() : new Klondike(saveFile.getPath())).start(this);
             case "Pyramid":
-                //new Pyramid().start();
-                break;
+                return (saveFile == null ? new PyramidGame() : new PyramidGame(saveFile.getPath())).start(this);
             case "TriPeaks":
                 return new Tripeaks();
             case "Spider":
