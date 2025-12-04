@@ -749,48 +749,29 @@ class PileSave extends GameSave implements Serializable{
             drawMove = move.drawMove;
             if (drawMove) return;
 
+            this.cardsMoved = move.cardsMoved;
+            clearedStack = move.clearedStack;
+            fromFlipped = move.fromFlipped;
+            toFlipped = move.toFlipped;
+
             movedFromIndex = PileSolitaire.pilesIndexOf(piles, move.movedFrom);
             movedToIndex = PileSolitaire.pilesIndexOf(piles, move.movedTo);
-
-            addCardsMoved(move.cardsMoved);
-
-            if (move.clearedStack != null)
-                addClearedStack(move.clearedStack);
-
-            if (move.fromFlipped != null)
-                fromFlipped = new Card(move.fromFlipped.getRank(), move.fromFlipped.getSuit(), false);
-            if (move.toFlipped != null)
-                toFlipped = new Card(move.toFlipped.getRank(), move.toFlipped.getSuit(), false);
         }
         /** Constructor where piles are searched for in 2 piles, index positive if pile1, negative if pile2 */
         public PileMoveState(PileMove move, ArrayList<Pile> piles1, ArrayList<Pile> piles2) {
             drawMove = move.drawMove;
             if (drawMove) return;
 
+            this.cardsMoved = move.cardsMoved;
+            clearedStack = move.clearedStack;
+            fromFlipped = move.fromFlipped;
+            toFlipped = move.toFlipped;
+
             movedFromIndex = PileSolitaire.pilesIndexOf(piles1, move.movedFrom);
             movedToIndex = PileSolitaire.pilesIndexOf(piles1, move.movedTo);
 
             if(movedFromIndex == -1) movedFromIndex = -PileSolitaire.pilesIndexOf(piles2, move.movedFrom) -1;
             if(movedToIndex == -1) movedToIndex = -PileSolitaire.pilesIndexOf(piles2, move.movedTo) -1;
-
-            addCardsMoved(move.cardsMoved);
-
-            if (move.clearedStack != null)
-                addClearedStack(move.clearedStack);
-
-            if (move.fromFlipped != null)
-                fromFlipped = new Card(move.fromFlipped.getRank(), move.fromFlipped.getSuit(), false);
-            if (move.toFlipped != null)
-                toFlipped = new Card(move.toFlipped.getRank(), move.toFlipped.getSuit(), false);
-        }
-        private void addCardsMoved(ArrayList<Card> moved){
-            for (Card c : moved)
-                this.cardsMoved.add(new Card(c.getRank(), c.getSuit(), false));
-        }
-        private void addClearedStack(ArrayList<Card> cleared){
-            clearedStack = new ArrayList<>();
-            for (Card c : cleared)
-                clearedStack.add(new Card(c.getRank(), c.getSuit(), false));
         }
     }
 }

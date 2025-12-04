@@ -9,7 +9,7 @@ import java.util.List;
 
 import static solitaire.Utils.*;
 
-public class Tripeaks extends Solitaire{
+public class Tripeaks extends Solitaire {
 	private static final long serialVersionUID = 1L;
     private int numPeaks = 3;
     private int peakHeight = 4;
@@ -26,6 +26,8 @@ public class Tripeaks extends Solitaire{
     private List<Card> discardPile = new ArrayList<>();
 
 	Deck allCards;
+
+    TriangleLayout layout;
 
 	public Tripeaks(){
         super();
@@ -62,7 +64,7 @@ public class Tripeaks extends Solitaire{
 
 
 
-        TriangleLayout layout = new TriangleLayout(numPeaks, peakHeight, frameW, rSpacing);
+        layout = new TriangleLayout(numPeaks, peakHeight, mainPanel);
 
         int decksNeeded = layout.getDecksNeeded();
         int cardsNeeded = layout.getTotalCardsNeeded();
@@ -238,7 +240,6 @@ public class Tripeaks extends Solitaire{
         int cardW    = Math.max(40, frameW / (numPeaks * peakHeight * 2)); // SCALE
         int rSpacing = (int)(cardW * 0.60); // also scales with card size
 
-        TriangleLayout layout = new TriangleLayout(numPeaks, peakHeight, frameW, rSpacing);
         layout.applyLayout(allNodes);
 
         // Update all JCard components

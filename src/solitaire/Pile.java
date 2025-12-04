@@ -10,10 +10,10 @@ import java.util.HashMap;
 /**
  * A ArrayList<Card> wrapper that communivates with a PilePanel
  */
-public class Pile extends ArrayList<Card> {
+public class Pile extends ArrayList<Card> implements java.io.Serializable{
     private static final long serialVersionUID = 1L;
-    PilePanel pilePane;
-    HashMap<Card, JCard> cardsMap;
+    transient PilePanel pilePane;
+    transient HashMap<Card, JCard> cardsMap;
 
     public Pile(int cols) {
         pilePane = new PilePanel(this, cols);
