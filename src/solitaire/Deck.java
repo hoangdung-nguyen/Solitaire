@@ -10,7 +10,7 @@ public class Deck extends Stack<Card> {
 	private static final long serialVersionUID = 1L;
 
 	public Deck() {
-		this(1);
+		this(0);
 	}
 
     public Deck(int num) {

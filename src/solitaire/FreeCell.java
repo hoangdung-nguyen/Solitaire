@@ -32,6 +32,9 @@ public class FreeCell extends PileSolitaire{
                 p.add(new Card(cs.rank, cs.suit), cs.faceDown);
             }
         }
+        for (PileSave.PileMoveState pm : saveData.pastMoves) {
+            pastMoves.push(new PileMove(pm, piles,utilPiles));
+        }
         addMouseListeners(utilPiles);
     }
     private void setupUtil(){
