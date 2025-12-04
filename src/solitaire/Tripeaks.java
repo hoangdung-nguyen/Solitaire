@@ -18,16 +18,14 @@ public class Tripeaks extends JPanel{
     List<CardNode> allNodes;
     List<JCard> jcards;
 
+    private JCard topStockCard;
+    private JCard topDiscardCard;
+
+    private List<Card> stockPile = new ArrayList<>();
+    private List<Card> discardPile = new ArrayList<>();
+
 	Deck allCards;
-	//public static void main(String[] args) {
-	//	SwingUtilities.invokeLater(() -> {
-	//		JFrame frame = new JFrame("Pyramid");
-	//		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	//		frame.setSize(800,600);
-	//		frame.add(new Tripeaks());
-	//		frame.setVisible(true);
-	//	});
-	//}
+
 	public Tripeaks(){
         super(null);
         setBackground(bgkColor);
@@ -103,10 +101,59 @@ public class Tripeaks extends JPanel{
 
         }
 
+        createStockDiscard(cardW);
+
+
+
+
         repaint();
 
 
     }
+
+    private void createStockDiscard(int w){
+        if(topStockCard != null) remove(topStockCard);
+        if(topDiscardCard != null) remove(topDiscardCard);
+
+        stockPile.clear();
+        discardPile.clear();
+
+        while(!allCards.isEmpty()){
+            stockPile.add(allCards.pop());
+        }
+
+        if(!stockPile.isEmpty()){
+            Card stockTop = stockPile.getLast();
+            topStockCard = new JCard(stockTop);
+            topStockCard.setFaceDown(true);
+            add(topStockCard);
+        } else{
+            topStockCard = new JCard(cardShadow);
+        }
+
+        topDiscardCard = new JCard(cardShadow);
+        topDiscardCard.setFaceDown(true);
+        add(topDiscardCard);
+
+        positionStockDiscardPiles(w);
+    }
+
+    private void positionStockDiscardPiles(int w){
+        if(topStockCard == null || topDiscardCard == null) return;
+
+        int cardH = (int) (w * JCard.getRatio());
+        int y = getHeight() - cardH - 20;
+
+        int midX = getWidth()/2;
+        int spacing = (int)(w*1.2);
+        int stockX = midX - spacing - w /2;
+        int discardX = midX + spacing - w / 2;
+
+        topStockCard.setBounds(stockX, y, w, cardH);
+        topDiscardCard.setBounds(discardX, y, w, cardH);
+
+    }
+
 
     private void showPeakSelectionDialog(){
         String[] options = {"2 Peaks", "3 Peaks", "4 Peaks", "5 Peaks", };
@@ -146,6 +193,9 @@ public class Tripeaks extends JPanel{
 
             jc.setBounds(n.getX(), n.getY(), n.getWidth(), n.getHeight());
         }
+
+        positionStockDiscardPiles(cardW);
+
 
         revalidate();
         repaint();
