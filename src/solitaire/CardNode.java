@@ -7,6 +7,9 @@ public class CardNode implements Serializable {
     private boolean isVisible;
     private boolean removed;
 
+    private CardNode lBeneath;
+    private CardNode rBeneath;
+
     private CardNode lCover;        //Card covering left side
     private CardNode rCover;        //Card covering right sie
 
@@ -35,6 +38,14 @@ public class CardNode implements Serializable {
     }
 
     public void setRightCover(CardNode x){
+        rCover = x;
+    }
+
+    public void setLeftBeneath(CardNode x){
+        lCover = x;
+    }
+
+    public void setRightBeneath(CardNode x){
         rCover = x;
     }
 

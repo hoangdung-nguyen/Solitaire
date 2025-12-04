@@ -126,7 +126,7 @@ public abstract class PileSolitaire extends Solitaire{
                 repaint();
             }
         });
-        setupKeyBindings();
+
     }
 
     public void addMouseListeners(ArrayList<Pile> piles){
@@ -287,20 +287,6 @@ public abstract class PileSolitaire extends Solitaire{
                 heldPile.pilePane.repaint();
                 revalidate();
                 repaint();
-            }
-        });
-    }
-
-    private void setupKeyBindings() {
-        // Use the panel’s input map + action map for global hotkeys
-        InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-        ActionMap actionMap = getActionMap();
-
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK), "Undo");
-        actionMap.put("Undo", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                undoLastMove();
             }
         });
     }

@@ -55,6 +55,7 @@ public class JCard extends JToggleButton {
     public void setCard(Card c){
         card = c;
         master = Utils.getCardAsset(c);
+        updateCurrentImage();
         repaint();
     }
 

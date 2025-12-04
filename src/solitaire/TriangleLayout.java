@@ -13,7 +13,8 @@ public class TriangleLayout {
     private int cardWidth;
     private int cardHeight;
     private int rowSpacing;
-    static final double OVERLAP = 0.5;
+    static double vOverlap = 0.5;
+    static double hSpacing;
 
     //Small class used to store the positions of the cards
     public static class Pos{
@@ -58,6 +59,15 @@ public class TriangleLayout {
         return getDecksNeeded() * 52 - getTotalCardsNeeded();
     }
 
+    public void setLeftCover(CardNode parent, CardNode child){
+        child.setLeftCover(parent);
+        parent.setRightBeneath(child);
+    }
+    public void setRightCover(CardNode parent, CardNode child){
+        child.setRightCover(parent);
+        parent.setLeftBeneath(child);
+    }
+
     public void applyLayout(List<CardNode> nodes) {
         int n = getTotalCardsNeeded();
         if (nodes.size() < n) {
@@ -66,15 +76,15 @@ public class TriangleLayout {
         cardWidth =  parent.getWidth() / (numPeaks * peakHeight) ;
         cardHeight = (int) (cardWidth * JCard.getRatio());
 
-        int vOverlap = (int) (cardHeight * (1 - OVERLAP));
+        int vOverlap = (int) (cardHeight * (1 - TriangleLayout.vOverlap));
 
-        double totalPeaksHeight = cardHeight + (peakHeight - 1) * cardHeight * (1 - OVERLAP);
+        double totalPeaksHeight = cardHeight + (peakHeight - 1) * cardHeight * (1 - TriangleLayout.vOverlap);
 
         if (totalPeaksHeight > parent.getHeight()) {
             double scale = parent.getHeight() / totalPeaksHeight;
             cardWidth = (int) (cardWidth * scale);
             cardHeight = (int) (cardWidth * JCard.getRatio());
-            vOverlap = (int) (cardHeight * (1 - OVERLAP));
+            vOverlap = (int) (cardHeight * (1 - TriangleLayout.vOverlap));
         }
         
         int peakPixelsWidth = (int) (peakHeight * (cardWidth));
@@ -130,16 +140,16 @@ public class TriangleLayout {
                         int leftC = map[peak][level][offset];
                         CardNode c = nodes.get(leftC);
 
-                        if(c.getLeftCover() == null) c.setLeftCover(parent);
-                        else c.setRightCover(parent);
+                        if(c.getLeftCover() == null) setLeftCover(parent, c);
+                        else setRightCover(parent, c);
                     }
 
                     if(offset>0){
                         int rightC = map[peak][level][offset -1];
                         CardNode c = nodes.get(rightC);
 
-                        if(c.getLeftCover() == null) c.setLeftCover(parent);
-                        else c.setRightCover(parent);
+                        if(c.getLeftCover() == null) setLeftCover(parent, c);
+                        else setRightCover(parent, c);
                     }
 
                 }

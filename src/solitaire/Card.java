@@ -10,7 +10,7 @@ public class Card implements /*Comparable<Card>,*/ java.io.Serializable {
     char rank; //'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K'
     char suit; // 0=spade 1=club 2=diamond 3=heart
     private boolean isFaceDown;
-    Collection<Card> parent; // Card keeps what it is a part of.
+    Collection<? extends Card> parent; // Card keeps what it is a part of.
 
     public Card(char rank, char suit) {
         this.rank = rank;
