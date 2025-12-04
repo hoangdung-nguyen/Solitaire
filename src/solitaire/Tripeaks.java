@@ -29,6 +29,8 @@ public class Tripeaks extends Solitaire{
 
 	Deck allCards;
 
+    TriangleLayout layout;
+
 	public Tripeaks(){
         super();
         mainPanel = new JPanel();
@@ -87,7 +89,7 @@ public class Tripeaks extends Solitaire{
         int cardW = size[0];
         int cardH = size[1];
 
-        TriangleLayout layout = new TriangleLayout(numPeaks, peakHeight, frameW, frameH, cardW, cardH);
+        layout = new TriangleLayout(numPeaks, peakHeight, mainPanel);
 
         int decksNeeded = layout.getDecksNeeded();
         int cardsNeeded = layout.getTotalCardsNeeded();
@@ -269,7 +271,6 @@ public class Tripeaks extends Solitaire{
         int cardW = size[0];
         int cardH = size[1];
 
-        TriangleLayout layout = new TriangleLayout(numPeaks, peakHeight, frameW, frameH, cardW, cardH);
         layout.applyLayout(allNodes);
 
         // Update all JCard components

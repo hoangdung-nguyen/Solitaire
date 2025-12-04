@@ -1,8 +1,6 @@
 package solitaire;
 
-import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.Math.ceil;
@@ -11,11 +9,12 @@ public class TriangleLayout {
 
     private int numPeaks;
     private int peakHeight;
-    private int frameWidth;
-    private int frameHeight;
+    Container parent;
     private int cardWidth;
     private int cardHeight;
-
+    private int rowSpacing;
+    private static final double V_OVERLAP = 0.35;   // keeps original mapping overlap
+    private static final double H_SCALE = 1.0;      // horizontal spacing factor (original: 1.0)
 
     //Small class used to store the positions of the cards
     public static class Pos{
@@ -35,13 +34,12 @@ public class TriangleLayout {
     //Creates a PeakLayout based on the number of peaks desired, peak height, the width of the frame,
     //Pyramid: numPeaks = 1, peakHeight = 7
     // the card width and the desired row spacing
-    public TriangleLayout(int np, int ph, int fw, int fh, int cw, int ch){
+    public TriangleLayout(int np, int ph, Container parent){
         numPeaks = np;
         peakHeight = ph;
-        frameWidth = fw ;
-        frameHeight = fh;
-        cardWidth =  cw ;
-        cardHeight = ch;
+        this.parent = parent;
+        cardWidth =  parent.getWidth() / (np * ph) ;
+        cardHeight = (int) (cardWidth * JCard.getRatio());
     }
 
     public int getCardsPerPeak(){
@@ -66,32 +64,25 @@ public class TriangleLayout {
         if (nodes.size() < n) {
             throw new IllegalArgumentException("Not enough nodes");
         }
+        cardWidth =  parent.getWidth() / (numPeaks * peakHeight) ;
+        cardHeight = (int) (cardWidth * JCard.getRatio());
 
-        double overlapFraction= 0.35;
-        double FH = frameHeight;
-        double CH = cardHeight;
+        double vOverlap = cardHeight * (1 - V_OVERLAP);
+        double totalPeaksHeight = cardHeight + (peakHeight - 1) * vOverlap;
 
-// Height with default 35% overlap
-        double currentHeight = peakHeight * CH - (peakHeight - 1) * overlapFraction * CH;
-
-        if (currentHeight > FH) {
-            // Solve required overlap to fit within FH
-            double requiredF =
-                    (peakHeight - FH / CH) / (peakHeight - 1);
-
-            // Clamp to allowed range
-            if (requiredF < 0.35) requiredF = 0.35;
-            if (requiredF > 0.8)  requiredF = 0.8;
-
-            overlapFraction = requiredF;
+        if (totalPeaksHeight > parent.getHeight()) {
+            double scale = parent.getHeight() / totalPeaksHeight;
+            cardWidth = (int) (cardWidth * scale);
         }
 
+        cardWidth = Math.max(25, cardWidth);
+        cardHeight = (int) (cardWidth * JCard.getRatio());
 
-        double vOverlap = cardHeight * overlapFraction;
-
-        int peakPixelsWidth = peakHeight * cardWidth;
+        vOverlap = (int) (cardHeight * (1 - V_OVERLAP));
+        int peakPixelsWidth = (int) (peakHeight * (cardWidth * H_SCALE));
         double totalPeaksWidth = numPeaks * peakPixelsWidth;
-        double gap = frameWidth > totalPeaksWidth ? (frameWidth - totalPeaksWidth) / (double) (numPeaks+ 1): 0.0;
+
+        double gap = parent.getWidth() > totalPeaksWidth ? (parent.getWidth() - totalPeaksWidth) / 2 : 0;
 
         int [][][] map = new int[numPeaks][peakHeight][peakHeight];
         int index = 0;
@@ -100,20 +91,19 @@ public class TriangleLayout {
         for (int row = 0; row < peakHeight; row++) {
 
             int cardsInRow = row + 1;
-            int rowWidth = (cardsInRow * (cardWidth ));
-            int y = (int)Math.round(row * (cardHeight - vOverlap));
-
+            int rowWidth = (int)(cardsInRow * (cardWidth ));
+            int y = (int)(row * (cardHeight - vOverlap));
 
             for (int peak = 0; peak < numPeaks; peak++) {
 
-                int peakBaseX = (int) Math.round(gap + peak * (peakPixelsWidth + gap));
+                int peakBaseX = (int)(gap + peak * (peakPixelsWidth));
                 int startX = peakBaseX + (peakPixelsWidth - rowWidth) / 2;
 
                 for (int col = 0; col <= row; col++) {
 
                     CardNode node = nodes.get(index);
 
-                    int x = (startX + col * (cardWidth ));
+                    int x = (int)(startX + col * (cardWidth ));
 
                     node.setPosition(x, y);
                     node.setSize(cardWidth, cardHeight);
@@ -124,10 +114,10 @@ public class TriangleLayout {
             }
         }
 
-        // cover mapping
+        // cover mapping — unchanged
         index = 0;
         for (int peak = 0; peak < numPeaks; peak++) {
-            //int base = peak * getCardsPerPeak();
+            int base = peak * getCardsPerPeak();
 
             for (int level = 0; level < peakHeight - 1; level++) {
                 int cardsInLevel = level +1;
