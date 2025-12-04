@@ -106,12 +106,12 @@ public class TriangleLayout {
         for (int peak = 0; peak < numPeaks; peak++) {
             int base = peak * getCardsPerPeak();
 
-            for (int row = 0; row < peakHeight - 1; row++) {
-                for (int col = 0; col <= row; col++) {
+            for (int level = 0; level < peakHeight - 1; level++) {
+                for (int offset = 0; offset <= level; offset++) {
 
-                    int parent = base + triIndex(row, col);
-                    int left   = base + triIndex(row + 1, col);
-                    int right  = base + triIndex(row + 1, col + 1);
+                    int parent = base + triIndex(level, offset);
+                    int left   = base + triIndex(level + 1, offset);
+                    int right  = base + triIndex(level + 1, offset + 1);
 
                     nodes.get(parent).setLeftCover(nodes.get(left));
                     nodes.get(parent).setRightCover(nodes.get(right));
