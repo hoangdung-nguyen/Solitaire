@@ -102,7 +102,8 @@ public class PyramidGame extends Solitaire {
             jc.setBounds(node.getX(), node.getY(), node.getWidth(), node.getHeight());
             mainPanel.add(jc, 0);
             jCards.add(jc);
-            jc.addItemListener(pairHandler);
+
+            jc.addMouseListener(pairHandler);
 
             jc.addMouseListener(new MouseAdapter() {
                 @Override
@@ -140,27 +141,34 @@ public class PyramidGame extends Solitaire {
         repaint();
     }
 
-    private class PairHandler implements ItemListener
-    {
+    private class PairHandler extends MouseAdapter {
         JCard firstCard;
         JCard secondCard;
 
-        @Override
-        public void itemStateChanged(ItemEvent e) { //figure out how to deselect the card
-            if(firstCard == null)
-                firstCard = (JCard) e.getItem();
-            if(firstCard.card.rank == 'K')
+
+        public void mouseClicked(ItemEvent e) { //figure out how to deselect the card
+
+            if(e.getSource() instanceof JCard)
             {
-                logic.kingRemove(firstCard.cardNode);
-                firstCard.cardNode.setRemoved(true);
+                if(((JCard) e.getSource()).cardNode.isPlayable())
+                {
+                    if (firstCard == null) {
 
-                firstCard = null;
+                        firstCard = (JCard) e.getItem();
+
+                        if (firstCard.card.rank == 'K') {
+                            logic.kingRemove(firstCard.cardNode);
+                            firstCard.setVisible(false);
+                            firstCard = null;
+                        }
+                    } else if (secondCard == null) {
+                        secondCard = (JCard) e.getItem();
+
+                    }
+
+
+                }
             }
-            else if(secondCard == null)
-            {
-
-            }
-
 
         }
     }
