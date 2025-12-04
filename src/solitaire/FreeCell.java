@@ -22,9 +22,7 @@ public class FreeCell extends PileSolitaire{
         PileSave saveData;
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(saveFile))) {
             saveData = ((PileSave) in.readObject());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
         for (int i=0; i<utilPiles.size(); ++i) {
@@ -33,6 +31,9 @@ public class FreeCell extends PileSolitaire{
             for (PileSave.CardState cs : pileList) {
                 p.add(new Card(cs.rank, cs.suit), cs.faceDown);
             }
+        }
+        for (PileSave.PileMoveState pm : saveData.pastMoves) {
+            pastMoves.push(new PileMove(pm, piles,utilPiles));
         }
         addMouseListeners(utilPiles);
     }

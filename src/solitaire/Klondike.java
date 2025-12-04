@@ -2,7 +2,12 @@ package solitaire;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serial;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -19,8 +24,30 @@ public class Klondike extends PileSolitaire{
         setupUtils();
 	}
     public Klondike(String saveFile)
-    {
+    {//TODO finish this function, use FreeCell.java's loadSave for reference
         super(7,saveFile);
+        setupUtils();
+        PileSave saveData;
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(saveFile))) {
+            saveData = ((PileSave) in.readObject());
+        }   catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
+        for (int i=0; i<utilPiles.size(); ++i) {
+            Pile p = utilPiles.get(i);
+            ArrayList<PileSave.CardState> pileList = saveData.utilPiles.get(i);
+            for (PileSave.CardState cs : pileList) {
+                p.add(new Card(cs.rank, cs.suit), cs.faceDown);
+            }
+        }
+
+        addMouseListeners(piles);
+        addMouseListeners(utilPiles);
+        start = Instant.now().minusSeconds(saveData.timePast);
+
+        revalidate();
+        repaint();
 
 
     }
@@ -231,4 +258,28 @@ public class Klondike extends PileSolitaire{
             pile.clear();
     }
 
+    public GameSave makeSave() {
+        PileSave state = new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
+        state.utilPiles = new ArrayList<>();
+        for (Pile p : utilPiles) {
+            ArrayList<PileSave.CardState> pileList = new ArrayList<>();
+            for (Card c : p)
+                pileList.add(new PileSave.CardState(c.getRank(), c.getSuit(), c.isFaceDown()));
+
+            state.utilPiles.add(pileList);
+        }
+        for (PileMove move : pastMoves)
+            state.pastMoves.add(new PileSave.PileMoveState(move, piles, utilPiles));
+
+        return state;
+    }
+
+
+
+    public void endGame(){
+        super.endGame();
+        ArrayList<Pile> piles = new ArrayList<>();
+        for(Pile pile:utilPiles) if(!pile.isEmpty()) piles.add(pile);
+        super.startEndAnimation(piles);
+    }
 }

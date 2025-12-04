@@ -87,7 +87,8 @@ public class Utils {
     static final int CARD_WIDTH = cardSheet.getWidth() / 14;
     static final int CARD_HEIGHT = cardSheet.getHeight() / 6;
     public final static BufferedImage cardBack = getCardAsset(0, 2);
-    public final static BufferedImage emptyStock = getCardAsset(0,1);
+    public final static BufferedImage emptyStock = getCardAsset(0,4);
+    public final static BufferedImage cardShadow = getCardAsset(0,1);
     public final static BufferedImage greyedCardBack = tint(cardBack, Color.lightGray);
     static final List<Character> RANK_ORDER = Arrays.asList('1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K');
 	static final List<Character> SUIT_ORDER = Arrays.asList('h', 's', 'd', 'c');
