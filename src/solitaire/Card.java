@@ -85,6 +85,7 @@ public class Card implements /*Comparable<Card>,*/ java.io.Serializable {
         return rank;
     }
 
+    /** Converts the rank of a card (char value) into an integer for adds13 checking. */
     public int getRankValue()
     {
         return Utils.RANK_ORDER.indexOf(rank) +1;
