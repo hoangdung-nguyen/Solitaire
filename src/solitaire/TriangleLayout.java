@@ -33,11 +33,11 @@ public class TriangleLayout {
     //Creates a PeakLayout based on the number of peaks desired, peak height, the width of the frame,
     //Pyramid: numPeaks = 1, peakHeight = 7
     // the card width and the desired row spacing
-    public TriangleLayout(int np, int ph, int fw, int cw, int rs){
+    public TriangleLayout(int np, int ph, int fw, int rs){
         numPeaks = np;
         peakHeight = ph;
-        frameWidth = fw;
-        cardWidth = cw;
+        frameWidth = fw ;
+        cardWidth =  fw / (np * ph) ;
         rowSpacing = rs;
     }
 
