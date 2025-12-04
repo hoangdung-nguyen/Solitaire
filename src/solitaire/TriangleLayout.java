@@ -73,9 +73,7 @@ public class TriangleLayout {
         int peakPixelsWidth = (int)(peakHeight * (cardWidth ));
         double totalPeaksWidth = numPeaks * peakPixelsWidth;
 
-        double gap = frameWidth > totalPeaksWidth
-                ? (frameWidth - totalPeaksWidth) / (numPeaks + 1)
-                : 0;
+        double gap = frameWidth > totalPeaksWidth ? (frameWidth - totalPeaksWidth) / (numPeaks + 1): 0;
 
         // ROW-MAJOR layout
         for (int row = 0; row < peakHeight; row++) {
