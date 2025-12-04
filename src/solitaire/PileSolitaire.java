@@ -23,6 +23,7 @@ public abstract class PileSolitaire extends Solitaire{
     // This is the hirachrchy of how it's placed within the LayeredPane, all wthin the DEFAULT_LAYER
 
     JLayeredPane layered;
+        JPanel outerPane;
             /** BorderLayout*/
             JPanel mainPane;
                 /** The panel that stores pilePanel, GridLayout.*/
@@ -95,9 +96,12 @@ public abstract class PileSolitaire extends Solitaire{
         layered = new JLayeredPane();
         layered.setOpaque(false);
         add(layered, BorderLayout.CENTER);
+        outerPane = new JPanel(new BorderLayout());
+        outerPane.setOpaque(false);
+        layered.add(outerPane, JLayeredPane.DEFAULT_LAYER);
         mainPane = new JPanel(new BorderLayout());
         mainPane.setOpaque(false);
-        layered.add(mainPane, JLayeredPane.DEFAULT_LAYER);
+        outerPane.add(mainPane, BorderLayout.CENTER);
 
         pilePanes = new JPanel(new GridLayout(1,COLS, 10, 10));
         pilePanes.setOpaque(false);
@@ -460,6 +464,7 @@ public abstract class PileSolitaire extends Solitaire{
         makeDeck();
         stock.shuffle();
         placeCards();
+        addMouseListeners(piles);
         addUIFunctions();
         revalidate();
         repaint();
@@ -633,7 +638,7 @@ public abstract class PileSolitaire extends Solitaire{
     @Override
     public void doLayout() {
         super.doLayout();
-        mainPane.setBounds(0, 0, layered.getWidth(), layered.getHeight());
+        outerPane.setBounds(0, 0, layered.getWidth(), layered.getHeight());
     }
 
 

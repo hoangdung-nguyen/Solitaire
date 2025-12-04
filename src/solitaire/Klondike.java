@@ -110,8 +110,8 @@ public class Klondike extends PileSolitaire{
         leftPane.setOpaque(false);
         rightPane = new JPanel();
         rightPane.setOpaque(false);
-        add(leftPane,BorderLayout.WEST);
-        add(rightPane,BorderLayout.EAST);
+        outerPane.add(leftPane,BorderLayout.WEST);
+        outerPane.add(rightPane,BorderLayout.EAST);
     }
 
     @Override
