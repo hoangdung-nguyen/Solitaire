@@ -32,8 +32,6 @@ public abstract class PileSolitaire extends Solitaire{
                 JPanel utilPane;
 
 
-    Timer time;
-    Instant start;
 
     Card selectedCard;
     Pile heldPile;
@@ -72,16 +70,16 @@ public abstract class PileSolitaire extends Solitaire{
         // stock
         pastMoves = new Stack<>();
         stock = new Deck(0);
-        for (PileSave.CardState cs : saveData.stock) {
-            stock.add(new Card(cs.rank, cs.suit));
+        for (Card cs : saveData.stock) {
+            stock.add(cs);
         }
 
         // piles
         piles = new ArrayList<Pile>();
-        for (ArrayList<PileSave.CardState> pileList : saveData.piles) {
+        for (ArrayList<Card> pileList : saveData.piles) {
             Pile p = new Pile(COLS);
-            for (PileSave.CardState cs : pileList) {
-                p.add(new Card(cs.rank, cs.suit), cs.faceDown);
+            for (Card cs : pileList) {
+                p.add(cs, cs.isFaceDown());
             }
             piles.add(p);
             pilePanes.add(p.pilePane);
@@ -130,15 +128,6 @@ public abstract class PileSolitaire extends Solitaire{
             }
         });
         setupKeyBindings();
-        start = Instant.now();
-        time = new Timer(1, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                long theTime = Duration.between(start, Instant.now()).getSeconds();
-                timeLabel.setText(String.format("%02d",theTime/60)+":"+String.format("%02d",theTime%60));
-            }
-        });
-        time.start();
     }
 
     public void addMouseListeners(ArrayList<Pile> piles){
@@ -504,16 +493,16 @@ public abstract class PileSolitaire extends Solitaire{
     /** Load game from a PileSolitaire already set up */
     public void loadSave(PileSave save) {
         // Stock
-        for (PileSave.CardState cs : save.stock) {
-            stock.add(new Card(cs.rank, cs.suit));
+        for (Card cs : save.stock) {
+            stock.add(cs);
         }
 
         // Piles
         for (int i=0; i<piles.size(); ++i) {
             Pile p = piles.get(i);
-            ArrayList<PileSave.CardState> pileList = save.piles.get(i);
-            for (PileSave.CardState cs : pileList) {
-                p.add(new Card(cs.rank, cs.suit), cs.faceDown);
+            ArrayList<Card> pileList = save.piles.get(i);
+            for (Card cs : pileList) {
+                p.add(cs, cs.isFaceDown());
             }
         }
 
@@ -667,16 +656,16 @@ class PileMove{
         if (drawMove)
             return;
         cardsMoved = new ArrayList<>();
-        for (PileSave.CardState cs : save.cardsMoved)
-            cardsMoved.add(new Card(cs.rank, cs.suit));
+        for (Card cs : save.cardsMoved)
+            cardsMoved.add(cs);
 
         movedFrom = piles.get(save.movedFromIndex);
         movedTo = piles.get(save.movedToIndex);
 
         if (save.clearedStack != null) {
             clearedStack = new ArrayList<>();
-            for (PileSave.CardState cs : save.clearedStack)
-                clearedStack.add(new Card(cs.rank, cs.suit));
+            for (Card cs : save.clearedStack)
+                clearedStack.add(cs);
         }
 
         if (save.fromFlipped != null)
@@ -690,8 +679,8 @@ class PileMove{
         if (drawMove)
             return;
         cardsMoved = new ArrayList<>();
-        for (PileSave.CardState cs : save.cardsMoved)
-            cardsMoved.add(new Card(cs.rank, cs.suit));
+        for (Card cs : save.cardsMoved)
+            cardsMoved.add(cs);
 
         if(save.movedFromIndex>-1) movedFrom = piles1.get(save.movedFromIndex);
         else movedFrom = piles2.get(-save.movedFromIndex-1);
@@ -700,8 +689,8 @@ class PileMove{
 
         if (save.clearedStack != null) {
             clearedStack = new ArrayList<>();
-            for (PileSave.CardState cs : save.clearedStack)
-                clearedStack.add(new Card(cs.rank, cs.suit));
+            for (Card cs : save.clearedStack)
+                clearedStack.add(cs);
         }
 
         if (save.fromFlipped != null)
@@ -715,9 +704,9 @@ class PileMove{
 class PileSave extends GameSave implements Serializable{
     int difficulty;
     long timePast;
-    public ArrayList<CardState> stock = new ArrayList<>();
-    public ArrayList<ArrayList<CardState>> piles = new ArrayList<>();
-    public ArrayList<ArrayList<CardState>> utilPiles;
+    public ArrayList<Card> stock = new ArrayList<>();
+    public ArrayList<ArrayList<Card>> piles = new ArrayList<>();
+    public ArrayList<ArrayList<Card>> utilPiles;
     public ArrayList<PileMoveState> pastMoves = new ArrayList<>();
 
     public PileSave(int diff, long time, Deck stock, ArrayList<Pile> piles, Stack<PileMove> pastMoves) {
@@ -732,41 +721,28 @@ class PileSave extends GameSave implements Serializable{
         timePast = time;
         // Stock
         for (Card c : stock) {
-            this.stock.add(new CardState(c.getRank(), c.getSuit(), true));
+            this.stock.add(new Card(c.getRank(), c.getSuit(), true));
         }
 
         // Piles
         for (Pile p : piles) {
-            ArrayList<CardState> pileList = new ArrayList<>();
+            ArrayList<Card> pileList = new ArrayList<>();
             for (Card c : p) {
-                pileList.add(new CardState(c.getRank(), c.getSuit(), c.isFaceDown()));
+                pileList.add(new Card(c.getRank(), c.getSuit(), c.isFaceDown()));
             }
             this.piles.add(pileList);
-        }
-    }
-
-    public static class CardState implements Serializable {
-        private static final long serialVersionUID = 1L;
-        public char rank;
-        public char suit;
-        public boolean faceDown;
-
-        public CardState(char rank, char suit, boolean faceDown) {
-            this.rank = rank;
-            this.suit = suit;
-            this.faceDown = faceDown;
         }
     }
 
     public static class PileMoveState implements Serializable {
         private static final long serialVersionUID = 1L;
 
-        public ArrayList<CardState> cardsMoved = new ArrayList<>();
+        public ArrayList<Card> cardsMoved = new ArrayList<>();
         public int movedFromIndex = -1;
         public int movedToIndex = -1;
-        public ArrayList<CardState> clearedStack;
-        public CardState fromFlipped = null;
-        public CardState toFlipped = null;
+        public ArrayList<Card> clearedStack;
+        public Card fromFlipped = null;
+        public Card toFlipped = null;
         public boolean drawMove;
 
         public PileMoveState(PileMove move, ArrayList<Pile> piles) {
@@ -782,9 +758,9 @@ class PileSave extends GameSave implements Serializable{
                 addClearedStack(move.clearedStack);
 
             if (move.fromFlipped != null)
-                fromFlipped = new CardState(move.fromFlipped.getRank(), move.fromFlipped.getSuit(), false);
+                fromFlipped = new Card(move.fromFlipped.getRank(), move.fromFlipped.getSuit(), false);
             if (move.toFlipped != null)
-                toFlipped = new CardState(move.toFlipped.getRank(), move.toFlipped.getSuit(), false);
+                toFlipped = new Card(move.toFlipped.getRank(), move.toFlipped.getSuit(), false);
         }
         /** Constructor where piles are searched for in 2 piles, index positive if pile1, negative if pile2 */
         public PileMoveState(PileMove move, ArrayList<Pile> piles1, ArrayList<Pile> piles2) {
@@ -803,18 +779,18 @@ class PileSave extends GameSave implements Serializable{
                 addClearedStack(move.clearedStack);
 
             if (move.fromFlipped != null)
-                fromFlipped = new CardState(move.fromFlipped.getRank(), move.fromFlipped.getSuit(), false);
+                fromFlipped = new Card(move.fromFlipped.getRank(), move.fromFlipped.getSuit(), false);
             if (move.toFlipped != null)
-                toFlipped = new CardState(move.toFlipped.getRank(), move.toFlipped.getSuit(), false);
+                toFlipped = new Card(move.toFlipped.getRank(), move.toFlipped.getSuit(), false);
         }
         private void addCardsMoved(ArrayList<Card> moved){
             for (Card c : moved)
-                this.cardsMoved.add(new CardState(c.getRank(), c.getSuit(), false));
+                this.cardsMoved.add(new Card(c.getRank(), c.getSuit(), false));
         }
         private void addClearedStack(ArrayList<Card> cleared){
             clearedStack = new ArrayList<>();
             for (Card c : cleared)
-                clearedStack.add(new CardState(c.getRank(), c.getSuit(), false));
+                clearedStack.add(new Card(c.getRank(), c.getSuit(), false));
         }
     }
 }

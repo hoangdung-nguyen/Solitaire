@@ -17,7 +17,7 @@ public class Menu extends JPanel {
     private String[] bNames = {"Klondike", "Pyramid", "TriPeaks", "Spider", "FreeCell", "Exit"};
     private JPanel centerPanel, leftPanel, rightPanel;
     JPanel cardLayoutPanel;
-    HashMap<String, JComponent> cards = new HashMap<>();
+    HashMap<String, Solitaire> cards = new HashMap<>();
     private final static int CARD_SCALE = 6;
     //Card graphics
     private static final long serialVersionUID = 1L;
@@ -31,7 +31,6 @@ public class Menu extends JPanel {
         Menu menu = new Menu();
         menu.cardLayoutPanel = new JPanel(new CardLayout());
         menu.cardLayoutPanel.add(menu, "Menu");
-        menu.cards.put("menu", menu);
         frame.add(menu.cardLayoutPanel);
         frame.addWindowListener(new WindowAdapter() {
             @Override
@@ -136,13 +135,13 @@ public class Menu extends JPanel {
         }
 
     }
-    private JComponent createGameInstance(String gameName, File saveFile) {
+    private Solitaire createGameInstance(String gameName, File saveFile) {
         switch (gameName) {
             case "Klondike": return (saveFile == null ? new Klondike() : new Klondike(saveFile.getPath())).start(this);
             case "Pyramid":
                 return (saveFile == null ? new PyramidGame() : new PyramidGame(saveFile.getPath())).start(this);
             case "TriPeaks":
-                return new Tripeaks();
+                return new Tripeaks().start(this);
             case "Spider":
                 if (saveFile != null) return new Spider(saveFile.getPath()).start(this);
                 int diff = getDifficulty();
@@ -168,14 +167,14 @@ public class Menu extends JPanel {
     private void startNewGame(String gameName){
         if(cards.get(gameName)==null){
             // Game not initialized, and has no saves
-            JComponent game = createGameInstance(gameName, null);
+            Solitaire game = createGameInstance(gameName, null);
             if(game == null) return;
             cardLayoutPanel.add(game, gameName);
             cards.put(gameName, game);
         }
         else {
             // Game initialized, new game
-            JComponent game = cards.get(gameName);
+            Solitaire game = cards.get(gameName);
             if(game instanceof PileSolitaire)
                 ((PileSolitaire) game).newGame();
             // TODO The other ones
@@ -185,7 +184,7 @@ public class Menu extends JPanel {
     }
 
     private void continueSavedGame(String gameName, File saveFile){
-        JComponent game = cards.get(gameName);
+        Solitaire game = cards.get(gameName);
         if(game == null){
             // Game not initialized
             game = createGameInstance(gameName, saveFile);
@@ -204,7 +203,7 @@ public class Menu extends JPanel {
     }
     private void autoSaveCurrentGame(){
         for(String gameName : cards.keySet()){
-            JComponent game = cards.get(gameName);
+            Solitaire game = cards.get(gameName);
             if(game.isVisible()) {
                 if(game instanceof PileSolitaire)
                     ((PileSolitaire) game).saveGame();

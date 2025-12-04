@@ -22,32 +22,11 @@ public class PyramidGame extends Solitaire {
         super();
         mainPanel = new JPanel(null);
         add(mainPanel, BorderLayout.CENTER);
-        mainPanel.setBackground(Utils.bgkColor);
+        mainPanel.setOpaque(false);
         showDifficultySelectionDialog();
         logic = new PyramidLogic(difficulty);
 
-        // Initialize ONCE when panel gets a real size
-        mainPanel.addComponentListener(new ComponentAdapter() {
-            private boolean initialized = false;
-
-            @Override
-            public void componentShown(ComponentEvent e) {
-                if (!initialized && getWidth() > 0) {
-                    initialized = true;
-                    initializeGameBoard();
-                }
-            }
-
-            @Override
-            public void componentResized(ComponentEvent e) {
-                if (!initialized && getWidth() > 0) {
-                    initialized = true;
-                    initializeGameBoard();
-                } else {
-                    resizeLayout();  // scale visuals on resize
-                }
-            }
-        });
+        initializeGameBoard();
 
 
 
@@ -98,7 +77,7 @@ public class PyramidGame extends Solitaire {
     }
 
     private void initializeGameBoard() {
-        int frameW = getWidth();
+        int frameW = mainPanel.getWidth();
         int cardW = Math.max(40, frameW / (28));
         int rSpacing = (int) (cardW * 0.60);
 
@@ -119,7 +98,7 @@ public class PyramidGame extends Solitaire {
             JCard jc = new JCard(node.getCard());
             jc.setFaceDown(!node.isFaceUp());
             jc.setBounds(node.getX(), node.getY(), node.getWidth(), node.getHeight());
-            add(jc, 0);
+            mainPanel.add(jc, 0);
             jCards.add(jc);
             jc.addMouseListener(new MouseAdapter() {
                 @Override
@@ -131,10 +110,12 @@ public class PyramidGame extends Solitaire {
         }
     }
 
-    private void resizeLayout() {
+    @Override
+    public void doLayout() {
+        super.doLayout();
         if (logic.pyramidCards == null || logic.pyramidCards.isEmpty()) return;
 
-        int frameW   = getWidth();
+        int frameW   = mainPanel.getWidth();
         int cardW    = Math.max(40, frameW / (14)); // SCALE
         int rSpacing = (int)(cardW * 0.60); // also scales with card size
 

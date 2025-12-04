@@ -31,9 +31,9 @@ public class Spider extends PileSolitaire {
         setupUtils();
         for (int i = 0; i < utilPiles.size(); ++i) {
             Pile p = utilPiles.get(i);
-            ArrayList<PileSave.CardState> pileList = saveData.utilPiles.get(i);
-            for (PileSave.CardState cs : pileList) {
-                p.add(new Card(cs.rank, cs.suit), cs.faceDown);
+            ArrayList<Card> pileList = saveData.utilPiles.get(i);
+            for (Card cs : pileList) {
+                p.add(cs, cs.isFaceDown());
             }
         }
         // Past moves
@@ -214,9 +214,9 @@ public class Spider extends PileSolitaire {
         PileSave state = new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
         state.utilPiles = new ArrayList<>();
         for (Pile p : utilPiles) {
-            ArrayList<PileSave.CardState> pileList = new ArrayList<>();
+            ArrayList<Card> pileList = new ArrayList<>();
             for (Card c : p) {
-                pileList.add(new PileSave.CardState(c.getRank(), c.getSuit(), c.isFaceDown()));
+                pileList.add(new Card(c.getRank(), c.getSuit(), c.isFaceDown()));
             }
             state.utilPiles.add(pileList);
         }
@@ -228,9 +228,9 @@ public class Spider extends PileSolitaire {
         super.loadSave(save);
         for (int i = 0; i < utilPiles.size(); ++i) {
             Pile p = utilPiles.get(i);
-            ArrayList<PileSave.CardState> pileList = save.utilPiles.get(i);
-            for (PileSave.CardState cs : pileList) {
-                p.add(new Card(cs.rank, cs.suit), cs.faceDown);
+            ArrayList<Card> pileList = save.utilPiles.get(i);
+            for (Card cs : pileList) {
+                p.add(cs, cs.isFaceDown());
             }
         }
         if (stock.isEmpty()) getCards.setVisible(false);

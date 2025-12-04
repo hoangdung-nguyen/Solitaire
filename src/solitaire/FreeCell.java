@@ -30,9 +30,9 @@ public class FreeCell extends PileSolitaire {
         }
         for (int i = 0; i < utilPiles.size(); ++i) {
             Pile p = utilPiles.get(i);
-            ArrayList<PileSave.CardState> pileList = saveData.utilPiles.get(i);
-            for (PileSave.CardState cs : pileList) {
-                p.add(new Card(cs.rank, cs.suit), cs.faceDown);
+            ArrayList<Card> pileList = saveData.utilPiles.get(i);
+            for (Card cs : pileList) {
+                p.add(cs, cs.isFaceDown());
             }
         }
         for (PileSave.PileMoveState pm : saveData.pastMoves) {
@@ -166,16 +166,16 @@ public class FreeCell extends PileSolitaire {
     public void loadSave(PileSave save) {
         clearTable();
         // Stock
-        for (PileSave.CardState cs : save.stock) {
+        for (Card cs : save.stock) {
             stock.add(new Card(cs.rank, cs.suit));
         }
 
         // Piles
         for (int i = 0; i < piles.size(); ++i) {
             Pile p = piles.get(i);
-            ArrayList<PileSave.CardState> pileList = save.piles.get(i);
-            for (PileSave.CardState cs : pileList) {
-                p.add(new Card(cs.rank, cs.suit), cs.faceDown);
+            ArrayList<Card> pileList = save.piles.get(i);
+            for (Card cs : pileList) {
+                p.add(new Card(cs.rank, cs.suit), cs.isFaceDown());
             }
         }
 
@@ -185,9 +185,9 @@ public class FreeCell extends PileSolitaire {
         }
         for (int i = 0; i < utilPiles.size(); ++i) {
             Pile p = utilPiles.get(i);
-            ArrayList<PileSave.CardState> pileList = save.utilPiles.get(i);
-            for (PileSave.CardState cs : pileList) {
-                p.add(new Card(cs.rank, cs.suit), cs.faceDown);
+            ArrayList<Card> pileList = save.utilPiles.get(i);
+            for (Card cs : pileList) {
+                p.add(new Card(cs.rank, cs.suit), cs.isFaceDown());
             }
         }
         addMouseListeners(piles);
@@ -210,9 +210,9 @@ public class FreeCell extends PileSolitaire {
         PileSave state = new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
         state.utilPiles = new ArrayList<>();
         for (Pile p : utilPiles) {
-            ArrayList<PileSave.CardState> pileList = new ArrayList<>();
+            ArrayList<Card> pileList = new ArrayList<>();
             for (Card c : p) {
-                pileList.add(new PileSave.CardState(c.getRank(), c.getSuit(), c.isFaceDown()));
+                pileList.add(new Card(c.getRank(), c.getSuit(), c.isFaceDown()));
             }
             state.utilPiles.add(pileList);
         }

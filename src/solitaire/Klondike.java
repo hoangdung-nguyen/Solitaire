@@ -37,9 +37,9 @@ public class Klondike extends PileSolitaire{
         //restore the wastepile and foundations
         for (int i=0; i<utilPiles.size(); ++i) {
             Pile p = utilPiles.get(i);
-            ArrayList<PileSave.CardState> pileList = saveData.utilPiles.get(i);
-            for (PileSave.CardState cs : pileList) {
-                p.add(new Card(cs.rank, cs.suit), cs.faceDown);
+            ArrayList<Card> pileList = saveData.utilPiles.get(i);
+            for (Card cs : pileList) {
+                p.add(cs, cs.isFaceDown());
             }
         }
 
@@ -266,9 +266,9 @@ public class Klondike extends PileSolitaire{
         PileSave state = new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
         state.utilPiles = new ArrayList<>();
         for (Pile p : utilPiles) {
-            ArrayList<PileSave.CardState> pileList = new ArrayList<>();
+            ArrayList<Card> pileList = new ArrayList<>();
             for (Card c : p)
-                pileList.add(new PileSave.CardState(c.getRank(), c.getSuit(), c.isFaceDown()));
+                pileList.add(new Card(c.getRank(), c.getSuit(), c.isFaceDown()));
 
             state.utilPiles.add(pileList);
         }

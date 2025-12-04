@@ -2,8 +2,12 @@ package solitaire;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.time.Duration;
+import java.time.Instant;
 
 public abstract class Solitaire extends JPanel implements SaveAndLoad{
     // Link back to the menu
@@ -13,6 +17,9 @@ public abstract class Solitaire extends JPanel implements SaveAndLoad{
     JLabel timeLabel;
     /** Stores tool buttons Home, Newgame, Undo */
     JPanel toolbar;
+    Timer time;
+    Instant start;
+
     /** connect to the menu and request focus in the current window */
     public Solitaire start(Menu menu) {
         mainMenu = menu;
@@ -105,6 +112,16 @@ public abstract class Solitaire extends JPanel implements SaveAndLoad{
         timeLabel.setForeground(Utils.fontColor);
         timeLabel.setOpaque(false);
         add(timeLabel, BorderLayout.NORTH);
+        start = Instant.now();
+        time = new Timer(1, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                long theTime = Duration.between(start, Instant.now()).getSeconds();
+                timeLabel.setText(String.format("%02d",theTime/60)+":"+String.format("%02d",theTime%60));
+            }
+        });
+        time.start();
+
     }
     private void switchToMainMenu(){
         saveGame();

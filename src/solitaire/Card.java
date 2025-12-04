@@ -2,7 +2,7 @@ package solitaire;
 
 import java.util.Collection;
 
-public class Card /*implements Comparable<Card>, java.io.Serializable*/ {
+public class Card implements /*Comparable<Card>,*/ java.io.Serializable {
     /**
      *
      */
@@ -15,6 +15,10 @@ public class Card /*implements Comparable<Card>, java.io.Serializable*/ {
     public Card(char rank, char suit) {
         this.rank = rank;
         this.suit = suit;
+    }
+    public Card(char rank, char suit, boolean isFaceDown) {
+        this(rank, suit);
+        this.isFaceDown = isFaceDown;
     }
 
     public Card(String a) {

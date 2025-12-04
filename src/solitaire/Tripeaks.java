@@ -2,22 +2,19 @@ package solitaire;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-import static solitaire.Utils.CARD_WIDTH;
-import static solitaire.Utils.bgkColor;
+import static solitaire.Utils.*;
 
 public class Tripeaks extends Solitaire{
 	private static final long serialVersionUID = 1L;
     private int numPeaks = 3;
     private int peakHeight = 4;
 
-    private JPanel panel;
+    private JPanel mainPanel;
 
     List<CardNode> allNodes;
     List<JCard> jcards;
@@ -32,36 +29,15 @@ public class Tripeaks extends Solitaire{
 
 	public Tripeaks(){
         super();
-        panel = new JPanel(null);
-        add(panel, BorderLayout.CENTER);
-        panel.setBackground(bgkColor);
+        mainPanel = new JPanel();
+        mainPanel.setLayout(null);
+        super.add(mainPanel, BorderLayout.CENTER);
+        mainPanel.setOpaque(false);
 
         showPeakSelectionDialog();
         showPeakHeightSelectionDialog();
 
-        // Initialize ONCE when panel gets a real size
-        addComponentListener(new ComponentAdapter() {
-            private boolean initialized = false;
-
-            @Override
-            public void componentShown(ComponentEvent e) {
-                if (!initialized && getWidth() > 0) {
-                    initialized = true;
-                    initializeGameBoard();
-                }
-            }
-
-            @Override
-            public void componentResized(ComponentEvent e) {
-                if (!initialized && getWidth() > 0) {
-                    initialized = true;
-                    initializeGameBoard();
-                } else {
-                   resizeLayout();  // scale visuals on resize
-                }
-            }
-        });
-
+        initializeGameBoard();
 	}
 
     @Override
@@ -80,7 +56,7 @@ public class Tripeaks extends Solitaire{
     }
 
     private void initializeGameBoard(){
-        int frameW = getWidth();
+        int frameW = mainPanel.getWidth();
         int cardW = Math.max(40, frameW / (numPeaks * peakHeight * 2));
         int rSpacing = (int)(cardW * 0.60);
 
@@ -109,7 +85,6 @@ public class Tripeaks extends Solitaire{
         }
 
         layout.applyLayout(allNodes);
-        setLayout(null);
 
         for(CardNode node : allNodes){
             node.setFaceUp(node.isUncovered());
@@ -121,7 +96,7 @@ public class Tripeaks extends Solitaire{
             JCard jc = new JCard(node.getCard());
             jc.setFaceDown(!node.isFaceUp());
             jc.setBounds(node.getX(), node.getY(), node.getWidth(), node.getHeight());
-            panel.add(jc, 0);
+            mainPanel.add(jc, 0);
             jcards.add(jc);
             jc.addMouseListener(new MouseAdapter(){
                 @Override
@@ -140,8 +115,8 @@ public class Tripeaks extends Solitaire{
     }
 
     private void createStockDiscard(){
-        if(topStockCard != null) panel.remove(topStockCard);
-        if(topDiscardCard != null) panel.remove(topDiscardCard);
+        if(topStockCard != null) mainPanel.remove(topStockCard);
+        if(topDiscardCard != null) mainPanel.remove(topDiscardCard);
 
         stockPile.clear();
         discardPile.clear();
@@ -154,17 +129,17 @@ public class Tripeaks extends Solitaire{
             Card stockTop = stockPile.getLast();
             topStockCard = new JCard(stockTop);
             topStockCard.setFaceDown(true);
-            panel.add(topStockCard);
+            mainPanel.add(topStockCard, 0);
         } else{
            topStockCard = new JCard(Utils.cardShadow);
-           panel.add(topStockCard);
+           mainPanel.add(topStockCard, 0);
         }
 
         Card f = stockPile.removeLast();
         discardPile.add(f);
         topDiscardCard = new JCard(f);
         topDiscardCard.setFaceDown(false);
-        panel.add(topDiscardCard);
+        mainPanel.add(topDiscardCard, 0);
 
 
         positionStockDiscardPiles();
@@ -180,10 +155,10 @@ public class Tripeaks extends Solitaire{
 
     private void handleStockClick(){
         if(stockPile.isEmpty()){
-            panel.remove(topStockCard);
+            mainPanel.remove(topStockCard);
             topStockCard = new JCard(Utils.cardShadow);
             topStockCard.setFaceDown(false);
-            panel.add(topStockCard);
+            mainPanel.add(topStockCard);
             positionStockDiscardPiles();
             repaint();
             return;
@@ -200,15 +175,14 @@ public class Tripeaks extends Solitaire{
             topStockCard.setCard(newTop);
             topStockCard.setFaceDown(true);
         }else {
-            panel.remove(topStockCard);
+            mainPanel.remove(topStockCard);
             topStockCard = new JCard(Utils.cardShadow);
             topStockCard.setFaceDown(false);
-            panel.add(topStockCard);
+            mainPanel.add(topStockCard);
 
         }
 
         positionStockDiscardPiles();
-
         repaint();
 
     }
@@ -220,9 +194,9 @@ public class Tripeaks extends Solitaire{
         JCard s = jcards.get(0);
         int w = s.getWidth();
         int cardH = s.getHeight();
-        int y = panel.getHeight() - cardH - 20;
+        int y = mainPanel.getHeight() - cardH - 20;
 
-        int midX = panel.getWidth()/2;
+        int midX = mainPanel.getWidth()/2;
         int spacing = (int)(w*1.2);
         int stockX = midX - spacing - w /2;
         int discardX = midX + spacing - w / 2;
@@ -233,7 +207,6 @@ public class Tripeaks extends Solitaire{
 
 
     }
-
 
     private void showPeakSelectionDialog(){
         String[] options = {"2 Peaks", "3 Peaks", "4 Peaks", "5 Peaks", };
@@ -256,10 +229,12 @@ public class Tripeaks extends Solitaire{
         peakHeight = Integer.parseInt(choice.substring(0,1));
     }
 
-    private void resizeLayout() {
+    @Override
+    public void doLayout() {
+        super.doLayout();
         if (allNodes == null || allNodes.isEmpty()) return;
 
-        int frameW   = getWidth();
+        int frameW   = mainPanel.getWidth();
         int cardW    = Math.max(40, frameW / (numPeaks * peakHeight * 2)); // SCALE
         int rSpacing = (int)(cardW * 0.60); // also scales with card size
 
@@ -316,7 +291,7 @@ public class Tripeaks extends Solitaire{
 
         n.setRemoved(true);
         n.setFaceUp(false);
-        panel.remove(jc);
+        mainPanel.remove(jc);
 
         discardPile.add(n.card);
         topDiscardCard.setCard(n.card);
@@ -355,7 +330,7 @@ public class Tripeaks extends Solitaire{
     }
 
     private void replayGame(){
-        panel.removeAll();
+        mainPanel.removeAll();
         revalidate();
         repaint();
         initializeGameBoard();
