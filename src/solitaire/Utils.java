@@ -15,7 +15,7 @@ public class Utils {
 
     static {
         try {
-            AudioInputStream winnerSoundAudioStream = AudioSystem.getAudioInputStream(Objects.requireNonNull(Utils.class.getResourceAsStream("/assets/winnersound.wav")));
+            AudioInputStream winnerSoundAudioStream = AudioSystem.getAudioInputStream(Objects.requireNonNull(Utils.class.getResourceAsStream("/winnersound.wav")));
             winAudio = AudioSystem.getClip();
             winAudio.open(winnerSoundAudioStream);
         } catch (UnsupportedAudioFileException e) {
@@ -41,7 +41,7 @@ public class Utils {
 
     static {
         try {
-            jersey = Font.createFont(Font.TRUETYPE_FONT, Utils.class.getResourceAsStream("/assets/Jersey10-Regular.ttf"));
+            jersey = Font.createFont(Font.TRUETYPE_FONT, Utils.class.getResourceAsStream("/Jersey10-Regular.ttf"));
 
         } catch (FontFormatException e) {
             throw new RuntimeException(e);
@@ -57,7 +57,7 @@ public class Utils {
 
     static {
         try {
-            undoIcon = ImageIO.read(Utils.class.getResourceAsStream("/assets/undo.png"));
+            undoIcon = ImageIO.read(Utils.class.getResourceAsStream("/undo.png"));
         } catch (IOException e) {
             System.out.println("The asset for the undo button does not exist.");
             System.exit(1);
@@ -68,7 +68,7 @@ public class Utils {
 
     static {
         try {
-            homeIcon = ImageIO.read(Utils.class.getResourceAsStream("/assets/home-button.png"));
+            homeIcon = ImageIO.read(Utils.class.getResourceAsStream("/home-button.png"));
         } catch (IOException e) {
             System.out.println("The asset for the home button does not exist.");
             System.exit(1);
@@ -80,7 +80,7 @@ public class Utils {
 
     static {
         try {
-            cardSheet = ImageIO.read(Utils.class.getResourceAsStream("/assets/kerenel_Cards.png"));
+            cardSheet = ImageIO.read(Utils.class.getResourceAsStream("/kerenel_Cards.png"));
         } catch (IOException e) {
             System.out.println("The asset for the cards does not exist.");
             System.exit(1);
