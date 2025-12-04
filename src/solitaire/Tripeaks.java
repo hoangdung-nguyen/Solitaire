@@ -297,11 +297,12 @@ public class Tripeaks extends JPanel{
 
          for(int i = 0; i < allNodes.size(); i++){
              CardNode c = allNodes.get(i);
-             if(!c.isRemoved() && !c.isFaceUp() && c.isUncovered()){
-                 c.setFaceUp(true);
+             if(c.getLeftCover() == n && c.getRightCover() == n){
+                 if(!c.isRemoved() && !c.isFaceUp() && c.isUncovered()){
+                     c.setFaceUp(true);
+                     jcards.get(i).setFaceDown(false);
+                 }
 
-                 JCard m = jcards.get(i);
-                 m.setFaceDown(false);
              }
          }
 
