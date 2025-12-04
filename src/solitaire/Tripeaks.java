@@ -80,7 +80,7 @@ public class Tripeaks extends Solitaire{
     private void initializeGameBoard(){
         int frameW = mainPanel.getWidth();
         int frameH = (int) (mainPanel.getHeight() * (1.0-STOCK_AREA_RATIO));
-        int totalH = mainPanel.getHeight();
+
 
 
         int[] size = computeCardSize(frameW, frameH);
