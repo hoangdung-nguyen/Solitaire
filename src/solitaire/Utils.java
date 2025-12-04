@@ -8,13 +8,14 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class Utils {
     static Clip winAudio;
 
     static {
         try {
-            AudioInputStream winnerSoundAudioStream = AudioSystem.getAudioInputStream(Utils.class.getResourceAsStream("/assets/winnersound.wav"));
+            AudioInputStream winnerSoundAudioStream = AudioSystem.getAudioInputStream(Objects.requireNonNull(Utils.class.getResourceAsStream("/assets/winnersound.wav")));
             winAudio = AudioSystem.getClip();
             winAudio.open(winnerSoundAudioStream);
         } catch (UnsupportedAudioFileException e) {

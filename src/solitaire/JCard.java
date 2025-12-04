@@ -27,6 +27,23 @@ public class JCard extends JToggleButton {
         setPreferredSize(new Dimension(100, 100));
     }
 
+    public JCard(BufferedImage c){
+        card = new Card('1','s');
+        master = c;
+        greyed = c;
+        currentImage = c;
+
+        setContentAreaFilled(false);
+        setFocusPainted(false);
+        setBorderPainted(false);
+    }
+
+    public void setCard(Card c){
+        card = c;
+        master = Utils.getCardAsset(c);
+        repaint();
+    }
+
     public static double getRatio() {
         return (double) Utils.CARD_HEIGHT / Utils.CARD_WIDTH;
     }

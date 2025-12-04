@@ -4,6 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -98,10 +100,16 @@ public class Tripeaks extends JPanel{
             jc.setBounds(node.getX(), node.getY(), node.getWidth(), node.getHeight());
             add(jc, 0);
             jcards.add(jc);
+            jc.addMouseListener(new MouseAdapter(){
+                @Override
+                public void mouseClicked(MouseEvent e){
+                    playCard(jc);
+                }
+            });
 
         }
 
-        createStockDiscard(cardW);
+        createStockDiscard();
 
 
 
@@ -111,7 +119,7 @@ public class Tripeaks extends JPanel{
 
     }
 
-    private void createStockDiscard(int w){
+    private void createStockDiscard(){
         if(topStockCard != null) remove(topStockCard);
         if(topDiscardCard != null) remove(topDiscardCard);
 
@@ -128,20 +136,70 @@ public class Tripeaks extends JPanel{
             topStockCard.setFaceDown(true);
             add(topStockCard);
         } else{
-            topStockCard = new JCard(cardShadow);
+           topStockCard = new JCard(Utils.cardShadow);
+           add(topStockCard);
         }
 
-        topDiscardCard = new JCard(cardShadow);
-        topDiscardCard.setFaceDown(true);
+        Card f = stockPile.removeLast();
+        discardPile.add(f);
+        topDiscardCard = new JCard(f);
+        topDiscardCard.setFaceDown(false);
         add(topDiscardCard);
 
-        positionStockDiscardPiles(w);
+
+        positionStockDiscardPiles();
+
+        topStockCard.addMouseListener(new MouseAdapter(){
+            @Override
+            public void mouseClicked(MouseEvent e_){
+                handleStockClick();
+            }
+        });
+
     }
 
-    private void positionStockDiscardPiles(int w){
-        if(topStockCard == null || topDiscardCard == null) return;
+    private void handleStockClick(){
+        if(stockPile.isEmpty()){
+            remove(topStockCard);
+            topStockCard = new JCard(Utils.cardShadow);
+            topStockCard.setFaceDown(false);
+            add(topStockCard);
+            positionStockDiscardPiles();
+            repaint();
+            return;
+        }
 
-        int cardH = (int) (w * JCard.getRatio());
+        Card next = stockPile.removeLast();
+        discardPile.add(next);
+
+        topDiscardCard.setCard(next);
+        topDiscardCard.setFaceDown(false);
+
+        if(!stockPile.isEmpty()){
+            Card newTop = stockPile.getLast();
+            topStockCard.setCard(newTop);
+            topStockCard.setFaceDown(true);
+        }else {
+            remove(topStockCard);
+            topStockCard = new JCard(Utils.cardShadow);
+            topStockCard.setFaceDown(false);
+            add(topStockCard);
+
+        }
+
+        positionStockDiscardPiles();
+
+        repaint();
+
+    }
+
+    private void positionStockDiscardPiles(){
+        if(topStockCard == null || topDiscardCard == null) return;
+        if(jcards == null || jcards.isEmpty()) return;
+
+        JCard s = jcards.get(0);
+        int w = s.getWidth();
+        int cardH = s.getHeight();
         int y = getHeight() - cardH - 20;
 
         int midX = getWidth()/2;
@@ -151,6 +209,8 @@ public class Tripeaks extends JPanel{
 
         topStockCard.setBounds(stockX, y, w, cardH);
         topDiscardCard.setBounds(discardX, y, w, cardH);
+
+
 
     }
 
@@ -194,12 +254,63 @@ public class Tripeaks extends JPanel{
             jc.setBounds(n.getX(), n.getY(), n.getWidth(), n.getHeight());
         }
 
-        positionStockDiscardPiles(cardW);
+        positionStockDiscardPiles();
+
 
 
         revalidate();
         repaint();
     }
+
+    private boolean isValidMove(Card card, Card top){
+        int r1 = card.getRankValue();
+        int r2 = top.getRankValue();
+
+        if(Math.abs(r1 - r2) == 1) return true;
+
+        if((r1 == 13 && r2 == 1) || (r1 == 1 && r2 == 13)) return true;
+
+        return false;
+
+    }
+
+    private void playCard(JCard jc){
+        int index = jcards.indexOf(jc);
+        if(index == -1) return;
+
+        CardNode n = allNodes.get(index);
+
+        if(!n.isFaceUp()) return;
+
+        if(!n.isUncovered()) return;
+
+        Card topDiscard = discardPile.get(discardPile.size() - 1);
+        if(!isValidMove(n.card, topDiscard)) return;
+
+        n.setRemoved(true);
+        n.setFaceUp(false);
+         remove(jc);
+
+         discardPile.add(n.card);
+         topDiscardCard.setCard(n.card);
+         topDiscardCard.setFaceDown(false);
+
+         for(int i = 0; i < allNodes.size(); i++){
+             CardNode c = allNodes.get(i);
+             if(!c.isRemoved() && !c.isFaceUp() && c.isUncovered()){
+                 c.setFaceUp(true);
+
+                 JCard m = jcards.get(i);
+                 m.setFaceDown(false);
+             }
+         }
+
+         revalidate();
+         repaint();
+
+    }
+
+
 
 
 }
