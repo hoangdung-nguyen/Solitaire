@@ -88,7 +88,7 @@ public class PyramidGame extends Solitaire {
         int cardW = size[0];
         int cardH = size[1];
 
-        TriangleLayout layout = new TriangleLayout(1, 7, frameW, frameH, cardW, cardH);
+        layout = new TriangleLayout(1, 7, mainPanel);
 
         jCards = new ArrayList<>();
 
@@ -135,7 +135,6 @@ public class PyramidGame extends Solitaire {
         int cardW = size[0];
         int cardH = size[1];
 
-        TriangleLayout layout = new TriangleLayout(1, 7, frameW, frameH, cardW, cardH);
 
         layout.applyLayout(logic.pyramidCards);
 
