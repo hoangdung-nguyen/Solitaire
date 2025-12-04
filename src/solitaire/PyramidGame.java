@@ -75,7 +75,9 @@ public class PyramidGame extends Solitaire {
 
     @Override
     protected void newGame() {
-
+        mainPanel.removeAll();
+        logic = new PyramidLogic(difficulty);
+        initializeGameBoard();
     }
 
     @Override
@@ -123,13 +125,6 @@ public class PyramidGame extends Solitaire {
             jCards.add(jc);
 
             jc.addMouseListener(pairHandler);
-
-            /*jc.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    //playCard(jc);
-                }
-            });*/
 
         }
     }
