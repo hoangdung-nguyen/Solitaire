@@ -8,9 +8,9 @@ import java.util.Stack;
 public class PyramidLogic {
 	private static final long serialVersionUID = 1L;
 	Deck stock;
-    ArrayList<Pile> stockAndWaste;
-    Pile stockPile; //reference variable so we don't have to keep calling stockAndWaste.get(0)
-    Pile wastePile; //reference variable so we don't have to keep calling stockAndWaste.get(1)
+    ArrayList<ArrayList<CardNode>> stockAndWaste;
+    ArrayList<CardNode> stockPile; //reference variable so we don't have to keep calling stockAndWaste.get(0)
+    ArrayList<CardNode> wastePile; //reference variable so we don't have to keep calling stockAndWaste.get(1)
     List<CardNode> pyramidCards; // the pyramid cards!
     int difficulty; //0 for infinite stockFlips, 1 for 2 stockFlips
     int restocks;
@@ -30,14 +30,15 @@ public class PyramidLogic {
         }
 
         stockAndWaste = new ArrayList<>();//The stock and waste piles are initialized and their aliases are set.
-        stockAndWaste.add(new Pile(2));
-        stockAndWaste.add(new Pile(2));
+        stockAndWaste.add(new ArrayList<>());
+        stockAndWaste.add(new ArrayList<>());
         stockPile = stockAndWaste.get(0);
         wastePile = stockAndWaste.get(1);
 
         while(!stock.isEmpty())//the stockpile is initialized
         {
-            stockPile.add(stock.pop());
+            stockPile.add(new CardNode(stock.pop()));
+            stockPile.getLast().setFaceUp(true);
         }
 
         pastMoves = new Stack<>();
