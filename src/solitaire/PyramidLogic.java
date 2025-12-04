@@ -13,7 +13,7 @@ public class PyramidLogic {
     List<CardNode> pyramidCards; // the pyramid cards!
     int difficulty; //0 for infinite stockFlips, 1 for 2 stockFlips
     int stockFlips;
-    private static final char[] ranks = {'A', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K' };
+    private static final char[] ranks = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K' };
     ArrayList<PyramidMove> pyramidMoves;
 
 	public PyramidLogic(int diff){
@@ -63,18 +63,13 @@ public class PyramidLogic {
     /** Converts the rank of a card (char value) into an integer for adds13 checking. */
     private int rankToVal(Card card)
     {
-        for(int i = 0; i < 13; ++i)
-        {
-            if(ranks[i] == card.getRank())
-                return i+1;
-        }
-        return -1;
+            return Utils.RANK_ORDER.indexOf(card.rank) +1;
     }
 
     /** Checks to see if the two cards selected add to 13. */
     public boolean adds13(Card firstCard, Card secondCard)
     {
-        return rankToVal(firstCard) + rankToVal(secondCard) == 13;
+        return firstCard.getRankValue() + secondCard.getRankValue() == 13;
     }
 
     /** If the two cards selected add to 13, they are removed. Otherwise, nothing happens. */

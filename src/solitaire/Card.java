@@ -81,6 +81,11 @@ public class Card /*implements Comparable<Card>, java.io.Serializable*/ {
         return rank;
     }
 
+    public int getRankValue()
+    {
+        return Utils.RANK_ORDER.indexOf(rank) +1;
+    }
+
     public char getSuit() {
         return suit;
     }
