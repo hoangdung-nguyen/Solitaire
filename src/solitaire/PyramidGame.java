@@ -23,7 +23,7 @@ public class PyramidGame extends Solitaire {
 
     PyramidGame() {
         super();
-        mainPanel = new JPanel(new BorderLayout());
+        mainPanel = new JPanel(null);
         add(mainPanel, BorderLayout.CENTER);
         mainPanel.setOpaque(false);
         showDifficultySelectionDialog();
