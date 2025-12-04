@@ -19,7 +19,7 @@ public class Solitaire extends JPanel implements SaveAndLoad{
         requestFocusInWindow();
         return this;
     }
-
+//
     public static void main(String[]args){
         JFrame frame = new JFrame("Solitaires");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
