@@ -99,7 +99,7 @@ public class PyramidGame extends Solitaire {
 
     private void initializeGameBoard() {
         int frameW = getWidth();
-        int cardW = Math.max(40, frameW / (28));
+        int cardW = Math.max(40, frameW / (280));
         int rSpacing = (int) (cardW * 0.60);
 
 
@@ -135,7 +135,7 @@ public class PyramidGame extends Solitaire {
         if (logic.pyramidCards == null || logic.pyramidCards.isEmpty()) return;
 
         int frameW   = getWidth();
-        int cardW    = Math.max(40, frameW / (14)); // SCALE
+        int cardW    = Math.max(40, frameW / (280)); // SCALE
         int rSpacing = (int)(cardW * 0.60); // also scales with card size
 
         TriangleLayout layout = new TriangleLayout(1, 7, frameW, rSpacing);

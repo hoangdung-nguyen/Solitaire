@@ -12,12 +12,10 @@ import java.util.List;
 import static solitaire.Utils.CARD_WIDTH;
 import static solitaire.Utils.bgkColor;
 
-public class Tripeaks extends Solitaire{
+public class Tripeaks extends JPanel{
 	private static final long serialVersionUID = 1L;
     private int numPeaks = 3;
     private int peakHeight = 4;
-
-    private JPanel panel;
 
     List<CardNode> allNodes;
     List<JCard> jcards;
@@ -31,10 +29,8 @@ public class Tripeaks extends Solitaire{
 	Deck allCards;
 
 	public Tripeaks(){
-        super();
-        panel = new JPanel(null);
-        add(panel, BorderLayout.CENTER);
-        panel.setBackground(bgkColor);
+        super(null);
+        setBackground(bgkColor);
 
         showPeakSelectionDialog();
         showPeakHeightSelectionDialog();
@@ -63,21 +59,6 @@ public class Tripeaks extends Solitaire{
         });
 
 	}
-
-    @Override
-    protected void undoLastMove() {
-
-    }
-
-    @Override
-    protected void newGame() {
-
-    }
-
-    @Override
-    void saveGame() {
-
-    }
 
     private void initializeGameBoard(){
         int frameW = getWidth();
@@ -121,7 +102,7 @@ public class Tripeaks extends Solitaire{
             JCard jc = new JCard(node.getCard());
             jc.setFaceDown(!node.isFaceUp());
             jc.setBounds(node.getX(), node.getY(), node.getWidth(), node.getHeight());
-            panel.add(jc, 0);
+            add(jc, 0);
             jcards.add(jc);
             jc.addMouseListener(new MouseAdapter(){
                 @Override
@@ -134,14 +115,17 @@ public class Tripeaks extends Solitaire{
 
         createStockDiscard();
 
+
+
+
         repaint();
 
 
     }
 
     private void createStockDiscard(){
-        if(topStockCard != null) panel.remove(topStockCard);
-        if(topDiscardCard != null) panel.remove(topDiscardCard);
+        if(topStockCard != null) remove(topStockCard);
+        if(topDiscardCard != null) remove(topDiscardCard);
 
         stockPile.clear();
         discardPile.clear();
@@ -154,17 +138,17 @@ public class Tripeaks extends Solitaire{
             Card stockTop = stockPile.getLast();
             topStockCard = new JCard(stockTop);
             topStockCard.setFaceDown(true);
-            panel.add(topStockCard);
+            add(topStockCard);
         } else{
            topStockCard = new JCard(Utils.cardShadow);
-           panel.add(topStockCard);
+           add(topStockCard);
         }
 
         Card f = stockPile.removeLast();
         discardPile.add(f);
         topDiscardCard = new JCard(f);
         topDiscardCard.setFaceDown(false);
-        panel.add(topDiscardCard);
+        add(topDiscardCard);
 
 
         positionStockDiscardPiles();
@@ -180,10 +164,10 @@ public class Tripeaks extends Solitaire{
 
     private void handleStockClick(){
         if(stockPile.isEmpty()){
-            panel.remove(topStockCard);
+            remove(topStockCard);
             topStockCard = new JCard(Utils.cardShadow);
             topStockCard.setFaceDown(false);
-            panel.add(topStockCard);
+            add(topStockCard);
             positionStockDiscardPiles();
             repaint();
             return;
@@ -200,10 +184,10 @@ public class Tripeaks extends Solitaire{
             topStockCard.setCard(newTop);
             topStockCard.setFaceDown(true);
         }else {
-            panel.remove(topStockCard);
+            remove(topStockCard);
             topStockCard = new JCard(Utils.cardShadow);
             topStockCard.setFaceDown(false);
-            panel.add(topStockCard);
+            add(topStockCard);
 
         }
 
@@ -220,9 +204,9 @@ public class Tripeaks extends Solitaire{
         JCard s = jcards.get(0);
         int w = s.getWidth();
         int cardH = s.getHeight();
-        int y = panel.getHeight() - cardH - 20;
+        int y = getHeight() - cardH - 20;
 
-        int midX = panel.getWidth()/2;
+        int midX = getWidth()/2;
         int spacing = (int)(w*1.2);
         int stockX = midX - spacing - w /2;
         int discardX = midX + spacing - w / 2;
@@ -316,63 +300,29 @@ public class Tripeaks extends Solitaire{
 
         n.setRemoved(true);
         n.setFaceUp(false);
-        panel.remove(jc);
+         remove(jc);
 
-        discardPile.add(n.card);
-        topDiscardCard.setCard(n.card);
-        topDiscardCard.setFaceDown(false);
+         discardPile.add(n.card);
+         topDiscardCard.setCard(n.card);
+         topDiscardCard.setFaceDown(false);
 
-        for(int i = 0; i < allNodes.size(); i++){
-            CardNode c = allNodes.get(i);
-            if(c.getLeftCover() == n || c.getRightCover() == n){
-                if(!c.isRemoved() && !c.isFaceUp() && c.isUncovered()){
-                    c.setFaceUp(true);
-                    jcards.get(i).setFaceDown(false);
-                }
+         for(int i = 0; i < allNodes.size(); i++){
+             CardNode c = allNodes.get(i);
+             if(c.getLeftCover() == n || c.getRightCover() == n){
+                 if(!c.isRemoved() && !c.isFaceUp() && c.isUncovered()){
+                     c.setFaceUp(true);
+                     jcards.get(i).setFaceDown(false);
+                 }
+
              }
-        }
-        revalidate();
-        repaint();
+         }
 
-    }
-
-    private void showEndGameDialog(){
-        boolean w = checkWin();
-        String title = w ? "You Won!" : "Game Over";
-        String message = w? "Congratulations! You cleared all the cards. \nWhat would you like to do?" : "No more moves. \nWHat would you like to do?";
-
-        String[] options = {"Replay", "Home", "Exit"};
-
-        int choice = JOptionPane.showOptionDialog(this,message, title, JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-
-        if(choice == 0){
-            replayGame();
-        } else if (choice == 1){
-            goHome();
-        }else if (choice == 2){
-            System.exit(0);
-        }
-    }
-
-    private void replayGame(){
-        panel.removeAll();
-        revalidate();
-        repaint();
-        initializeGameBoard();
-    }
-
-    private void goHome(){
+         revalidate();
+         repaint();
 
     }
 
 
-    @Override
-    public GameSave makeSave() {
-        return null;
-    }
 
-    @Override
-    public void loadSave(PileSave save) {
 
-    }
 }
