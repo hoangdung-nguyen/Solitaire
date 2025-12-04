@@ -78,11 +78,13 @@ public class PyramidGame extends Solitaire {
 
     private void initializeGameBoard() {
         int frameW = mainPanel.getWidth();
-        int cardW = Math.max(40, frameW / (28));
-        int rSpacing = (int) (cardW * 0.60);
+        int frameH = (int) (mainPanel.getHeight() * (1.0-Tripeaks.STOCK_AREA_RATIO));
+        int[] size = computeCardSize(frameW, frameH);
+        int cardW = size[0];
+        int cardH = size[1];
 
 
-        TriangleLayout layout = new TriangleLayout(1, 7, frameW, rSpacing);
+        TriangleLayout layout = new TriangleLayout(1, 7, frameW, frameH,  cardW, cardH);
 
         jCards = new ArrayList<>();
 
@@ -116,10 +118,14 @@ public class PyramidGame extends Solitaire {
         if (logic.pyramidCards == null || logic.pyramidCards.isEmpty()) return;
 
         int frameW   = mainPanel.getWidth();
-        int cardW    = Math.max(40, frameW / (14)); // SCALE
-        int rSpacing = (int)(cardW * 0.60); // also scales with card size
+        int frameH = (int) (mainPanel.getHeight() * (1.0-Tripeaks.STOCK_AREA_RATIO));
+        int[] size = computeCardSize(frameW, frameH);
+        int cardW = size[0];
+        int cardH = size[1];
 
-        TriangleLayout layout = new TriangleLayout(1, 7, frameW, rSpacing);
+
+        TriangleLayout layout = new TriangleLayout(1, 7, frameW, frameH,  cardW, cardH);
+
         layout.applyLayout(logic.pyramidCards);
 
         // Update all JCard components
@@ -132,5 +138,25 @@ public class PyramidGame extends Solitaire {
 
         revalidate();
         repaint();
+    }
+
+    private int[] computeCardSize(int frameW, int frameH){
+        double ratio = JCard.getRatio();
+        // Width-based constraint
+        int cardW_byWidth = Math.max(40, frameW / (1 * 7 * 2));
+        double cardH_byWidth = cardW_byWidth * ratio;
+
+        // Height-based constraint assuming up to 80% overlap (20% visible)
+        // Max height of pyramid with overlapFraction = 0.8:
+        // H = cardH * (0.8 + 0.2 * peakHeight)
+        double denom = 0.8 + 0.2 * 7;
+        if (denom <= 0) denom = 1; // safety
+        double cardH_maxByHeight = frameH / denom;
+        double cardW_byHeight = cardH_maxByHeight / ratio;
+
+        int cardW = (int) Math.max(40, Math.min(cardW_byWidth, cardW_byHeight));
+        int cardH = (int) (cardW * ratio);
+
+        return new int[]{cardW, cardH};
     }
 }

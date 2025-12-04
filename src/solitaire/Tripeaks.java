@@ -14,6 +14,8 @@ public class Tripeaks extends Solitaire{
     private int numPeaks = 3;
     private int peakHeight = 4;
 
+    protected static final double STOCK_AREA_RATIO = 0.20;
+
     private JPanel mainPanel;
 
     List<CardNode> allNodes;
@@ -47,7 +49,7 @@ public class Tripeaks extends Solitaire{
 
     @Override
     protected void newGame() {
-
+        replayGame();
     }
 
     @Override
@@ -55,14 +57,37 @@ public class Tripeaks extends Solitaire{
 
     }
 
+    private int[] computeCardSize(int frameW, int frameH){
+        double ratio = JCard.getRatio();
+        // Width-based constraint
+        int cardW_byWidth = Math.max(40, frameW / (numPeaks * peakHeight * 2));
+        double cardH_byWidth = cardW_byWidth * ratio;
+
+        // Height-based constraint assuming up to 80% overlap (20% visible)
+        // Max height of pyramid with overlapFraction = 0.8:
+        // H = cardH * (0.8 + 0.2 * peakHeight)
+        double denom = 0.8 + 0.2 * peakHeight;
+        if (denom <= 0) denom = 1; // safety
+        double cardH_maxByHeight = frameH / denom;
+        double cardW_byHeight = cardH_maxByHeight / ratio;
+
+        int cardW = (int) Math.max(40, Math.min(cardW_byWidth, cardW_byHeight));
+        int cardH = (int) (cardW * ratio);
+
+        return new int[]{cardW, cardH};
+    }
+
     private void initializeGameBoard(){
         int frameW = mainPanel.getWidth();
-        int cardW = Math.max(40, frameW / (numPeaks * peakHeight * 2));
-        int rSpacing = (int)(cardW * 0.60);
+        int frameH = (int) (mainPanel.getHeight() * (1.0-STOCK_AREA_RATIO));
+        int totalH = mainPanel.getHeight();
 
 
+        int[] size = computeCardSize(frameW, frameH);
+        int cardW = size[0];
+        int cardH = size[1];
 
-        TriangleLayout layout = new TriangleLayout(numPeaks, peakHeight, frameW, rSpacing);
+        TriangleLayout layout = new TriangleLayout(numPeaks, peakHeight, frameW, frameH, cardW, cardH);
 
         int decksNeeded = layout.getDecksNeeded();
         int cardsNeeded = layout.getTotalCardsNeeded();
@@ -108,7 +133,7 @@ public class Tripeaks extends Solitaire{
         }
 
         createStockDiscard();
-
+        revalidate();
         repaint();
 
 
@@ -194,7 +219,9 @@ public class Tripeaks extends Solitaire{
         JCard s = jcards.get(0);
         int w = s.getWidth();
         int cardH = s.getHeight();
-        int y = mainPanel.getHeight() - cardH - 20;
+        int peakAreaH = (int) (mainPanel.getHeight() * (1.0-STOCK_AREA_RATIO));
+        int y = peakAreaH + 20;
+        //int y = mainPanel.getHeight() - cardH - 20;
 
         int midX = mainPanel.getWidth()/2;
         int spacing = (int)(w*1.2);
@@ -209,7 +236,7 @@ public class Tripeaks extends Solitaire{
     }
 
     private void showPeakSelectionDialog(){
-        String[] options = {"2 Peaks", "3 Peaks", "4 Peaks", "5 Peaks", };
+        String[] options = {"1 Test!!!!!!", "2 Peaks", "3 Peaks", "4 Peaks", "5 Peaks", };
 
         String choice = (String) JOptionPane.showInputDialog(this, "Select number of peaks:", "TriPeaks Setup", JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
 
@@ -235,10 +262,14 @@ public class Tripeaks extends Solitaire{
         if (allNodes == null || allNodes.isEmpty()) return;
 
         int frameW   = mainPanel.getWidth();
-        int cardW    = Math.max(40, frameW / (numPeaks * peakHeight * 2)); // SCALE
-        int rSpacing = (int)(cardW * 0.60); // also scales with card size
+        int frameH = (int) (mainPanel.getHeight() * (1.0-STOCK_AREA_RATIO));
+        int totalH = mainPanel.getHeight();
 
-        TriangleLayout layout = new TriangleLayout(numPeaks, peakHeight, frameW, rSpacing);
+        int[] size = computeCardSize(frameW, frameH);
+        int cardW = size[0];
+        int cardH = size[1];
+
+        TriangleLayout layout = new TriangleLayout(numPeaks, peakHeight, frameW, frameH, cardW, cardH);
         layout.applyLayout(allNodes);
 
         // Update all JCard components
