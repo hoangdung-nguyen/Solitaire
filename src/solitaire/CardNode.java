@@ -18,7 +18,7 @@ public class CardNode {
     }
 
     //---------Setters------------------
-    //Call setFaceUp(true) to set all cards visisble for Pyramid
+    //Call setFaceUp(true) to set all cards visible for Pyramid
     //Call setFaceUp(isBottomRow) to set only the bottom card visible for TriPeaks
     public void setFaceUp(boolean x){
         isVisible = x;
