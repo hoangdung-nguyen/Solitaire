@@ -121,17 +121,17 @@ public class Tripeaks extends JPanel{
         while(!allCards.isEmpty()){
             stockPile.add(allCards.pop());
         }
-
-        if(!stockPile.isEmpty()){
-            Card stockTop = stockPile.getLast();
-            topStockCard = new JCard(stockTop);
-            topStockCard.setFaceDown(true);
-            add(topStockCard);
-        } else{
-            topStockCard = new JCard(cardShadow);
-        }
-
-        topDiscardCard = new JCard(cardShadow);
+//
+//        if(!stockPile.isEmpty()){
+//            Card stockTop = stockPile.getLast();
+//            topStockCard = new JCard(stockTop);
+//            topStockCard.setFaceDown(true);
+//            add(topStockCard);
+//        } else{
+//            topStockCard = new JCard(Utils.cardShadow);
+//        }
+//
+//        topDiscardCard = new JCard(UcardShadow);
         topDiscardCard.setFaceDown(true);
         add(topDiscardCard);
 

@@ -25,22 +25,6 @@ public class JCard extends JToggleButton {
         greyed = Utils.tint(getMasterIcon(), Color.lightGray);
         currentImage = c.isFaceDown() ? Utils.cardBack : master;
         setPreferredSize(new Dimension(100, 100));
-//		addComponentListener(new ComponentAdapter() {
-//			@Override
-//			public void componentResized(ComponentEvent e) {
-//				setIcon();
-//			}
-//		});
-//		item = new ItemListener() {
-//			public void itemStateChanged(ItemEvent e) {
-//				if (e.getStateChange() == 1)
-//					isSelected = true;
-//				else
-//					isSelected = false;
-//				setIcon();
-//			}
-//		};
-//		addItemListener(item);
     }
 
     public static double getRatio() {
