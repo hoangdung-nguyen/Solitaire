@@ -12,24 +12,7 @@ public class TriangleLayout {
     Container parent;
     private int cardWidth;
     private int cardHeight;
-    private int rowSpacing;
     static double vOverlap = 0.5;
-    static double hSpacing;
-
-    //Small class used to store the positions of the cards
-    public static class Pos{
-        public final int x;
-        public final int y;
-        public Pos(int x, int y){
-            this.x = x;
-            this.y = y;
-        }
-    }
-    public static class Cover{
-        public int left = -1;
-        public int right = -1;
-    }
-
 
     //Creates a PeakLayout based on the number of peaks desired, peak height, the width of the frame,
     //Pyramid: numPeaks = 1, peakHeight = 7
@@ -42,32 +25,44 @@ public class TriangleLayout {
         cardHeight = (int) (cardWidth * JCard.getRatio());
     }
 
+    //returns the number of cards that will be needed per peak
+    //No prameters but dependent on peakHeight
     public int getCardsPerPeak(){
         return peakHeight * (peakHeight + 1)/2;
     }
 
+    //Returns the number of cards required to create the pyramid structures
+    //No parameters but dependednt on numPeaks and getCardsPerPeak() which depends on peakHeight
     public int getTotalCardsNeeded(){
         return numPeaks * getCardsPerPeak();
     }
 
+    //Calculates the amount of decks needed in order to properly populate the game
     public int getDecksNeeded(){
         int total = getTotalCardsNeeded();
         return (int) ceil(total /52.0);
     }
 
-    public int getRemainder(){
-        return getDecksNeeded() * 52 - getTotalCardsNeeded();
-    }
 
+    //Sets the left cover relationship between two cards
+    //Paramter parent is the covering card, parameter child is the coverd card
     public void setLeftCover(CardNode parent, CardNode child){
         child.setLeftCover(parent);
         parent.setRightBeneath(child);
     }
+
+    //Sets the right cover relationship between two cards
+    //Paramter parent is the covering card, parameter child is the coverd card
     public void setRightCover(CardNode parent, CardNode child){
         child.setRightCover(parent);
         parent.setLeftBeneath(child);
     }
 
+    //Formats the layout for pyramid style games like TriPeaks
+    //It calculates the height based on the parent panel
+    //Positions each card in the peak and row and makes sure it is visisble within the screen
+    //uses a 3D matrix to assign coverage relationships
+    //Parameter nodes is the list of all nodes
     public void applyLayout(List<CardNode> nodes) {
         int n = getTotalCardsNeeded();
         if (nodes.size() < n) {
@@ -87,7 +82,7 @@ public class TriangleLayout {
             vOverlap = (int) (cardHeight * (1 - TriangleLayout.vOverlap));
         }
         
-        int peakPixelsWidth = (int) (peakHeight * (cardWidth));
+        int peakPixelsWidth = (peakHeight * (cardWidth));
         double totalPeaksWidth = numPeaks * peakPixelsWidth;
 
         double gap = parent.getWidth() > totalPeaksWidth ? (parent.getWidth() - totalPeaksWidth) / 2 : 0;
@@ -95,12 +90,11 @@ public class TriangleLayout {
         int [][][] map = new int[numPeaks][peakHeight][peakHeight];
         int index = 0;
 
-        // ROW-MAJOR layout
         for (int row = 0; row < peakHeight; row++) {
 
             int cardsInRow = row + 1;
-            int rowWidth = (int)(cardsInRow * (cardWidth ));
-            int y = (int)(row * (cardHeight - vOverlap));
+            int rowWidth = (cardsInRow * (cardWidth ));
+            int y = (row * (cardHeight - vOverlap));
 
             for (int peak = 0; peak < numPeaks; peak++) {
 
@@ -111,7 +105,7 @@ public class TriangleLayout {
 
                     CardNode node = nodes.get(index);
 
-                    int x = (int)(startX + col * (cardWidth ));
+                    int x = (startX + col * (cardWidth ));
 
                     node.setPosition(x, y);
                     node.setSize(cardWidth, cardHeight);
@@ -122,10 +116,9 @@ public class TriangleLayout {
             }
         }
 
-        // cover mapping — unchanged
-        index = 0;
+
+
         for (int peak = 0; peak < numPeaks; peak++) {
-            int base = peak * getCardsPerPeak();
 
             for (int level = 0; level < peakHeight - 1; level++) {
                 int cardsInLevel = level +1;
@@ -156,11 +149,6 @@ public class TriangleLayout {
             }
         }
     }
-
-
-
-
-
 
 
 }
