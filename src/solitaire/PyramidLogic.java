@@ -1,5 +1,6 @@
 package solitaire;
 
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -8,14 +9,15 @@ import java.util.Stack;
 public class PyramidLogic {
 	private static final long serialVersionUID = 1L;
 	Deck stock;
-    ArrayList<ArrayList<CardNode>> stockAndWaste;
-    ArrayList<CardNode> stockPile; //reference variable so we don't have to keep calling stockAndWaste.get(0)
-    ArrayList<CardNode> wastePile; //reference variable so we don't have to keep calling stockAndWaste.get(1)
-    List<CardNode> pyramidCards; // the pyramid cards!
-    int difficulty; //0 for infinite stockFlips, 1 for 2 stockFlips
-    int restocks;
+    protected ArrayList<ArrayList<CardNode>> stockAndWaste;
+    protected ArrayList<CardNode> stockPile; //reference variable so we don't have to keep calling stockAndWaste.get(0)
+    protected ArrayList<CardNode> wastePile; //reference variable so we don't have to keep calling stockAndWaste.get(1)
+    protected List<CardNode> pyramidCards; // the pyramid cards!
+    protected List<CardNode> allNodes;
+    protected int difficulty; //0 for infinite stockFlips, 1 for 2 stockFlips
+    protected int restocks;
     private static final char[] ranks = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K' };
-    Stack<PyramidMove> pastMoves;
+    protected Stack<PyramidMove> pastMoves;
 
 	public PyramidLogic(int diff){
         difficulty = diff;  //Endless flips or no?
@@ -41,7 +43,13 @@ public class PyramidLogic {
             stockPile.getLast().setFaceUp(true);
         }
 
+        allNodes = new ArrayList<>();
+        allNodes.addAll(pyramidCards);
+        allNodes.addAll(stockPile);
+
+
         pastMoves = new Stack<>();
+
 	}
 
     /** Shifts cards from the stockpile to the wastepile. If the stockpile is empty and the player has
