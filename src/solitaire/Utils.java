@@ -13,12 +13,26 @@ import java.util.Objects;
 
 public class Utils {
     static Clip winAudio;
+    static Clip plopAudio;
 
     static {
         try {
             AudioInputStream winnerSoundAudioStream = AudioSystem.getAudioInputStream(Objects.requireNonNull(Utils.class.getResourceAsStream("/winnersound.wav")));
             winAudio = AudioSystem.getClip();
             winAudio.open(winnerSoundAudioStream);
+        } catch (UnsupportedAudioFileException e) {
+            System.out.println("AudioFile not supported");
+        } catch (IOException e) {
+            System.out.println("Could not find audio file");
+        } catch (LineUnavailableException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    static {
+        try {
+            AudioInputStream plopAudioStream = AudioSystem.getAudioInputStream(Objects.requireNonNull(Utils.class.getResourceAsStream("/plop-sound-made-with-my-mouth-100690.wav")));
+            plopAudio = AudioSystem.getClip();
+            plopAudio.open(plopAudioStream);
         } catch (UnsupportedAudioFileException e) {
             System.out.println("AudioFile not supported");
         } catch (IOException e) {

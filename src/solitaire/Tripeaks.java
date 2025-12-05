@@ -348,6 +348,9 @@ public class Tripeaks extends Solitaire{
     }
 
     private void playCard(JCard jc){
+        Utils.plopAudio.stop();
+        if(Utils.plopAudio.isOpen()) Utils.plopAudio.setFramePosition(15000);
+        Utils.plopAudio.start();
         int index = jcards.indexOf(jc);
         if(index == -1) return;
 
