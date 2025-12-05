@@ -8,28 +8,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PyramidGame extends Solitaire {
+
+    protected static final double STOCK_AREA_RATIO = 0.20;
+    private static Rectangle wasteBounds;
+
     private PyramidLogic logic;
     private TriangleLayout layout;
     JButton drawCard;
 
-    private JPanel mainPanel, pyramidPanel, utilPanel;
+    private JPanel mainPanel, pyramidPanel, utilPanel, stockPanel, wastePanel;
 
     private ArrayList<JCard> stockUI = new ArrayList<>(), wasteUI = new ArrayList<>();
+    private ArrayList<JCard> fuckOffPile = new ArrayList<>();
     private List<JCard> jCards;
     private int difficulty;
     private PairHandler pairHandler;
+
+    private JCard topStock, topWaste;
 
 
 
     PyramidGame() {
         super();
-        logic = new PyramidLogic(difficulty);
-        setupUI();
-        showDifficultySelectionDialog();
 
         pairHandler = new PairHandler();
+        setupUI();
 
+        logic = new PyramidLogic(difficulty);
+        showDifficultySelectionDialog();
         initializeGameBoard();
+        createStockDrawWaste();
 
         revalidate();
         repaint();
@@ -61,15 +69,19 @@ public class PyramidGame extends Solitaire {
         utilPanel = new JPanel(){
             @Override
             public Dimension getPreferredSize() {
-                // x = h - x * 0.65 * (peakHeight-1) - x
-                // x + ajdjk x = h
-                double h = mainPanel.getHeight() / ((7-1)*(1-TriangleLayout.OVERLAP)+2);
+                double h = mainPanel.getHeight() / ((7-1)*(1-TriangleLayout.vOverlap)+2);
                 return new Dimension(mainPanel.getWidth(), (int) h);
             }
         };
         utilPanel.setLayout(null);
         utilPanel.setOpaque(false);
         mainPanel.add(utilPanel, BorderLayout.SOUTH);
+        stockPanel = new JPanel(null);
+        stockPanel.setOpaque(false);
+        wastePanel = new JPanel(null);
+        wastePanel.setOpaque(false);
+        utilPanel.add(stockPanel);
+        utilPanel.add(wastePanel);
     }
 
 
@@ -111,14 +123,15 @@ public class PyramidGame extends Solitaire {
         wasteUI.clear();
 
 
-        utilPanel.add(Box.createHorizontalGlue());
+        stockPanel.removeAll();
+        wastePanel.removeAll();
 
         for(int i = 0; i < logic.stockPile.size(); ++i)
         {
             stockUI.add(new JCard(logic.stockPile.get(i)));
+            stockPanel.add(stockUI.get(i));
             stockUI.get(i).addMouseListener(pairHandler);
         }
-
 
         drawCard = new RoundedButton("+")
         {
@@ -127,12 +140,79 @@ public class PyramidGame extends Solitaire {
             {
                 super.init(text, icon);
                 addActionListener(e -> {
-                    logic.drawCard();
-                    wasteUI.add(stockUI.removeLast());
-                    //TODO add logic for UI handling
+                    if(logic.stockPile.isEmpty())
+                    {
+                        resetStockPile();
+                    }
+                    else {
+                        while(!stockUI.isEmpty() && !stockUI.getFirst().isVisible()) stockUI.removeFirst();
+                        if(stockUI.isEmpty()) {
+                            resetStockPile();
+                            return;
+                        }
+                        logic.drawCard();
+                        JCard card = stockUI.removeFirst();
+                        stockPanel.remove(card);
+                        card.setBounds(0, 0, jCards.get(0).getWidth(), jCards.get(0).getHeight());
+                        wasteUI.add(card);
+                        wastePanel.add(card, 0);
+                        wastePanel.repaint();
+                        stockPanel.repaint();
+                    }
                 });
+                addMouseListener(pairHandler);
             }
         };
+        utilPanel.add(stockPanel);
+        utilPanel.add(wastePanel);
+        utilPanel.add(drawCard);
+    }
+
+    private void resetStockPile(){
+        logic.drawCard();
+        stockUI.addAll(wasteUI);
+        for(JCard jc : wasteUI)
+            stockPanel.add(jc);
+        wasteUI.clear();
+        wastePanel.removeAll();
+        wastePanel.repaint();
+        stockPanel.repaint();
+    }
+
+    private void positionStockDrawWaste()
+    {
+        if(jCards == null || jCards.isEmpty()) return;
+
+        JCard s = jCards.get(0);
+        int w = s.getWidth();
+        int cardH = s.getHeight();
+        int peakAreaH = (int) (mainPanel.getHeight() * (1.0-STOCK_AREA_RATIO));
+        int y = peakAreaH + 20;
+
+        int midX = mainPanel.getWidth()/2;
+        int spacing = (int)(w*1.2);
+        int stockX = midX - spacing - w /2;
+        int discardX = midX + spacing - w / 2;
+
+
+
+        stockPanel.setBounds(stockX,0,w,cardH);
+
+        for (JCard jCard : stockUI)
+            jCard.setBounds(0, 0, w, cardH);
+
+        wastePanel.setBounds(discardX, 0, w, cardH);
+
+        for(JCard jCard : wasteUI)
+            jCard.setBounds(0,0,w,cardH);
+
+
+        drawCard.setBounds(midX-w/8,(cardH-w/4)/2,w/4,w/4);
+
+        repaint();
+        revalidate();
+
+
     }
 
     @Override
@@ -144,10 +224,13 @@ public class PyramidGame extends Solitaire {
     protected void newGame() {
         pyramidPanel.removeAll();
         utilPanel.removeAll();
-        revalidate();
-        repaint();
         logic = new PyramidLogic(difficulty);
         initializeGameBoard();
+        createStockDrawWaste();
+
+
+        revalidate();
+        repaint();
     }
 
     /**
@@ -199,6 +282,8 @@ public class PyramidGame extends Solitaire {
             jc.setBounds(n.getX(), n.getY(), n.getWidth(), n.getHeight());
         }
 
+        positionStockDrawWaste();
+
         revalidate();
         repaint();
     }
@@ -217,25 +302,31 @@ public class PyramidGame extends Solitaire {
                     if (firstCard == null) {
 
                         firstCard = (JCard) e.getSource();
+                        firstCard.setGreyed(true);
 
                         if (firstCard.card.rank == 'K') {
                             logic.kingRemove(firstCard.cardNode);
                             firstCard.setVisible(false);
+                            firstCard.setGreyed(false);
+                            //firstCard.getParent().remove(firstCard);
                             firstCard = null;
+
                         }
                     }
                     else if(e.getSource() == firstCard)
                     {
+                        firstCard.setGreyed(false);
                         firstCard = null;
                     }
                     else if (secondCard == null) {
                         secondCard = (JCard) e.getSource();
+
                         if(logic.successfulPair(firstCard.cardNode,secondCard.cardNode))
                         {
                             firstCard.setVisible(false);
                             secondCard.setVisible(false);
                         }
-
+                        firstCard.setGreyed(false);
                         firstCard = null;
                         secondCard = null;
 
@@ -245,7 +336,11 @@ public class PyramidGame extends Solitaire {
 
                 }
             }
-            else firstCard = null;
+            else if(firstCard != null)
+            {
+                firstCard.setGreyed(false);
+                firstCard = null;
+            }
 
         }
     }
