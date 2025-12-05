@@ -374,9 +374,6 @@ public class Tripeaks extends Solitaire{
 
         Card topDiscard = discardPile.getLast();
         if(!isValidMove(n.card, topDiscard)) return;
-        Utils.plopAudio.stop();
-        if(Utils.plopAudio.isOpen()) Utils.plopAudio.setFramePosition(15000);
-        Utils.plopAudio.start();
 
         pastMoves.push(new TripeaksMove(n, topDiscard));
         n.setRemoved(true);

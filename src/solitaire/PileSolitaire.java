@@ -355,8 +355,6 @@ public abstract class PileSolitaire extends Solitaire{
     }
     /** move them over, check for any changes in the pile */
     private void makeMove(Pile held, Pile from, Pile to) {
-        if(Utils.plopAudio.isOpen()) Utils.plopAudio.setFramePosition(15000);
-        Utils.plopAudio.start();
         // move them over, check for any changes in the pile
         to.addAll(held);
         from.removeAll(held);
