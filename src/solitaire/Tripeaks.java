@@ -19,7 +19,6 @@ public class Tripeaks extends Solitaire{
     private int numPeaks = 3;
     private int peakHeight = 4;
 
-    protected static final double STOCK_AREA_RATIO = 0.20;
 
     private JPanel mainPanel;
     private JPanel cardsPanel;
@@ -414,6 +413,10 @@ public class Tripeaks extends Solitaire{
         String message = w? "Congratulations! You cleared all the cards. \nWhat would you like to do?" : "No more moves. \nWhat would you like to do?";
 
         String[] options = {"Replay", "Home", "Exit"};
+
+        if(checkWin()){
+            endGame();
+        }
 
         int choice = JOptionPane.showOptionDialog(this,message, title, JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 
