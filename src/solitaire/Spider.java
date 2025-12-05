@@ -161,7 +161,7 @@ public class Spider extends PileSolitaire {
             p.removeAll(top);
             for (Pile pile : utilPiles) {
                 if (pile.isEmpty()) {
-                    pastMoves.getLast().clearedStack = new ArrayList<>(top);
+                    ((PileMove)pastMoves.getLast()).clearedStack = new ArrayList<>(top);
                     Collections.reverse(top);
                     pile.addAll(top);
                     revalidate();

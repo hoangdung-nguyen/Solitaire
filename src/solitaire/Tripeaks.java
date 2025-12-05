@@ -35,7 +35,6 @@ public class Tripeaks extends Solitaire{
 	Deck allCards;
 
     private TriangleLayout layout;
-    private Stack<TripeaksMove> pastMoves;
 
 	public Tripeaks(){
         super();
@@ -91,7 +90,7 @@ public class Tripeaks extends Solitaire{
     @Override
     protected void undoLastMove() {
         if(!pastMoves.isEmpty()) {
-            TripeaksMove move = pastMoves.getLast();
+            TripeaksMove move = (TripeaksMove) pastMoves.getLast();
             if(move.stockMove) {
                 discardPile.removeLast();
                 stockPile.add(move.top);
@@ -323,8 +322,6 @@ public class Tripeaks extends Solitaire{
 
         positionStockDiscardPiles();
 
-
-
         revalidate();
         repaint();
     }
@@ -367,51 +364,22 @@ public class Tripeaks extends Solitaire{
 
         discardPile.add(n.card);
         topDiscardCard.setCard(n.card);
-//        if(n.)
-        for(int i = 0; i < allNodes.size(); i++){
-            CardNode c = allNodes.get(i);
-            if(c.getLeftCover() == n || c.getRightCover() == n){
-                if(!c.isRemoved() && !c.isFaceUp() && c.isUncovered()){
-                    if(c.getLeftCover() == n) pastMoves.peek().leftFlip = c;
-                    else pastMoves.peek().rightFlip = c;
-                    c.setFaceUp(true);
-                    jcards.get(i).setFaceDown(false);
-                }
-             }
+        if(n.getLeftBeneath() != null && n.getLeftBeneath().isUncovered()) {
+            CardNode left = n.getLeftBeneath();
+            ((TripeaksMove)pastMoves.peek()).leftFlip = n.getLeftBeneath();
+            left.setFaceUp(true);
+            jcards.get(allNodes.indexOf(left)).setFaceDown(false);
+        }
+        if(n.getRightBeneath() != null && n.getRightBeneath().isUncovered()) {
+            CardNode right = n.getRightBeneath();
+            ((TripeaksMove)pastMoves.peek()).leftFlip = n.getLeftBeneath();
+            right.setFaceUp(true);
+            jcards.get(allNodes.indexOf(right)).setFaceDown(false);
         }
         revalidate();
         repaint();
 
     }
-
-    private void showEndGameDialog(){
-        boolean w = checkWin();
-        String title = w ? "You Won!" : "Game Over";
-        String message = w? "Congratulations! You cleared all the cards. \nWhat would you like to do?" : "No more moves. \nWHat would you like to do?";
-
-        String[] options = {"Replay", "Home", "Exit"};
-
-        int choice = JOptionPane.showOptionDialog(this,message, title, JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-
-        if(choice == 0){
-            replayGame();
-        } else if (choice == 1){
-            switchToMainMenu();
-        }else if (choice == 2){
-            System.exit(0);
-        }
-    }
-
-    @Override
-    protected void replayGame(){
-        cardsPanel.removeAll();
-        utilPanel.removeAll();
-        revalidate();
-        repaint();
-        initializeGameBoard();
-        createStockDiscard();
-    }
-
 
     @Override
     public GameSave makeSave() {
@@ -427,7 +395,8 @@ public class Tripeaks extends Solitaire{
         peakHeight = saveData.peakHeight;
         layout = new TriangleLayout(numPeaks, peakHeight, cardsPanel);
         allNodes = saveData.allNodes;
-        pastMoves = saveData.pastMoves;
+        pastMoves = new Stack<>();
+        pastMoves.addAll(saveData.pastMoves);
         jcards.clear();
         layout.applyLayout(allNodes);
         for (int i = 0 ; i <allNodes.size(); i++) {
@@ -466,6 +435,7 @@ public class Tripeaks extends Solitaire{
         topDiscardCard.setCard(discardPile.getLast());
         utilPanel.add(topDiscardCard);
     }
+
 }
 
 class TripeaksSave extends GameSave implements Serializable {
@@ -475,16 +445,19 @@ class TripeaksSave extends GameSave implements Serializable {
     List<Card> stockPile;
     List<Card> discardPile;
     Stack<TripeaksMove> pastMoves;
-    public TripeaksSave(int np, int ph, List<CardNode> nodes, List<Card> stock, List<Card> discard, Stack<TripeaksMove> moves){
+    public TripeaksSave(int np, int ph, List<CardNode> nodes, List<Card> stock, List<Card> discard, Stack<GameMove> moves){
         numPeaks = np;
         peakHeight = ph;
         allNodes = nodes;
         stockPile = stock;
         discardPile = discard;
-        pastMoves = moves;
+        pastMoves = new Stack<>();
+        for(GameMove m:moves){
+            pastMoves.push((TripeaksMove) m);
+        }
     }
 }
-class TripeaksMove implements Serializable{
+class TripeaksMove extends GameMove implements Serializable{
     boolean stockMove;
     CardNode card;
     Card top;

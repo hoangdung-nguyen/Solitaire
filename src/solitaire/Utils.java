@@ -4,6 +4,7 @@ import javax.imageio.ImageIO;
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.Arrays;
@@ -53,18 +54,21 @@ public class Utils {
     public final static Font titleFont = jersey.deriveFont(Font.BOLD, 72f);
     public final static Font otherFont = jersey.deriveFont(25f);
 
+    public static BufferedImage replayIcon;
     public static BufferedImage undoIcon;
+    public static BufferedImage homeIcon;
+    public static BufferedImage plusIcon;
 
     static {
         try {
-            undoIcon = ImageIO.read(Utils.class.getResourceAsStream("/undo.png"));
+            replayIcon = ImageIO.read(Utils.class.getResourceAsStream("/undo.png"));
+            undoIcon = createFlipped(replayIcon);
         } catch (IOException e) {
             System.out.println("The asset for the undo button does not exist.");
             System.exit(1);
         }
     }
 
-    public static BufferedImage homeIcon;
 
     static {
         try {
@@ -75,8 +79,14 @@ public class Utils {
         }
     }
 
-    //Card graphics
-    public static BufferedImage cardSheet;
+    static {
+        try {
+            plusIcon = ImageIO.read(Utils.class.getResourceAsStream("/plus.png"));
+        } catch (IOException e) {
+            System.out.println("The asset for the home button does not exist.");
+            System.exit(1);
+        }
+    }
 
     static {
         try {
@@ -86,7 +96,8 @@ public class Utils {
             System.exit(1);
         }
     }
-
+    //Card graphics
+    public static BufferedImage cardSheet;
     static final int CARD_WIDTH = cardSheet.getWidth() / 14;
     static final int CARD_HEIGHT = cardSheet.getHeight() / 6;
     public final static BufferedImage cardBack = getCardAsset(0, 2);
@@ -150,6 +161,20 @@ public class Utils {
             }
         }
         return out;
+    }
+
+    public static BufferedImage createFlipped(BufferedImage image) {
+        AffineTransform at = new AffineTransform();
+        at.concatenate(AffineTransform.getScaleInstance(1, -1));
+        at.concatenate(AffineTransform.getTranslateInstance(0, -image.getHeight()));
+        BufferedImage newImage = new BufferedImage(
+                image.getWidth(), image.getHeight(),
+                BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = newImage.createGraphics();
+        g.transform(at);
+        g.drawImage(image, 0, 0, null);
+        g.dispose();
+        return newImage;
     }
 
     public static BufferedImage getCardImage(Card c) {
@@ -219,9 +244,8 @@ class RoundedButton extends JButton {
     }
 }
 
-class GameSave {
-
-}
+class GameSave {}
+class GameMove {}
 
 interface SaveAndLoad {
     GameSave makeSave();

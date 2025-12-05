@@ -218,8 +218,8 @@ public class FreeCell extends PileSolitaire {
             state.utilPiles.add(pileList);
         }
         state.pastMoves.clear();
-        for (PileMove move : pastMoves) {
-            state.pastMoves.add(new PileSave.PileMoveState(move, piles, utilPiles));
+        for (GameMove move : pastMoves) {
+            state.pastMoves.add(new PileSave.PileMoveState((PileMove) move, piles, utilPiles));
         }
         return state;
     }
