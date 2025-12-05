@@ -244,7 +244,7 @@ class RoundedButton extends JButton {
     }
 }
 
-class GameSave {}
+class GameSave {long timePast;}
 class GameMove {}
 
 interface SaveAndLoad {
@@ -256,7 +256,7 @@ interface SaveAndLoad {
     void loadSave(GameSave save);
 
     default void saveToFile(File file) {
-        System.out.println("SAVING GAME " + getClass());
+//        System.out.println("SAVING GAME " + getClass());
         GameSave state = makeSave();
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
             out.writeObject(state);

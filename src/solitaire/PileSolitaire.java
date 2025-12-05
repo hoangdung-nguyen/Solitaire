@@ -608,7 +608,7 @@ class PileSave extends GameSave implements Serializable{
     }
     public PileSave(int diff, long time, Deck stock, ArrayList<Pile> piles) {
         difficulty = diff;
-        timePast = time;
+
         // Stock
         for (Card c : stock) {
             this.stock.add(new Card(c.getRank(), c.getSuit(), true));

@@ -8,6 +8,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -383,7 +385,7 @@ public class Tripeaks extends Solitaire{
 
     @Override
     public GameSave makeSave() {
-        return new TripeaksSave(numPeaks, peakHeight, allNodes, stockPile, discardPile, pastMoves);
+        return new TripeaksSave(numPeaks, peakHeight, Duration.between(start, Instant.now()).getSeconds(), allNodes, stockPile, discardPile, pastMoves);
     }
 
     @Override
@@ -434,6 +436,7 @@ public class Tripeaks extends Solitaire{
         });
         topDiscardCard.setCard(discardPile.getLast());
         utilPanel.add(topDiscardCard);
+        start = Instant.now().minusSeconds(saveData.timePast);
     }
 
 }
@@ -445,9 +448,10 @@ class TripeaksSave extends GameSave implements Serializable {
     List<Card> stockPile;
     List<Card> discardPile;
     Stack<TripeaksMove> pastMoves;
-    public TripeaksSave(int np, int ph, List<CardNode> nodes, List<Card> stock, List<Card> discard, Stack<GameMove> moves){
+    public TripeaksSave(int np, int ph, long seconds, List<CardNode> nodes, List<Card> stock, List<Card> discard, Stack<GameMove> moves){
         numPeaks = np;
         peakHeight = ph;
+        timePast = seconds;
         allNodes = nodes;
         stockPile = stock;
         discardPile = discard;
