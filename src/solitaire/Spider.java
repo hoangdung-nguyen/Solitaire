@@ -46,7 +46,7 @@ public class Spider extends PileSolitaire {
 
     private void setupUtils() {
         utilPiles = new ArrayList<>();
-        utilPane = new JPanel(new GridLayout(1, COLS)) {
+        utilPane = new JPanel(new GridLayout(1, COLS, 10, 10)) {
             @Override
             public Dimension getPreferredSize() {
                 return new Dimension(getParent().getWidth(), (int) (getParent().getWidth() * JCard.getRatio() / COLS));
@@ -57,6 +57,7 @@ public class Spider extends PileSolitaire {
         for (int i = 0; i < 8; ++i) {
             utilPiles.add(new Pile(COLS));
             utilPane.add(utilPiles.get(i).pilePane);
+            utilPiles.get(i).pilePane.shadow = false;
         }
         JPanel blank = new JPanel();
         blank.setOpaque(false);
