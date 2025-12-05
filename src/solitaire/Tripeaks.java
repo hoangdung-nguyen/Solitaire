@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -37,13 +38,16 @@ public class Tripeaks extends Solitaire{
     private TriangleLayout layout;
     private Stack<TripeaksMove> pastMoves;
 
+    //Runs the game of Tripeaks from scratch (no save file)
+    //starts timer at 0;
+    //Has no parameters
 	public Tripeaks(){
         super();
         setupUI();
         pastMoves = new Stack<>();
         showPeakSelectionDialog();
         showPeakHeightSelectionDialog();
-
+        start = Instant.now();
         initializeGameBoard();
         createStockDiscard();
         revalidate();
@@ -51,6 +55,8 @@ public class Tripeaks extends Solitaire{
 
     }
 
+    //Runs the game Tripeaks from a save file
+    //Takes in a String object as the file name
     public Tripeaks(String saveFile){
         super();
         setupUI();
@@ -68,6 +74,8 @@ public class Tripeaks extends Solitaire{
         repaint();
     }
 
+    //Creates the panel and sets it up for the game
+    //Has no parameters or returns
     public void setupUI(){
         mainPanel = new JPanel(new BorderLayout());
         super.add(mainPanel, BorderLayout.CENTER);
@@ -88,6 +96,10 @@ public class Tripeaks extends Solitaire{
         utilPanel.setOpaque(false);
         mainPanel.add(utilPanel, BorderLayout.SOUTH);
     }
+
+    //Performs an undo of the last move performed as well as handling the visuals.
+    //Can be performed until there are no more past moves
+    //No parameters or returns
     @Override
     protected void undoLastMove() {
         if(!pastMoves.isEmpty()) {
@@ -121,10 +133,13 @@ public class Tripeaks extends Solitaire{
         }
     }
 
+    //Performs making a new game without a safe file
+    //No parameters or returns
     @Override
     protected void newGame() {
         showPeakSelectionDialog();
         showPeakHeightSelectionDialog();
+        start = Instant.now();
         cardsPanel.removeAll();
         utilPanel.removeAll();
         revalidate();
@@ -133,26 +148,11 @@ public class Tripeaks extends Solitaire{
         createStockDiscard();
     }
 
-    private Dimension computeCardSize(int frameW, int frameH){
-        double ratio = JCard.getRatio();
-        // Width-based constraint
-        int cardW_byWidth = Math.max(40, frameW / (numPeaks * peakHeight * 2));
-        double cardH_byWidth = cardW_byWidth * ratio;
-
-        // Height-based constraint assuming up to 80% overlap (20% visible)
-        // Max height of pyramid with overlapFraction = 0.8:
-        // H = cardH * (0.8 + 0.2 * peakHeight)
-        double denom = 0.8 + 0.2 * peakHeight;
-        if (denom <= 0) denom = 1; // safety
-        double cardH_maxByHeight = frameH / denom;
-        double cardW_byHeight = cardH_maxByHeight / ratio;
-
-        int cardW = (int) Math.max(40, Math.min(cardW_byWidth, cardW_byHeight));
-        int cardH = (int) (cardW * ratio);
-
-        return new Dimension(cardW, cardH);
-    }
-
+    //Logic for how the game will be set up based on user selection
+    //No paramters but relyes on numPeaks, peakHeight and cardsPanel
+    //Calculates the number of decks needed to run the game
+    //Applys layout for the game board and adds cards to the board
+    //All cards on board are added a mouseListener
     private void initializeGameBoard(){
         layout = new TriangleLayout(numPeaks, peakHeight, cardsPanel);
 
@@ -168,7 +168,6 @@ public class Tripeaks extends Solitaire{
         for(int i = 0; i < cardsNeeded; i++){
             Card card = allCards.pop();
             CardNode node = new CardNode(card);
-           // node.setFaceUp(i>=cardsNeeded - numPeaks*peakHeight);
 
             allNodes.add(node);
         }
@@ -179,17 +178,15 @@ public class Tripeaks extends Solitaire{
             node.setFaceUp(node.isUncovered());
         }
 
-        for (int i = 0 ; i <allNodes.size(); i++) {
-            CardNode node = allNodes.get(i);
-
+        for (CardNode node : allNodes) {
             JCard jc = new JCard(node.getCard());
             jc.setFaceDown(!node.isFaceUp());
             jc.setBounds(node.getX(), node.getY(), node.getWidth(), node.getHeight());
             cardsPanel.add(jc, 0);
             jcards.add(jc);
-            jc.addMouseListener(new MouseAdapter(){
+            jc.addMouseListener(new MouseAdapter() {
                 @Override
-                public void mouseClicked(MouseEvent e){
+                public void mouseClicked(MouseEvent e) {
                     playCard(jc);
                 }
             });
@@ -197,6 +194,8 @@ public class Tripeaks extends Solitaire{
         }
     }
 
+    //Creates the stock and discard piles and adds a mouseListener to the top of the stock pile (a JCard)
+    //takes no parameters nor has returns
     private void createStockDiscard(){
         if(topStockCard != null) utilPanel.remove(topStockCard);
         if(topDiscardCard != null) utilPanel.remove(topDiscardCard);
@@ -235,6 +234,9 @@ public class Tripeaks extends Solitaire{
 
     }
 
+    //Function to handle the clicks of the stock pile.
+    //Grabs the next card in the stock pile, places it in JCard topStockCard and moves the card in topStockCard to the topDiscardCard
+    //Handles rotation of cards and checks if the game has ended every time it's performed
     private void handleStockClick(){
         if(stockPile.isEmpty()){
             return;
@@ -260,18 +262,19 @@ public class Tripeaks extends Solitaire{
         positionStockDiscardPiles();
         repaint();
 
+        checkGameOver();
+
     }
 
+    //Handles calculating the location of the stock and discard piles
+    //Takes no parameters
     private void positionStockDiscardPiles(){
         if(topStockCard == null || topDiscardCard == null) return;
         if(jcards == null || jcards.isEmpty()) return;
 
-        JCard s = jcards.get(0);
+        JCard s = jcards.getFirst();
         int w = s.getWidth();
         int cardH = s.getHeight();
-        int peakAreaH = (int) (mainPanel.getHeight() * (1.0-STOCK_AREA_RATIO));
-        int y = peakAreaH + 20;
-        //int y = mainPanel.getHeight() - cardH - 20;
 
         int midX = mainPanel.getWidth()/2;
         int spacing = (int)(w*1.2);
@@ -281,10 +284,11 @@ public class Tripeaks extends Solitaire{
         topStockCard.setBounds(stockX, 0, w, cardH);
         topDiscardCard.setBounds(discardX, 0, w, cardH);
 
-
-
     }
 
+    //Generates pop menu to ask the user how many peaks they'd like to see in their game
+    //More peak options can be added if desired
+    //No parameters but sets the value stored in numPeaks
     private void showPeakSelectionDialog(){
         String[] options = {"2 Peaks", "3 Peaks", "4 Peaks", "5 Peaks", };
 
@@ -296,6 +300,9 @@ public class Tripeaks extends Solitaire{
         numPeaks = Integer.parseInt(choice.substring(0,1));
     }
 
+    //Generates pop menu to ask the user how many cards they'd like to see per level in the game
+    //More level options can be added if desired
+    //No parameters but sets the value stored in peakHeight
     private void showPeakHeightSelectionDialog(){
         String[] options = {"3 Cards", "4 Cards", "5 Cards", "6 Cards", "7 Cards", "8 Cards"};
 
@@ -306,6 +313,7 @@ public class Tripeaks extends Solitaire{
         peakHeight = Integer.parseInt(choice.substring(0,1));
     }
 
+    //Function to resize the panel
     @Override
     public void doLayout() {
         super.doLayout();
@@ -322,25 +330,27 @@ public class Tripeaks extends Solitaire{
         }
 
         positionStockDiscardPiles();
-
-
-
         revalidate();
         repaint();
     }
 
+    //Checks if it is a valid move or not
+    //Parameter card is the card on the board selected
+    //Parameter top is the card at the top of the discard pile
+    //returns true if it is a valid move, false if it isn't
+    //Handles King's and Ace's directly
     private boolean isValidMove(Card card, Card top){
         int r1 = card.getRankValue();
         int r2 = top.getRankValue();
 
         if(Math.abs(r1 - r2) == 1) return true;
 
-        if((r1 == 13 && r2 == 1) || (r1 == 1 && r2 == 13)) return true;
-
-        return false;
+        return (r1 == 13 && r2 == 1) || (r1 == 1 && r2 == 13);
 
     }
 
+    //Checks if the game has been won if all the cards on the board have been removed
+    //Returns true if all the cards have been removed, false otherwise
     private boolean checkWin(){
         for(CardNode n : allNodes){
             if(!n.isRemoved()) return false;
@@ -348,6 +358,11 @@ public class Tripeaks extends Solitaire{
         return true;
     }
 
+    //Handles the actions of a card being selected and "played"
+    //Uncovers the required cards if there are any and makes them selectable
+    //Updates the top of the discard pile as needed and handles the ui updates as well
+    //Parameter JCard jc is the card that was clicked
+    //Checks if the game is over
     private void playCard(JCard jc){
         int index = jcards.indexOf(jc);
         if(index == -1) return;
@@ -358,7 +373,7 @@ public class Tripeaks extends Solitaire{
 
         if(!n.isUncovered()) return;
 
-        Card topDiscard = discardPile.get(discardPile.size() - 1);
+        Card topDiscard = discardPile.getLast();
         if(!isValidMove(n.card, topDiscard)) return;
 
         pastMoves.push(new TripeaksMove(n, topDiscard));
@@ -367,7 +382,6 @@ public class Tripeaks extends Solitaire{
 
         discardPile.add(n.card);
         topDiscardCard.setCard(n.card);
-//        if(n.)
         for(int i = 0; i < allNodes.size(); i++){
             CardNode c = allNodes.get(i);
             if(c.getLeftCover() == n || c.getRightCover() == n){
@@ -379,15 +393,21 @@ public class Tripeaks extends Solitaire{
                 }
              }
         }
+
         revalidate();
         repaint();
 
+        checkGameOver();
+
     }
 
+    //Pop up that shows the specific game dialog
+    //Takes no paramters and checks if the game has been won internally
+    //Then provides the user with an option of starting a new game, going back to the meny or exiting and handles the choice made
     private void showEndGameDialog(){
         boolean w = checkWin();
         String title = w ? "You Won!" : "Game Over";
-        String message = w? "Congratulations! You cleared all the cards. \nWhat would you like to do?" : "No more moves. \nWHat would you like to do?";
+        String message = w? "Congratulations! You cleared all the cards. \nWhat would you like to do?" : "No more moves. \nWhat would you like to do?";
 
         String[] options = {"Replay", "Home", "Exit"};
 
@@ -402,6 +422,8 @@ public class Tripeaks extends Solitaire{
         }
     }
 
+    //Reinitializes the baord so that a new game can be played
+    //No paramters or returns
     @Override
     protected void replayGame(){
         cardsPanel.removeAll();
@@ -413,11 +435,13 @@ public class Tripeaks extends Solitaire{
     }
 
 
+    //Creates the save for the game
     @Override
     public GameSave makeSave() {
         return new TripeaksSave(numPeaks, peakHeight, allNodes, stockPile, discardPile, pastMoves);
     }
 
+    //Loads a save file and sets up the board, stats and adds them to the panel
     @Override
     public void loadSave(GameSave save) {
         cardsPanel.removeAll();
@@ -430,17 +454,15 @@ public class Tripeaks extends Solitaire{
         pastMoves = saveData.pastMoves;
         jcards.clear();
         layout.applyLayout(allNodes);
-        for (int i = 0 ; i <allNodes.size(); i++) {
-            CardNode node = allNodes.get(i);
-
+        for (CardNode node : allNodes) {
             JCard jc = new JCard(node.getCard());
             jc.setFaceDown(!node.isFaceUp());
             jc.setBounds(node.getX(), node.getY(), node.getWidth(), node.getHeight());
-            if(!node.isRemoved()) cardsPanel.add(jc, 0);
+            if (!node.isRemoved()) cardsPanel.add(jc, 0);
             jcards.add(jc);
-            jc.addMouseListener(new MouseAdapter(){
+            jc.addMouseListener(new MouseAdapter() {
                 @Override
-                public void mouseClicked(MouseEvent e){
+                public void mouseClicked(MouseEvent e) {
                     playCard(jc);
                 }
             });
@@ -466,8 +488,39 @@ public class Tripeaks extends Solitaire{
         topDiscardCard.setCard(discardPile.getLast());
         utilPanel.add(topDiscardCard);
     }
+
+    //Checks if there are any playable moves left
+    //First checks if the discardPile is empty. If it is, it returns false, if it isn't it returns true
+    // checks the top of the discard pile to determine if there are any playable moves
+    //If there are no more moves then it returns false, if there are playable moves it returns true
+    private boolean hasAnyPlayableMove(){
+        if(discardPile.isEmpty()) return false;
+        Card top = discardPile.getLast();
+        for(CardNode n : allNodes){
+            if(!n.isRemoved() && n.isFaceUp() && n.isUncovered()){
+                if (isValidMove(n.card, top)) {
+
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    //First checks if the game has been won and shows the end game dialog
+    // Then checks if the game is over by checking if the stockPile is empty and if there are any playable moves and
+    private void checkGameOver(){
+        if(checkWin()){
+            showEndGameDialog();
+            return;
+        }
+        if(stockPile.isEmpty() && !hasAnyPlayableMove()){
+            showEndGameDialog();
+        }
+    }
 }
 
+//Serializes the game, used for game saves
 class TripeaksSave extends GameSave implements Serializable {
     int numPeaks;
     int peakHeight;
@@ -484,6 +537,8 @@ class TripeaksSave extends GameSave implements Serializable {
         pastMoves = moves;
     }
 }
+
+//Makes a move in tripeaks serializable to be able to be stored in a file
 class TripeaksMove implements Serializable{
     boolean stockMove;
     CardNode card;
