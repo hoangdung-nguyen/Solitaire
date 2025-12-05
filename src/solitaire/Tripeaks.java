@@ -87,7 +87,6 @@ public class Tripeaks extends Solitaire{
             @Override
             public Dimension getPreferredSize() {
                 // x = h - x * 0.65 * (peakHeight-1) - x
-                // x + ajdjk x = h
                 double h = mainPanel.getHeight() / ((peakHeight-1)*(1-TriangleLayout.vOverlap)+2);
                 return new Dimension(mainPanel.getWidth(), (int) h);
             }
@@ -364,9 +363,6 @@ public class Tripeaks extends Solitaire{
     //Parameter JCard jc is the card that was clicked
     //Checks if the game is over
     private void playCard(JCard jc){
-        Utils.plopAudio.stop();
-        if(Utils.plopAudio.isOpen()) Utils.plopAudio.setFramePosition(15000);
-        Utils.plopAudio.start();
         int index = jcards.indexOf(jc);
         if(index == -1) return;
 
@@ -378,6 +374,9 @@ public class Tripeaks extends Solitaire{
 
         Card topDiscard = discardPile.getLast();
         if(!isValidMove(n.card, topDiscard)) return;
+        Utils.plopAudio.stop();
+        if(Utils.plopAudio.isOpen()) Utils.plopAudio.setFramePosition(15000);
+        Utils.plopAudio.start();
 
         pastMoves.push(new TripeaksMove(n, topDiscard));
         n.setRemoved(true);
