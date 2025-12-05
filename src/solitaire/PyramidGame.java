@@ -66,6 +66,7 @@ public class PyramidGame extends Solitaire {
         pyramidPanel = new JPanel(null);
         pyramidPanel.setOpaque(false);
         mainPanel.add(pyramidPanel, BorderLayout.CENTER);
+        mainPanel.addMouseListener(pairHandler);
         utilPanel = new JPanel(){
             @Override
             public Dimension getPreferredSize() {
@@ -325,6 +326,8 @@ public class PyramidGame extends Solitaire {
                         {
                             firstCard.setVisible(false);
                             secondCard.setVisible(false);
+                            //firstCard.getParent().remove(firstCard);
+                            //secondCard.getParent().remove(secondCard);
                         }
                         firstCard.setGreyed(false);
                         firstCard = null;
