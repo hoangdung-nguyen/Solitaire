@@ -365,6 +365,9 @@ public class Tripeaks extends Solitaire{
     //Parameter JCard jc is the card that was clicked
     //Checks if the game is over
     private void playCard(JCard jc){
+        Utils.plopAudio.stop();
+        if(Utils.plopAudio.isOpen()) Utils.plopAudio.setFramePosition(15000);
+        Utils.plopAudio.start();
         int index = jcards.indexOf(jc);
         if(index == -1) return;
 
