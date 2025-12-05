@@ -265,7 +265,6 @@ public class Spider extends PileSolitaire {
                 }
             }
         }
-
     }
 
     @Override

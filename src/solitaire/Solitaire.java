@@ -196,7 +196,7 @@ public abstract class Solitaire extends JPanel implements SaveAndLoad{
         gameEnded = true;
     }
 
-    private void showEndGameDialog(boolean w){
+    public void showEndGameDialog(boolean w){
         String title = w ? "You Won!" : "Game Over";
         String message = w? "Congratulations! You cleared all the cards. \nWhat would you like to do?" : "No more moves. \nWHat would you like to do?";
 
