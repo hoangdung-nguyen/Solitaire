@@ -253,6 +253,21 @@ public class Spider extends PileSolitaire {
         startEndAnimation(utilPiles);
     }
 
+    private void checkLoss() {
+        ArrayList<ArrayList<Card>> moves= new ArrayList<>();
+        for(Pile pile:piles){
+            moves.add(getSequence(pile));
+        }
+        for(Pile pile:piles){
+            for(ArrayList<Card> move:moves){
+                if(isValidMove(move, null, pile)) {
+                    return;
+                }
+            }
+        }
+
+    }
+
     @Override
     protected void newGame() {
         int diff = mainMenu.getDifficulty();

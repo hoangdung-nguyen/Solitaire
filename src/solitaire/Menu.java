@@ -65,7 +65,7 @@ public class Menu extends JPanel {
         centerPanel.add(Box.createVerticalStrut(50));
 
         //Add all the buttons to the centerPanel
-        for (int i = 0; i < 6; i++){
+        for (int i = 0; i < 5; i++){
             buttons[i] = new RoundedButton(bNames[i]);
             buttons[i].setBackground(Utils.buttonColor);
             buttons[i].setForeground(Utils.fontColor);
