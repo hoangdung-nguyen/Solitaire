@@ -109,6 +109,7 @@ public class Menu extends JPanel {
         showGamePopup(name);
     }
 
+    /** Provides a pop-up window to the user to select a new game or continue a saved game. */
     private void showGamePopup(String gameName){
         String[] options;
         String saveFileName = "GameSave_" + gameName + ".dat";
@@ -135,6 +136,7 @@ public class Menu extends JPanel {
         }
 
     }
+    /** Launches the selected game.*/
     private Solitaire createGameInstance(String gameName, File saveFile) {
         switch (gameName) {
             case "Klondike": return (saveFile == null ? new Klondike() : new Klondike(saveFile.getPath())).start(this);
@@ -149,19 +151,19 @@ public class Menu extends JPanel {
                 }
                 return new Spider(diff).start(this);
             case "FreeCell": return (saveFile == null ? new FreeCell() : new FreeCell(saveFile.getPath())).start(this);
-            // TODO The other ones
+
         }
         throw new IllegalArgumentException("Unknown game: " + gameName);
     }
     //
-
+         /** Acquires the difficulty setting for relevant games.*/
     int getDifficulty(){
         ArrayList<String> options = new ArrayList<>(Arrays.asList("Normal", "Hard", "Master"));
         String choice = (String) JOptionPane.showInputDialog(this, "Select difficulty:", "Difficulty", JOptionPane.QUESTION_MESSAGE, null, new String[]{"Normal", "Hard", "Master"}, "Normal");
         if(choice == null) return -1;
         return options.indexOf(choice);
     }
-
+        /** Creates a new instance of a game. */
     private void startNewGame(String gameName){
         if(cards.get(gameName)==null){
             // Game not initialized, and has no saves
@@ -176,7 +178,7 @@ public class Menu extends JPanel {
         }
         ((CardLayout) cardLayoutPanel.getLayout()).show(cardLayoutPanel, gameName);
     }
-
+        /** Continues a saved instance of a game. */
     private void continueSavedGame(String gameName, File saveFile){
         Solitaire game = cards.get(gameName);
         if(game == null){
@@ -192,18 +194,20 @@ public class Menu extends JPanel {
         ((CardLayout) cardLayoutPanel.getLayout()).show(cardLayoutPanel, gameName);
         saveFile.delete();
     }
+        /** Automatically saves a game's state. */
     private void autoSaveCurrentGame(){
         for(String gameName : cards.keySet()){
             cards.get(gameName).saveGame();
         }
     }
+    /** Asks the player to confirm if they want to quit.*/
     private void showExitConfirmation(){
         int choice = JOptionPane.showConfirmDialog(this, "Are you sure you want to exit?", "Exit Game", JOptionPane.YES_NO_OPTION);
         if(choice == JOptionPane.YES_OPTION){
             System.exit(0);
         }
     }
-
+        /** Creates the cards on the sides of the menu. */
     private void generatePanelCards(){
         leftPanel.removeAll();
         rightPanel.removeAll();
@@ -238,7 +242,7 @@ public class Menu extends JPanel {
 
 
 
-
+        /** Class that displays a column of overlapping cards. */
     private class CardPanel extends JPanel {
 
         private final java.util.List<BufferedImage> cards = new ArrayList<>();
