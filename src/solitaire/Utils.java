@@ -243,7 +243,7 @@ interface SaveAndLoad {
 
     default void loadFromFile(File file) {
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
-            loadSave((PileSave) in.readObject());
+            loadSave((GameSave) in.readObject());
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (ClassNotFoundException e) {

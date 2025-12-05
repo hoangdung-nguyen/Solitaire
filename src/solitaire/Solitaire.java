@@ -2,10 +2,7 @@ package solitaire;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
@@ -148,8 +145,22 @@ public abstract class Solitaire extends JPanel implements SaveAndLoad{
             }
         });
         time.start();
-
+        setupKeyBindings();
     }
+    private void setupKeyBindings() {
+        // Use the panel’s input map + action map for global hotkeys
+        InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = getActionMap();
+
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK), "Undo");
+        actionMap.put("Undo", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                undoLastMove();
+            }
+        });
+    }
+
     void switchToMainMenu(){
         saveGame();
         ((CardLayout) mainMenu.cardLayoutPanel.getLayout()).show(mainMenu.cardLayoutPanel, "Menu");

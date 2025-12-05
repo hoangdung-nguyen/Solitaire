@@ -14,7 +14,7 @@ public class Menu extends JPanel {
 
     //User Interface
     private RoundedButton[] buttons = new RoundedButton[6];
-    private String[] bNames = {"Klondike", "Pyramid", "TriPeaks", "Spider", "FreeCell", "Exit"};
+    private String[] bNames = {"Klondike", "Pyramid", "Tripeaks", "Spider", "FreeCell", "Exit"};
     private JPanel centerPanel, leftPanel, rightPanel;
     JPanel cardLayoutPanel;
     HashMap<String, Solitaire> cards = new HashMap<>();
@@ -140,7 +140,7 @@ public class Menu extends JPanel {
             case "Klondike": return (saveFile == null ? new Klondike() : new Klondike(saveFile.getPath())).start(this);
             case "Pyramid":
                 return (saveFile == null ? new PyramidGame() : new PyramidGame(saveFile.getPath())).start(this);
-            case "TriPeaks":
+            case "Tripeaks":
                 return (saveFile == null ? new Tripeaks() : new Tripeaks(saveFile.getPath())).start(this);
             case "Spider":
                 if (saveFile != null) return new Spider(saveFile.getPath()).start(this);
