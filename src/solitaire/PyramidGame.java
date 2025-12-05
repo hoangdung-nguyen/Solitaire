@@ -171,9 +171,13 @@ public class PyramidGame extends Solitaire {
 
     private void resetStockPile(){
         logic.drawCard();
-        stockUI.addAll(wasteUI);
+        stockPanel.removeAll();
+        stockUI.clear();
         for(JCard jc : wasteUI)
-            stockPanel.add(jc);
+            if(jc.isVisible()) {
+                stockUI.add(jc);
+                stockPanel.add(jc);
+            }
         wasteUI.clear();
         wastePanel.removeAll();
         wastePanel.repaint();
