@@ -24,7 +24,7 @@ public class Klondike extends PileSolitaire{
         setupUtils();
 	}
     public Klondike(String saveFile)
-    {//TODO finish this function, use FreeCell.java's loadSave for reference
+    {
         super(7,saveFile);
         setupUtils();
         PileSave saveData;
@@ -55,7 +55,7 @@ public class Klondike extends PileSolitaire{
 
 
     }
-
+    /**Sets up elements specific to Klondike. */
     public void setupUtils()
     {
         utilPane = new JPanel(new GridLayout(1, COLS, 10, 10))
@@ -162,12 +162,6 @@ public class Klondike extends PileSolitaire{
         }
 
         utilPiles.get(0).add(stock.pop(), false);
-
-        /*for (MouseListener m : piles.get(0).cardsMap.get(piles.get(0).getLast()).getMouseListeners())
-            piles.get(0).cardsMap.get(piles.get(0).getLast()).removeMouseListener(m);
-        for (MouseMotionListener m : piles.get(0).cardsMap.get(piles.get(0).getLast()).getMouseMotionListeners())
-            piles.get(0).cardsMap.get(piles.get(0).getLast()).removeMouseMotionListener(m);*/
-
         addMouseListeners(utilPiles.get(0).getLast());
 
         utilPiles.getFirst().pilePane.revalidate();
@@ -175,6 +169,7 @@ public class Klondike extends PileSolitaire{
 
         if(stock.isEmpty()) getCards.repaint();
     }
+
 
     @Override
     protected ArrayList<Card> getSequence(Pile parent) {
