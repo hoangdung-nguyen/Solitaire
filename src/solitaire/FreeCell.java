@@ -42,7 +42,7 @@ public class FreeCell extends PileSolitaire {
     }
 
     private void setupUtil() {
-        utilPane = new JPanel(new GridLayout(1, COLS)) {
+        utilPane = new JPanel(new GridLayout(1, COLS, 10, 10)) {
             @Override
             public Dimension getPreferredSize() {
                 return new Dimension(getParent().getWidth(), (int) (getParent().getWidth() * JCard.getRatio() / COLS));
@@ -218,8 +218,8 @@ public class FreeCell extends PileSolitaire {
             state.utilPiles.add(pileList);
         }
         state.pastMoves.clear();
-        for (PileMove move : pastMoves) {
-            state.pastMoves.add(new PileSave.PileMoveState(move, piles, utilPiles));
+        for (GameMove move : pastMoves) {
+            state.pastMoves.add(new PileSave.PileMoveState((PileMove) move, piles, utilPiles));
         }
         return state;
     }

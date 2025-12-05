@@ -35,8 +35,8 @@ public class Menu extends JPanel {
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                menu.autoSaveCurrentGame();
-                System.exit(0);
+            menu.autoSaveCurrentGame();
+            System.exit(0);
             }
         });
 

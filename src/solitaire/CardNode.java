@@ -41,7 +41,7 @@ public class CardNode implements Serializable {
         rCover = x;
     }
 
-    public void setLeftBeneath(CardNode x){
+    public void setLeftBeneath(CardNode x) {
         lBeneath = x;
     }
 
@@ -78,6 +78,14 @@ public class CardNode implements Serializable {
 
     public CardNode getRightCover(){
         return rCover;
+    }
+
+    public CardNode getLeftBeneath(){
+        return lBeneath;
+    }
+
+    public CardNode getRightBeneath(){
+        return rBeneath;
     }
 
     //Mainly for TriPeaks

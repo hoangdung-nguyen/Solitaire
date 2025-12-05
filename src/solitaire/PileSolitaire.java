@@ -12,16 +12,13 @@ import java.util.Stack;
 
 public abstract class PileSolitaire extends Solitaire{
     private static final long serialVersionUID = 1L;
-    final static int GRAVITY = 1;
     protected int COLS;
     protected int difficulty;
 
     Deck stock;
     ArrayList<Pile> piles;
-    Stack<PileMove> pastMoves;
 
     // This is the hirachrchy of how it's placed within the LayeredPane, all wthin the DEFAULT_LAYER
-
     JLayeredPane layered;
         JPanel outerPane;
             /** BorderLayout*/
@@ -297,7 +294,7 @@ public abstract class PileSolitaire extends Solitaire{
         heldPile = null;
         selectedCard = null;
         if(!pastMoves.isEmpty()) {
-            PileMove move = pastMoves.getLast();
+            PileMove move = (PileMove) pastMoves.getLast();
             if(move.drawMove) {
                 undoDrawMove();
             }
@@ -344,6 +341,78 @@ public abstract class PileSolitaire extends Solitaire{
     protected abstract void afterMoveChecks(PileMove move);
     /** win con */
     protected abstract void checkWin();
+
+    protected void newGame(){
+        gameEnded = false;
+        clearTable();
+        makeDeck();
+        stock.shuffle();
+        placeCards();
+        addMouseListeners(piles);
+        addUIFunctions();
+        revalidate();
+        repaint();
+    }
+    /** move them over, check for any changes in the pile */
+    private void makeMove(Pile held, Pile from, Pile to) {
+        // move them over, check for any changes in the pile
+        // System.err.println("Moving Cards");
+        to.addAll(held);
+        from.removeAll(held);
+        PileMove move = new PileMove(held, from, to);
+        pastMoves.push(move);
+        afterMoveChecks(move);
+    }
+    /** Checking if the pile has a flipped card on top, then flipping it if there is */
+    protected void checkPileTop(Pile pile) {
+        if(!pile.isEmpty() && pile.getLast().isFaceDown()) {
+            // System.out.println("REVEALING CARD "+ pile.cardsMap.get(pile.getLast()));
+            pile.cardsMap.get(pile.getLast()).setFaceDown(false);
+            if(pile == ((PileMove)pastMoves.getLast()).movedFrom)
+                ((PileMove)pastMoves.getLast()).fromFlipped = pile.getLast();
+            if(pile == ((PileMove)pastMoves.getLast()).movedTo)
+                ((PileMove)pastMoves.getLast()).toFlipped = pile.getLast();
+        }
+    }
+
+
+
+    public GameSave makeSave(){
+        return new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
+    }
+
+    /** Load game from a PileSolitaire already set up */
+    public void loadSave(GameSave save) {
+        PileSave saveData = (PileSave) save;
+        // Stock
+        for (Card cs : saveData.stock) {
+            stock.add(cs);
+        }
+
+        // Piles
+        for (int i=0; i<piles.size(); ++i) {
+            Pile p = piles.get(i);
+            ArrayList<Card> pileList = saveData.piles.get(i);
+            for (Card cs : pileList) {
+                p.add(cs, cs.isFaceDown());
+            }
+        }
+
+        // Past moves
+        for (PileSave.PileMoveState pm : saveData.pastMoves) {
+            pastMoves.push(new PileMove(pm, piles));
+        }
+        addMouseListeners(piles);
+        start = Instant.now().minusSeconds(saveData.timePast);
+        revalidate();
+        repaint();
+    }
+
+    public void loadFromFile(File file) {
+        gameEnded = false;
+        clearTable();
+        super.loadFromFile(file);
+    }
 
     protected void startEndAnimation(ArrayList<Pile> fullCardPiles) {
         ArrayList<BufferedImage> images = new ArrayList<>();
@@ -425,86 +494,6 @@ public abstract class PileSolitaire extends Solitaire{
         });
         animation.start();
     }
-    /**
-     *
-     */
-    @Override
-    protected void replayGame() {
-        while(!pastMoves.isEmpty()) undoLastMove();
-    }
-
-    protected void newGame(){
-        gameEnded = false;
-        clearTable();
-        makeDeck();
-        stock.shuffle();
-        placeCards();
-        addMouseListeners(piles);
-        addUIFunctions();
-        revalidate();
-        repaint();
-    }
-    /** move them over, check for any changes in the pile */
-    private void makeMove(Pile held, Pile from, Pile to) {
-        // move them over, check for any changes in the pile
-        // System.err.println("Moving Cards");
-        to.addAll(held);
-        from.removeAll(held);
-        PileMove move = new PileMove(held, from, to);
-        pastMoves.push(move);
-        afterMoveChecks(move);
-    }
-    /** Checking if the pile has a flipped card on top, then flipping it if there is */
-    protected void checkPileTop(Pile pile) {
-        if(!pile.isEmpty() && pile.getLast().isFaceDown()) {
-            // System.out.println("REVEALING CARD "+ pile.cardsMap.get(pile.getLast()));
-            pile.cardsMap.get(pile.getLast()).setFaceDown(false);
-            if(pile == pastMoves.getLast().movedFrom)
-                pastMoves.getLast().fromFlipped = pile.getLast();
-            if(pile == pastMoves.getLast().movedTo)
-                pastMoves.getLast().toFlipped = pile.getLast();
-        }
-    }
-
-
-
-    public GameSave makeSave(){
-        return new PileSave(difficulty, Duration.between(start, Instant.now()).getSeconds(), stock, piles, pastMoves);
-    }
-
-    /** Load game from a PileSolitaire already set up */
-    public void loadSave(GameSave save) {
-        PileSave saveData = (PileSave) save;
-        // Stock
-        for (Card cs : saveData.stock) {
-            stock.add(cs);
-        }
-
-        // Piles
-        for (int i=0; i<piles.size(); ++i) {
-            Pile p = piles.get(i);
-            ArrayList<Card> pileList = saveData.piles.get(i);
-            for (Card cs : pileList) {
-                p.add(cs, cs.isFaceDown());
-            }
-        }
-
-        // Past moves
-        for (PileSave.PileMoveState pm : saveData.pastMoves) {
-            pastMoves.push(new PileMove(pm, piles));
-        }
-        addMouseListeners(piles);
-        start = Instant.now().minusSeconds(saveData.timePast);
-        revalidate();
-        repaint();
-    }
-
-    public void loadFromFile(File file) {
-        gameEnded = false;
-        clearTable();
-        super.loadFromFile(file);
-    }
-
     /** clears piles, stock and pastMoves, called in game resets */
     void clearTable() {
         for(Pile pile : piles)
@@ -525,88 +514,6 @@ public abstract class PileSolitaire extends Solitaire{
         return false;
     }
 
-    /** DVDLogo, assumes arraylists of same size, same correlating index
-     * @param images All images to be bounced
-     * @param points The current location of the image on the Component
-     * @param velocitiesX The current horizontal velocity
-     * @param velocitiesY The current vertical velocity
-     */
-    void DVDLogo(ArrayList<BufferedImage> images, ArrayList<Point> points, ArrayList<Integer> velocitiesX, ArrayList<Integer> velocitiesY){
-        for(int i = 0;i<images.size();++i){
-            int newX = points.get(i).x+velocitiesX.get(i);
-            int newY = points.get(i).y+velocitiesY.get(i);
-            if(newX<=0 || newX+images.get(i).getWidth()>=getWidth()){
-                if (newX<=0)
-                    newX = -newX;
-                else newX = 2 * getWidth() - newX - 2*images.get(i).getWidth();
-                velocitiesX.set(i,-velocitiesX.get(i));
-            }
-            if(newY<=0 || newY+images.get(i).getHeight()>=getHeight()){
-                if (newY<=0)
-                    newY = -newY;
-                else newY = 2* getHeight() - newY - 2*images.get(i).getHeight();
-                velocitiesY.set(i,-velocitiesY.get(i));
-            }
-            points.set(i, new Point(newX, newY));
-        }
-    }
-    /** Simple gravity engine, assumes arraylists of same size, same correlating index
-     *  When completely still at the bottom, sinks down and respawn on top to fall down again
-     * @param images All images to be bounced
-     * @param points The current location of the image on the Component
-     * @param velocitiesX The current horizontal velocity
-     * @param velocitiesY The current vertical velocity
-     */
-    void gravityCards(ArrayList<BufferedImage> images, ArrayList<Point> points, ArrayList<Integer> velocitiesX, ArrayList<Integer> velocitiesY, ArrayList<Integer> initialX, ArrayList<Integer> initialY, boolean follow){
-        for (int i = 0; i < images.size(); i++) {
-            // X, fully elastic bounce
-            int newX = points.get(i).x + velocitiesX.get(i);
-            if(newX<=0 || newX+images.get(i).getWidth()>=getWidth()){
-                if (newX<=0)
-                    newX = -newX;
-                else newX = 2 * getWidth() - newX - 2*images.get(i).getWidth();
-                velocitiesX.set(i,-velocitiesX.get(i));
-            }
-            // Y
-            int vy = velocitiesY.get(i) + GRAVITY;
-            int newY = points.get(i).y + vy;
-            // Drop it from the top
-            if(newY>=getHeight()){
-                newY = -images.get(i).getHeight();
-                if (follow) {
-                    if (i < initialX.size()) {
-                        // leaders are random
-                        int ivx = (int) (Math.random() * 20 - 10);
-                        int ivy = (int) (Math.random() * 20 - 10);
-                        velocitiesX.set(i, ivx);
-                        velocitiesY.set(i, ivy);
-                        initialX.set(i, ivx);
-                        vy = ivy;
-                    } else {
-                        int index = i % initialX.size();
-                        velocitiesX.set(i, initialX.get(index));
-                        vy = initialY.get(index);
-                    }
-                }
-                // Random initial velocities
-                else {
-                    velocitiesX.set(i, (int) (Math.random() * 20 - 10));
-                    vy = (int) (Math.random() * 20 - 10);
-                }
-            }
-            // Bounce or sink
-            else if(newY+images.get(i).getHeight()>=getHeight()){
-                vy = -(int) (vy * 0.7);
-                if(velocitiesX.get(i)==0 && velocitiesY.get(i)==0) newY += newY+images.get(i).getHeight()-getHeight();
-                else newY = 2 * getHeight() - newY - 2 * images.get(i).getHeight();
-            }
-            velocitiesY.set(i,vy);
-            // Friction
-            if(newY == getHeight()-images.get(i).getHeight())  velocitiesX.set(i, (int) (velocitiesX.get(i)*0.7));
-            points.set(i, new Point(newX, newY));
-        }
-    }
-
     @Override
     public void doLayout() {
         super.doLayout();
@@ -617,7 +524,7 @@ public abstract class PileSolitaire extends Solitaire{
 }
 
 /** Simple class containing aspects of a pile move. Some are only used for certain games. */
-class PileMove{
+class PileMove extends GameMove{
     ArrayList<Card> cardsMoved;
     Pile movedFrom;
     Pile movedTo;
@@ -692,16 +599,16 @@ class PileSave extends GameSave implements Serializable{
     public ArrayList<ArrayList<Card>> utilPiles;
     public ArrayList<PileMoveState> pastMoves = new ArrayList<>();
 
-    public PileSave(int diff, long time, Deck stock, ArrayList<Pile> piles, Stack<PileMove> pastMoves) {
+    public PileSave(int diff, long time, Deck stock, ArrayList<Pile> piles, Stack<GameMove> pastMoves) {
         this(diff, time, stock, piles);
         // Past moves
-        for (PileMove move : pastMoves) {
-            this.pastMoves.add(new PileMoveState(move,piles));
+        for (GameMove move : pastMoves) {
+            this.pastMoves.add(new PileMoveState((PileMove) move,piles));
         }
     }
     public PileSave(int diff, long time, Deck stock, ArrayList<Pile> piles) {
         difficulty = diff;
-        timePast = time;
+
         // Stock
         for (Card c : stock) {
             this.stock.add(new Card(c.getRank(), c.getSuit(), true));

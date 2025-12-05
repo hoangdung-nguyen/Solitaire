@@ -14,6 +14,7 @@ public class PilePanel extends JPanel {
     ArrayList<Card> cards;
     HashMap<Card, JCard> cardsMap;
     static int cardWidth, cardHeight;
+    boolean shadow = true;
 
     /**
      * cols is how many piles it will be placed next to
@@ -100,6 +101,11 @@ public class PilePanel extends JPanel {
 
     }
 
+    @Override
+    public void paint(Graphics g){
+        super.paint(g);
+        if(shadow && cards.isEmpty()) g.drawImage(Utils.cardShadow, 0,0, getParent().getWidth() / COLS, (int)(getParent().getWidth() / COLS*JCard.getRatio()), null);
+    }
     @Override
     public Dimension getPreferredSize() {
         return new Dimension(getParent().getWidth() / COLS, getParent().getHeight());

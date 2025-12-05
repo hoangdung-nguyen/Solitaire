@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,17 +15,16 @@ public class PyramidGame extends Solitaire {
 
     private PyramidLogic logic;
     private TriangleLayout layout;
-    JButton drawCard;
+    protected JButton drawCard;
 
     private JPanel mainPanel, pyramidPanel, utilPanel, stockPanel, wastePanel;
 
     private ArrayList<JCard> stockUI = new ArrayList<>(), wasteUI = new ArrayList<>();
-    private ArrayList<JCard> fuckOffPile = new ArrayList<>();
     private List<JCard> jCards;
     private int difficulty;
     private PairHandler pairHandler;
 
-    private JCard topStock, topWaste;
+    private ArrayList<JCard> allJCards = new ArrayList<>();
 
 
 
@@ -109,6 +109,7 @@ public class PyramidGame extends Solitaire {
             CardNode node = logic.pyramidCards.get(i);
 
             JCard jc = new JCard(node);
+            allJCards.add(jc);
             jc.setFaceDown(!node.isFaceUp());
             jc.setBounds(node.getX(), node.getY(), node.getWidth(), node.getHeight());
             pyramidPanel.add(jc, 0);
@@ -133,6 +134,8 @@ public class PyramidGame extends Solitaire {
             stockPanel.add(stockUI.get(i));
             stockUI.get(i).addMouseListener(pairHandler);
         }
+
+        allJCards.addAll(stockUI);
 
         drawCard = new RoundedButton("+")
         {
@@ -171,9 +174,13 @@ public class PyramidGame extends Solitaire {
 
     private void resetStockPile(){
         logic.drawCard();
-        stockUI.addAll(wasteUI);
+        stockPanel.removeAll();
+        stockUI.clear();
         for(JCard jc : wasteUI)
-            stockPanel.add(jc);
+            if(jc.isVisible()) {
+                stockUI.add(jc);
+                stockPanel.add(jc);
+            }
         wasteUI.clear();
         wastePanel.removeAll();
         wastePanel.repaint();
@@ -218,7 +225,15 @@ public class PyramidGame extends Solitaire {
 
     @Override
     protected void undoLastMove() {
-
+        PyramidMove lastMove = logic.undoMove();
+        if(lastMove == null)
+            return;
+        else if (lastMove.isKingMove)
+        {
+            lastMove.firstCard.setRemoved(false);
+            allJCards.get(logic.allNodes.indexOf(lastMove.firstCard));
+        }
+        repaint();
     }
 
     @Override
@@ -344,7 +359,7 @@ public class PyramidGame extends Solitaire {
                 firstCard.setGreyed(false);
                 firstCard = null;
             }
-
+            logic.checkWin();
         }
     }
 
