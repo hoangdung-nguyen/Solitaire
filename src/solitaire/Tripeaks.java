@@ -374,7 +374,9 @@ public class Tripeaks extends Solitaire{
 
         Card topDiscard = discardPile.getLast();
         if(!isValidMove(n.card, topDiscard)) return;
-
+        Utils.plopAudio.stop();
+        if(Utils.plopAudio.isOpen()) Utils.plopAudio.setFramePosition(15000);
+        Utils.plopAudio.start();
         pastMoves.push(new TripeaksMove(n, topDiscard));
         n.setRemoved(true);
         cardsPanel.remove(jc);
@@ -441,7 +443,7 @@ public class Tripeaks extends Solitaire{
     //Creates the save for the game
     @Override
     public GameSave makeSave() {
-        return new TripeaksSave(numPeaks, peakHeight, allNodes, stockPile, discardPile, pastMoves);
+        return new TripeaksSave(numPeaks, peakHeight, Duration.between(start, Instant.now()).getSeconds(), allNodes, stockPile, discardPile, pastMoves);
     }
 
     //Loads a save file and sets up the board, stats and adds them to the panel
@@ -490,6 +492,7 @@ public class Tripeaks extends Solitaire{
         });
         topDiscardCard.setCard(discardPile.getLast());
         utilPanel.add(topDiscardCard);
+        start = Instant.now().minusSeconds(save.timePast);
     }
 
     //Checks if there are any playable moves left
@@ -531,9 +534,10 @@ class TripeaksSave extends GameSave implements Serializable {
     List<Card> stockPile;
     List<Card> discardPile;
     Stack<TripeaksMove> pastMoves;
-    public TripeaksSave(int np, int ph, List<CardNode> nodes, List<Card> stock, List<Card> discard, Stack<TripeaksMove> moves){
+    public TripeaksSave(int np, int ph, long seconds, List<CardNode> nodes, List<Card> stock, List<Card> discard, Stack<TripeaksMove> moves){
         numPeaks = np;
         peakHeight = ph;
+        timePast = seconds;
         allNodes = nodes;
         stockPile = stock;
         discardPile = discard;

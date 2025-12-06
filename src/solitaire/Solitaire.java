@@ -190,6 +190,8 @@ public abstract class Solitaire extends JPanel implements SaveAndLoad{
 
     protected void endGame(){
         // System.out.println("YOU WINNNNNNN!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        if(Utils.winAudio.isOpen()) Utils.winAudio.setFramePosition(0);
+        Utils.winAudio.start();
         time.stop();
         gameEnded = true;
     }

@@ -355,6 +355,9 @@ public abstract class PileSolitaire extends Solitaire{
     }
     /** move them over, check for any changes in the pile */
     private void makeMove(Pile held, Pile from, Pile to) {
+        Utils.plopAudio.stop();
+        if(Utils.plopAudio.isOpen()) Utils.plopAudio.setFramePosition(15000);
+        Utils.plopAudio.start();
         // move them over, check for any changes in the pile
         to.addAll(held);
         from.removeAll(held);
@@ -592,7 +595,6 @@ class PileMove extends GameMove{
 /** A serializable class to be written into a file, containing info of a PileSolitaire and extra utilPiles for specifics */
 class PileSave extends GameSave implements Serializable{
     int difficulty;
-    long timePast;
     public ArrayList<Card> stock = new ArrayList<>();
     public ArrayList<ArrayList<Card>> piles = new ArrayList<>();
     public ArrayList<ArrayList<Card>> utilPiles;
@@ -607,7 +609,7 @@ class PileSave extends GameSave implements Serializable{
     }
     public PileSave(int diff, long time, Deck stock, ArrayList<Pile> piles) {
         difficulty = diff;
-
+        timePast = time;
         // Stock
         for (Card c : stock) {
             this.stock.add(new Card(c.getRank(), c.getSuit(), true));

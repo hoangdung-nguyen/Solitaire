@@ -12,7 +12,35 @@ import java.util.List;
 import java.util.Objects;
 
 public class Utils {
+    static Clip winAudio;
+    static Clip plopAudio;
 
+    static {
+        try {
+            AudioInputStream winnerSoundAudioStream = AudioSystem.getAudioInputStream(Objects.requireNonNull(Utils.class.getResource("/winnersound.wav")));
+            winAudio = AudioSystem.getClip();
+            winAudio.open(winnerSoundAudioStream);
+        } catch (UnsupportedAudioFileException e) {
+            System.out.println("AudioFile not supported");
+        } catch (IOException e) {
+            System.out.println("Could not find audio file");
+        } catch (LineUnavailableException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    static {
+        try {
+            AudioInputStream plopAudioStream = AudioSystem.getAudioInputStream(Objects.requireNonNull(Utils.class.getResource("/plop-sound-made-with-my-mouth-100690.wav")));
+            plopAudio = AudioSystem.getClip();
+            plopAudio.open(plopAudioStream);
+        } catch (UnsupportedAudioFileException e) {
+            System.out.println("AudioFile not supported");
+        } catch (IOException e) {
+            System.out.println("Could not find audio file");
+        } catch (LineUnavailableException e) {
+            throw new RuntimeException(e);
+        }
+    }
     //For title
     public final static Color titleColor = new Color(243, 167, 18);
     //For buttons
@@ -229,7 +257,7 @@ class RoundedButton extends JButton {
     }
 }
 
-class GameSave {long timePast;}
+class GameSave implements Serializable {long timePast;}
 class GameMove {}
 
 interface SaveAndLoad {
